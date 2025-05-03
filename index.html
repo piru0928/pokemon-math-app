@@ -52,11 +52,11 @@
   <h1>ポケモン風 学習メニュー</h1>
 
   <div class="category">
-    <h2>＜さんすう＞ //6A~C</h2>
+    <h2>＜さんすう＞</h2>　// (6A~C) https://www.kumon.ne.jp/kyozai/sugaku/sample/index.html
     <ul>
-      <li><a href="#">すうじのよみ</a></li>
-      <li><a href="#">じゅんばん</a></li>
-      <li><a href="#">ひかく</a></li>
+      <li><a href="#">たしざん：1から5まで</a></li>
+      <span class="status" id="status-addition-easy">×</span>
+      <li><a href="#">ひきざん：1から5まで</a></li>
       <li><a href="#">たしざん：1から10まで</a></li>
       <li><a href="#">ひきざん：1から10まで</a></li>
       <li><a href="#">たしざん：100まで</a></li>
@@ -69,7 +69,7 @@
   </div>
 
   <div class="category">
-    <h2>＜こくご＞ // 4A~BII</h2>
+    <h2>＜こくご＞</h2>　// (4A~BII) https://www.kumon.ne.jp/kyozai/kokugo/sample/index.html
     <ul>
       <li><a href="#">おんどく</a></li>
       <li><a href="#">なにがでてきた？</a></li>
@@ -86,7 +86,7 @@
   </div>
 
   <div class="category">
-    <h2>＜えいご＞ // 3A~D</h2>
+    <h2>＜えいご＞</h2>　// （3A~D) https://www.kumon.ne.jp/kyozai/eigo/sample/index.html
     <ul>
       <li><a href="#">くだもの</a></li>
       <li><a href="#">おやつ</a></li>
@@ -97,5 +97,12 @@
       <li><a href="#">STORY</a></li>
     </ul>
   </div>
+  <script>
+    window.onload = function () {
+      if (localStorage.getItem("cleared-addition-easy") === "true") {
+        document.getElementById("status-addition-easy").textContent = "○";
+      }
+    };
+  </script>
 </body>
 </html>
