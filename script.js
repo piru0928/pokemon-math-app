@@ -16,7 +16,7 @@ function checkAnswer() {
   } else {
     document.getElementById("result").textContent = `ざんねん！こたえは ${num1 + num2} だよ`;
   }
-  setTimeout(newQuestion, 2000); // 2秒後に次の問題
+  setTimeout(newQuestion, 1500); // *秒後に次の問題
 }
 
 // 初期表示
