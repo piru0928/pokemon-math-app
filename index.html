@@ -58,9 +58,9 @@
     }
     .clear-button {
       display: block;
-      margin: 30px auto;
-      padding: 10px 20px;
-      font-size: 16px;
+      margin: 10px auto;
+      padding: 8px 16px;
+      font-size: 14px;
       background-color: #f78fb3;
       color: white;
       border: none;
@@ -76,7 +76,7 @@
   <h1>ポケモン風 学習メニュー</h1>
 
   <div class="category">
-    <h2>＜さんすう＞</h2> <!-- (6A~C) https://www.kumon.ne.jp/kyozai/sugaku/sample/index.html -->
+    <h2>＜さんすう＞</h2>
     <ul>
       <li><span class="status" id="status-addition-1to5">⭐</span><a href="addition-1to5.html">たしざん：1から5まで</a></li>
       <li><span class="status">⭐</span><a href="#">ひきざん：1から5まで</a></li>
@@ -89,10 +89,11 @@
       <li><span class="status">⭐</span><a href="#">わりざん：1から10まで</a></li>
       <li><span class="status">⭐</span><a href="#">わりざん：10000まで</a></li>
     </ul>
+    <button class="clear-button" onclick="clearByUnit('math')">🌱 さんすうのデータをクリア</button>
   </div>
 
   <div class="category">
-    <h2>＜こくご＞</h2> <!-- (4A~BII) https://www.kumon.ne.jp/kyozai/kokugo/sample/index.html -->
+    <h2>＜こくご＞</h2>
     <ul>
       <li><span class="status">⭐</span><a href="#">おんどく</a></li>
       <li><span class="status">⭐</span><a href="#">なにがでてきた？</a></li>
@@ -106,10 +107,11 @@
       <li><span class="status">⭐</span><a href="#">いいかえ</a></li>
       <li><span class="status">⭐</span><a href="#">音と訓</a></li>
     </ul>
+    <button class="clear-button" onclick="clearByUnit('japanese')">🌱 こくごのデータをクリア</button>
   </div>
 
   <div class="category">
-    <h2>＜えいご＞</h2> <!-- （3A~D) https://www.kumon.ne.jp/kyozai/eigo/sample/index.html -->
+    <h2>＜えいご＞</h2>
     <ul>
       <li><span class="status">⭐</span><a href="#">くだもの</a></li>
       <li><span class="status">⭐</span><a href="#">おやつ</a></li>
@@ -119,26 +121,30 @@
       <li><span class="status">⭐</span><a href="#">5W</a></li>
       <li><span class="status">⭐</span><a href="#">STORY</a></li>
     </ul>
+    <button class="clear-button" onclick="clearByUnit('english')">🌱 えいごのデータをクリア</button>
   </div>
 
-  <!-- 学習データクリアボタン -->
-  <button class="clear-button" onclick="clearProgress()">🌱 学習データをクリアする</button>
-
   <script>
+    // ステータス更新
     window.onload = function () {
-      // ステータス更新（今は1項目だけ）
       if (localStorage.getItem("cleared-addition-1to5") === "true") {
         document.getElementById("status-addition-1to5").textContent = "🌸";
       }
     };
 
-    function clearProgress() {
-      const ok = confirm("すべての学習データを消してもよいですか？");
-      if (ok) {
-        localStorage.clear();
-        alert("データをリセットしました！");
-        location.reload();
+    // 単位ごとのデータクリア
+    function clearByUnit(subject) {
+      const ok = confirm(`「${subject}」のがくしゅうデータをけしても いいですか？`);
+      if (!ok) return;
+
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key) && key.includes(subject)) {
+          localStorage.removeItem(key);
+        }
       }
+
+      alert(`${subject} のデータを クリアしました`);
+      location.reload();
     }
   </script>
 </body>
