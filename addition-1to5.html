@@ -90,12 +90,19 @@
       try {
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
         const data = await response.json();
+
         const names = data.names;
         const japaneseNameEntry = names.find(name => name.language.name === "ja");
         const japaneseName = japaneseNameEntry ? japaneseNameEntry.name : "ポケモン";
+
         const flavorTextEntries = data.flavor_text_entries;
         const japaneseFlavorEntry = flavorTextEntries.find(entry => entry.language.name === "ja");
-        const flavorText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくちょうは まだ ないよ";
+        const rawText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text : "とくちょうは まだ ないよ";
+
+        const flavorText = rawText
+          .replace(/\n|\f/g, ' ')
+          .replace(/[\u4E00-\u9FFF]/g, ''); // 漢字を除去
+
         return { name: japaneseName, fact: flavorText };
       } catch (error) {
         return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
