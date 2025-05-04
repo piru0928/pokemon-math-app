@@ -80,9 +80,9 @@
     <ul>
       <li><span class="status" id="status-addition-1to5">⭐</span><a href="addition-1to5.html">たしざん：1から5まで</a></li>
       <li><span class="status">⭐</span><a href="#">ひきざん：1から5まで</a></li>
-      <li><span class="status"　id="status-addition-1to１０">⭐</span><a href="addition-1to10.html">たしざん：1から10まで</a></li>
+      <li><span class="status" id="status-addition-1to10">⭐</span><a href="addition-1to10.html">たしざん：1から10まで</a></li>
       <li><span class="status">⭐</span><a href="#">ひきざん：1から10まで</a></li>
-      <li><span class="status">⭐</span><a href="#">たしざん：100まで</a></li>
+      <li><span class="status" id="status-addition-1to100">⭐</span><a href="addition-1to100.html">たしざん：1から100まで</a></li>
       <li><span class="status">⭐</span><a href="#">ひきざん：100まで</a></li>
       <li><span class="status">⭐</span><a href="#">かけざん：1から10まで</a></li>
       <li><span class="status">⭐</span><a href="#">かけざん：100まで</a></li>
@@ -129,6 +129,12 @@
     window.onload = function () {
       if (localStorage.getItem("cleared-addition-1to5") === "true") {
         document.getElementById("status-addition-1to5").textContent = "🌸";
+      }
+      if (localStorage.getItem("cleared-addition-1to10") === "true") {
+        document.getElementById("status-addition-1to10").textContent = "🌸";
+      }
+      if (localStorage.getItem("cleared-addition-1to100") === "true") {
+        document.getElementById("status-addition-1to100").textContent = "🌸";
       }
     };
 
