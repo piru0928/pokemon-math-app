@@ -18,16 +18,20 @@ function checkAnswer() {
   setTimeout(newQuestion, 1500); // 1.5秒後に次の問題
 }
 
-// ステータスの表示更新（たしざん：1〜5、1〜10）
+// ステータスの表示更新（たしざん：1〜5、1〜10、1〜100）
 function updateStatus() {
   const status5 = document.getElementById("status-addition-1to5");
   const status10 = document.getElementById("status-addition-1to10");
+  const status100 = document.getElementById("status-addition-1to100");
 
   if (status5 && localStorage.getItem("cleared-addition-1to5") === "true") {
     status5.textContent = "🌸";
   }
   if (status10 && localStorage.getItem("cleared-addition-1to10") === "true") {
     status10.textContent = "🌸";
+  }
+  if (status100 && localStorage.getItem("cleared-addition-1to100") === "true") {
+    status100.textContent = "🌸";
   }
 }
 
