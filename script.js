@@ -1,5 +1,6 @@
 let num1, num2;
 
+// 問題を新しく出す関数（1〜10まで）
 function newQuestion() {
   num1 = Math.floor(Math.random() * 10) + 1;
   num2 = Math.floor(Math.random() * 10) + 1;
@@ -8,6 +9,7 @@ function newQuestion() {
   document.getElementById("result").textContent = "";
 }
 
+// 答えをチェックする関数
 function checkAnswer() {
   const userAnswer = parseInt(document.getElementById("answer").value);
   if (userAnswer === num1 + num2) {
@@ -18,25 +20,44 @@ function checkAnswer() {
   setTimeout(newQuestion, 1500); // 1.5秒後に次の問題
 }
 
-// ステータスの表示更新（たしざん：1〜5、1〜10、1〜100）
-function updateStatus() {
-  const status5 = document.getElementById("status-addition-1to5");
-  const status10 = document.getElementById("status-addition-1to10");
-  const status100 = document.getElementById("status-addition-1to100");
+// 🌸/⭐ ステータスの表示更新
+function updateStatusIcons() {
+  const statusMap = {
+    "cleared-addition-1to5": "status-addition-1to5",
+    "cleared-addition-1to10": "status-addition-1to10",
+    "cleared-addition-1to100": "status-addition-1to100"
+  };
 
-  if (status5 && localStorage.getItem("cleared-addition-1to5") === "true") {
-    status5.textContent = "🌸";
-  }
-  if (status10 && localStorage.getItem("cleared-addition-1to10") === "true") {
-    status10.textContent = "🌸";
-  }
-  if (status100 && localStorage.getItem("cleared-addition-1to100") === "true") {
-    status100.textContent = "🌸";
+  for (const key in statusMap) {
+    const el = document.getElementById(statusMap[key]);
+    if (el) {
+      el.textContent = "⭐";
+      if (localStorage.getItem(key) === "true") {
+        el.textContent = "🌸";
+      }
+    }
   }
 }
 
-// 初期表示
+// 単元ごとのデータを削除
+function clearByUnit(subject) {
+  const ok = confirm(`「${subject}」のがくしゅうデータをけしても いいですか？`);
+  if (!ok) return;
+
+  for (let key in localStorage) {
+    if (localStorage.hasOwnProperty(key) && key.includes(subject)) {
+      localStorage.removeItem(key);
+    }
+  }
+
+  alert(`${subject} のデータを クリアしました`);
+  updateStatusIcons(); // ステータスの見た目も更新
+}
+
+// 初期表示処理
 window.onload = function () {
-  newQuestion();
-  updateStatus();
+  if (document.getElementById("question")) {
+    newQuestion();
+  }
+  updateStatusIcons();
 };
