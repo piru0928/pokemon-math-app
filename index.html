@@ -10,12 +10,12 @@
       background-color: #fdf6e3;
       color: #333;
       padding: 20px;
-      text-align: center;
     }
     h1 {
       color: #e74c3c;
       font-size: 28px;
       margin-bottom: 20px;
+      text-align: center;
     }
     .category {
       background: #fff3cd;
@@ -37,6 +37,16 @@
     }
     li {
       margin: 8px 0;
+      display: flex;
+      align-items: center;
+    }
+    .status {
+      display: inline-block;
+      width: 24px;
+      margin-right: 8px;
+      text-align: center;
+      font-weight: bold;
+      color: #27ae60;
     }
     a {
       text-decoration: none;
@@ -52,55 +62,56 @@
   <h1>ポケモン風 学習メニュー</h1>
 
   <div class="category">
-    <h2>＜さんすう＞</h2>　<!-- (6A~C) https://www.kumon.ne.jp/kyozai/sugaku/sample/index.html -->
+    <h2>＜さんすう＞</h2> <!-- (6A~C) https://www.kumon.ne.jp/kyozai/sugaku/sample/index.html -->
     <ul>
-      <li><a href="addition-1to5.html">たしざん：1から5まで</a></li>
-      <span class="status" id="status-addition-easy">×</span>
-      <li><a href="#">ひきざん：1から5まで</a></li>
-      <li><a href="#">たしざん：1から10まで</a></li>
-      <li><a href="#">ひきざん：1から10まで</a></li>
-      <li><a href="#">たしざん：100まで</a></li>
-      <li><a href="#">ひきざん：100まで</a></li>
-      <li><a href="#">かけざん：1から10まで</a></li>
-      <li><a href="#">かけざん：100まで</a></li>
-      <li><a href="#">わりざん：1から10まで</a></li>
-      <li><a href="#">わりざん：10000まで</a></li>
+      <li><span class="status" id="status-addition-1to5">×</span><a href="addition-1to5.html">たしざん：1から5まで</a></li>
+      <li><span class="status">×</span><a href="#">ひきざん：1から5まで</a></li>
+      <li><span class="status">×</span><a href="#">たしざん：1から10まで</a></li>
+      <li><span class="status">×</span><a href="#">ひきざん：1から10まで</a></li>
+      <li><span class="status">×</span><a href="#">たしざん：100まで</a></li>
+      <li><span class="status">×</span><a href="#">ひきざん：100まで</a></li>
+      <li><span class="status">×</span><a href="#">かけざん：1から10まで</a></li>
+      <li><span class="status">×</span><a href="#">かけざん：100まで</a></li>
+      <li><span class="status">×</span><a href="#">わりざん：1から10まで</a></li>
+      <li><span class="status">×</span><a href="#">わりざん：10000まで</a></li>
     </ul>
   </div>
 
   <div class="category">
-    <h2>＜こくご＞</h2>　<!-- (4A~BII) https://www.kumon.ne.jp/kyozai/kokugo/sample/index.html -->
+    <h2>＜こくご＞</h2> <!-- (4A~BII) https://www.kumon.ne.jp/kyozai/kokugo/sample/index.html -->
     <ul>
-      <li><a href="#">おんどく</a></li>
-      <li><a href="#">なにがでてきた？</a></li>
-      <li><a href="#">ようすことば</a></li>
-      <li><a href="#">うごきことば</a></li>
-      <li><a href="#">くっつきことば</a></li>
-      <li><a href="#">ぶんをよみとる</a></li>
-      <li><a href="#">漢字</a></li>
-      <li><a href="#">主語と述語</a></li>
-      <li><a href="#">装飾語</a></li>
-      <li><a href="#">いいかえ</a></li>
-      <li><a href="#">音と訓</a></li>
+      <li><span class="status">×</span><a href="#">おんどく</a></li>
+      <li><span class="status">×</span><a href="#">なにがでてきた？</a></li>
+      <li><span class="status">×</span><a href="#">ようすことば</a></li>
+      <li><span class="status">×</span><a href="#">うごきことば</a></li>
+      <li><span class="status">×</span><a href="#">くっつきことば</a></li>
+      <li><span class="status">×</span><a href="#">ぶんをよみとる</a></li>
+      <li><span class="status">×</span><a href="#">漢字</a></li>
+      <li><span class="status">×</span><a href="#">主語と述語</a></li>
+      <li><span class="status">×</span><a href="#">装飾語</a></li>
+      <li><span class="status">×</span><a href="#">いいかえ</a></li>
+      <li><span class="status">×</span><a href="#">音と訓</a></li>
     </ul>
   </div>
 
   <div class="category">
-    <h2>＜えいご＞</h2>　// <!-- （3A~D) https://www.kumon.ne.jp/kyozai/eigo/sample/index.html -->
+    <h2>＜えいご＞</h2> <!-- （3A~D) https://www.kumon.ne.jp/kyozai/eigo/sample/index.html -->
     <ul>
-      <li><a href="#">くだもの</a></li>
-      <li><a href="#">おやつ</a></li>
-      <li><a href="#">へや</a></li>
-      <li><a href="#">おおきい、ちいさい</a></li>
-      <li><a href="#">すき、たべる、のむ</a></li>
-      <li><a href="#">5W</a></li>
-      <li><a href="#">STORY</a></li>
+      <li><span class="status">×</span><a href="#">くだもの</a></li>
+      <li><span class="status">×</span><a href="#">おやつ</a></li>
+      <li><span class="status">×</span><a href="#">へや</a></li>
+      <li><span class="status">×</span><a href="#">おおきい、ちいさい</a></li>
+      <li><span class="status">×</span><a href="#">すき、たべる、のむ</a></li>
+      <li><span class="status">×</span><a href="#">5W</a></li>
+      <li><span class="status">×</span><a href="#">STORY</a></li>
     </ul>
   </div>
+
   <script>
+    // 「たしざん：1から5まで」がクリアされたら〇表示
     window.onload = function () {
-      if (localStorage.getItem("cleared-addition-easy") === "true") {
-        document.getElementById("status-addition-easy").textContent = "○";
+      if (localStorage.getItem("cleared-addition-1to5") === "true") {
+        document.getElementById("status-addition-1to5").textContent = "○";
       }
     };
   </script>
