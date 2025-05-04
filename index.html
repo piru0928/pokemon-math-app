@@ -42,11 +42,11 @@
     }
     .status {
       display: inline-block;
-      width: 24px;
+      width: 48px;
       margin-right: 8px;
       text-align: center;
       font-weight: bold;
-      color: #27ae60;
+      font-size: 18px;
     }
     a {
       text-decoration: none;
@@ -56,6 +56,20 @@
     a:hover {
       color: #c0392b;
     }
+    .clear-button {
+      display: block;
+      margin: 30px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #f78fb3;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .clear-button:hover {
+      background-color: #f368e0;
+    }
   </style>
 </head>
 <body>
@@ -64,56 +78,68 @@
   <div class="category">
     <h2>＜さんすう＞</h2> <!-- (6A~C) https://www.kumon.ne.jp/kyozai/sugaku/sample/index.html -->
     <ul>
-      <li><span class="status" id="status-addition-1to5">×</span><a href="addition-1to5.html">たしざん：1から5まで</a></li>
-      <li><span class="status">×</span><a href="#">ひきざん：1から5まで</a></li>
-      <li><span class="status">×</span><a href="#">たしざん：1から10まで</a></li>
-      <li><span class="status">×</span><a href="#">ひきざん：1から10まで</a></li>
-      <li><span class="status">×</span><a href="#">たしざん：100まで</a></li>
-      <li><span class="status">×</span><a href="#">ひきざん：100まで</a></li>
-      <li><span class="status">×</span><a href="#">かけざん：1から10まで</a></li>
-      <li><span class="status">×</span><a href="#">かけざん：100まで</a></li>
-      <li><span class="status">×</span><a href="#">わりざん：1から10まで</a></li>
-      <li><span class="status">×</span><a href="#">わりざん：10000まで</a></li>
+      <li><span class="status" id="status-addition-1to5">⭐</span><a href="addition-1to5.html">たしざん：1から5まで</a></li>
+      <li><span class="status">⭐</span><a href="#">ひきざん：1から5まで</a></li>
+      <li><span class="status">⭐</span><a href="#">たしざん：1から10まで</a></li>
+      <li><span class="status">⭐</span><a href="#">ひきざん：1から10まで</a></li>
+      <li><span class="status">⭐</span><a href="#">たしざん：100まで</a></li>
+      <li><span class="status">⭐</span><a href="#">ひきざん：100まで</a></li>
+      <li><span class="status">⭐</span><a href="#">かけざん：1から10まで</a></li>
+      <li><span class="status">⭐</span><a href="#">かけざん：100まで</a></li>
+      <li><span class="status">⭐</span><a href="#">わりざん：1から10まで</a></li>
+      <li><span class="status">⭐</span><a href="#">わりざん：10000まで</a></li>
     </ul>
   </div>
 
   <div class="category">
     <h2>＜こくご＞</h2> <!-- (4A~BII) https://www.kumon.ne.jp/kyozai/kokugo/sample/index.html -->
     <ul>
-      <li><span class="status">×</span><a href="#">おんどく</a></li>
-      <li><span class="status">×</span><a href="#">なにがでてきた？</a></li>
-      <li><span class="status">×</span><a href="#">ようすことば</a></li>
-      <li><span class="status">×</span><a href="#">うごきことば</a></li>
-      <li><span class="status">×</span><a href="#">くっつきことば</a></li>
-      <li><span class="status">×</span><a href="#">ぶんをよみとる</a></li>
-      <li><span class="status">×</span><a href="#">漢字</a></li>
-      <li><span class="status">×</span><a href="#">主語と述語</a></li>
-      <li><span class="status">×</span><a href="#">装飾語</a></li>
-      <li><span class="status">×</span><a href="#">いいかえ</a></li>
-      <li><span class="status">×</span><a href="#">音と訓</a></li>
+      <li><span class="status">⭐</span><a href="#">おんどく</a></li>
+      <li><span class="status">⭐</span><a href="#">なにがでてきた？</a></li>
+      <li><span class="status">⭐</span><a href="#">ようすことば</a></li>
+      <li><span class="status">⭐</span><a href="#">うごきことば</a></li>
+      <li><span class="status">⭐</span><a href="#">くっつきことば</a></li>
+      <li><span class="status">⭐</span><a href="#">ぶんをよみとる</a></li>
+      <li><span class="status">⭐</span><a href="#">漢字</a></li>
+      <li><span class="status">⭐</span><a href="#">主語と述語</a></li>
+      <li><span class="status">⭐</span><a href="#">装飾語</a></li>
+      <li><span class="status">⭐</span><a href="#">いいかえ</a></li>
+      <li><span class="status">⭐</span><a href="#">音と訓</a></li>
     </ul>
   </div>
 
   <div class="category">
     <h2>＜えいご＞</h2> <!-- （3A~D) https://www.kumon.ne.jp/kyozai/eigo/sample/index.html -->
     <ul>
-      <li><span class="status">×</span><a href="#">くだもの</a></li>
-      <li><span class="status">×</span><a href="#">おやつ</a></li>
-      <li><span class="status">×</span><a href="#">へや</a></li>
-      <li><span class="status">×</span><a href="#">おおきい、ちいさい</a></li>
-      <li><span class="status">×</span><a href="#">すき、たべる、のむ</a></li>
-      <li><span class="status">×</span><a href="#">5W</a></li>
-      <li><span class="status">×</span><a href="#">STORY</a></li>
+      <li><span class="status">⭐</span><a href="#">くだもの</a></li>
+      <li><span class="status">⭐</span><a href="#">おやつ</a></li>
+      <li><span class="status">⭐</span><a href="#">へや</a></li>
+      <li><span class="status">⭐</span><a href="#">おおきい、ちいさい</a></li>
+      <li><span class="status">⭐</span><a href="#">すき、たべる、のむ</a></li>
+      <li><span class="status">⭐</span><a href="#">5W</a></li>
+      <li><span class="status">⭐</span><a href="#">STORY</a></li>
     </ul>
   </div>
 
+  <!-- 学習データクリアボタン -->
+  <button class="clear-button" onclick="clearProgress()">🌱 学習データをクリアする</button>
+
   <script>
-    // 「たしざん：1から5まで」がクリアされたら〇表示
     window.onload = function () {
+      // ステータス更新（今は1項目だけ）
       if (localStorage.getItem("cleared-addition-1to5") === "true") {
-        document.getElementById("status-addition-1to5").textContent = "○";
+        document.getElementById("status-addition-1to5").textContent = "🌸";
       }
     };
+
+    function clearProgress() {
+      const ok = confirm("すべての学習データを消してもよいですか？");
+      if (ok) {
+        localStorage.clear();
+        alert("データをリセットしました！");
+        location.reload();
+      }
+    }
   </script>
 </body>
 </html>
