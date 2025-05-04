@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>たしざん：1から5まで</title>
+  <script src="https://unpkg.com/wanakana"></script> <!-- ひらがな変換ライブラリ -->
   <style>
     body {
       font-family: "Arial", sans-serif;
@@ -97,11 +98,9 @@
 
         const flavorTextEntries = data.flavor_text_entries;
         const japaneseFlavorEntry = flavorTextEntries.find(entry => entry.language.name === "ja");
-        const rawText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text : "とくちょうは まだ ないよ";
+        const rawText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくちょうは まだ ないよ";
 
-        const flavorText = rawText
-          .replace(/\n|\f/g, ' ')
-          .replace(/[\u4E00-\u9FFF]/g, ''); // 漢字を除去
+        const flavorText = wanakana.toHiragana(rawText, { passRomaji: true });
 
         return { name: japaneseName, fact: flavorText };
       } catch (error) {
