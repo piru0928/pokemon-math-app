@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>たしざん：1から100まで</title>
-  <script src="https://unpkg.com/wanakana"></script> <!-- ひらがな変換 -->
+  <script src="https://unpkg.com/wanakana"></script>
   <style>
     body {
       font-family: "Arial", sans-serif;
@@ -88,22 +88,20 @@
     let correctStreak = 0;
 
     async function fetchPokemonData(number) {
-      if (number > 100) return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
-
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
-        const data = await res.json();
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await response.json();
 
         const nameEntry = data.names.find(n => n.language.name === "ja");
-        const name = nameEntry ? nameEntry.name : "ポケモン";
+        const name = nameEntry ? nameEntry.name : "なまえふめい";
 
         const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "ja");
         const rawText = flavorEntry ? flavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくちょうは まだ ないよ";
         const fact = wanakana.toHiragana(rawText, { passRomaji: true });
 
         return { name, fact };
-      } catch {
-        return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
+      } catch (error) {
+        return { name: "なまえふめい", fact: "とくちょうは まだ ないよ" };
       }
     }
 
@@ -149,21 +147,23 @@
 
       if (selected === correctAnswer) {
         correctStreak++;
-        const { name, fact } = await fetchPokemonData(correctAnswer);
-        const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${correctAnswer}.png`;
+        const number = correctAnswer <= 1010 ? correctAnswer : 1;
+        const { name, fact } = await fetchPokemonData(number);
+        const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
 
         document.getElementById("result").textContent = "せいかい！\nやったね！";
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
         document.getElementById("pokemon-info").textContent =
-          `ずかんナンバー ${correctAnswer}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
+          `ずかんナンバー ${number}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
 
         updateStatus();
 
         if (correctStreak >= 10) {
           document.getElementById("result").textContent += "\n🎉 10もん れんぞく せいかい！おめでとう！";
           document.getElementById("clear-button").style.display = "inline";
+          localStorage.setItem("cleared-addition-1to100", "true");
         } else {
           document.getElementById("next-button").style.display = "inline";
         }
