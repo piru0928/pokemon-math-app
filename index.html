@@ -123,35 +123,6 @@
     </ul>
     <button class="clear-button" onclick="clearByUnit('english')">🌱 えいごのデータをクリア</button>
   </div>
-
-  <script>
-    // ステータス更新
-    window.onload = function () {
-      if (localStorage.getItem("cleared-addition-1to5") === "true") {
-        document.getElementById("status-addition-1to5").textContent = "🌸";
-      }
-      if (localStorage.getItem("cleared-addition-1to10") === "true") {
-        document.getElementById("status-addition-1to10").textContent = "🌸";
-      }
-      if (localStorage.getItem("cleared-addition-1to100") === "true") {
-        document.getElementById("status-addition-1to100").textContent = "🌸";
-      }
-    };
-
-    // 単位ごとのデータクリア
-    function clearByUnit(subject) {
-      const ok = confirm(`「${subject}」のがくしゅうデータをけしても いいですか？`);
-      if (!ok) return;
-
-      for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key) && key.includes(subject)) {
-          localStorage.removeItem(key);
-        }
-      }
-
-      alert(`${subject} のデータを クリアしました`);
-      location.reload();
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
