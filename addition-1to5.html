@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>たしざん：1から5まで</title>
   <style>
     body {
@@ -45,6 +45,20 @@
       width: 96px;
       height: 96px;
     }
+    #next-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #81c784;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+    #next-button:hover {
+      background-color: #66bb6a;
+    }
   </style>
 </head>
 <body>
@@ -54,31 +68,36 @@
   <div id="result"></div>
   <img id="pokemon-img" src="" alt="" style="display:none;">
   <div id="pokemon-info"></div>
-  <br>
-  <button onclick="markCleared()">クリア！トップにもどる</button>
+  <button id="next-button" onclick="newQuestion()">つぎのもんだい</button>
+  <br><br>
+  <button onclick="markCleared()" style="display:none;" id="clear-button">🌸 クリア！トップにもどる</button>
   <br><br>
   <a href="index.html">← トップページへ</a>
 
   <script>
-    const pokemonFacts = {
-      1: "タネから栄養を吸って育つよ",
-      2: "背中のつぼみがふくらんでくるよ",
-      3: "太陽の光を浴びて力を出すんだ",
-      4: "しっぽの炎が元気のしるし！",
-      5: "炎の威力がさらにアップ",
-      6: "空も飛べるドラゴン風ポケモン",
-      7: "こうらに隠れて攻撃をよけるよ",
-      8: "耳としっぽがフサフサだよ",
-      9: "こうらから水をとばすよ",
-      10: "森の中によくいる虫ポケモン"
-    };
-
     let num1, num2, correctAnswer;
+    let correctStreak = 0;
 
-    async function fetchPokemonName(number) {
-      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${number}`);
-      const data = await response.json();
-      return data.name.charAt(0).toUpperCase() + data.name.slice(1); // 英名
+    async function fetchPokemonData(number) {
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await response.json();
+
+        // 日本語名を取得
+        const names = data.names;
+        const japaneseNameEntry = names.find(name => name.language.name === "ja");
+        const japaneseName = japaneseNameEntry ? japaneseNameEntry.name : "ポケモン";
+
+        // 日本語の豆知識を取得
+        const flavorTextEntries = data.flavor_text_entries;
+        const japaneseFlavorEntry = flavorTextEntries.find(entry => entry.language.name === "ja");
+        const flavorText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくに知られていない特徴があるよ！";
+
+        return { name: japaneseName, fact: flavorText };
+      } catch (error) {
+        console.error("ポケモンデータの取得に失敗しました:", error);
+        return { name: "ポケモン", fact: "とくに知られていない特徴があるよ！" };
+      }
     }
 
     function newQuestion() {
@@ -90,6 +109,8 @@
       document.getElementById("result").textContent = "";
       document.getElementById("pokemon-info").textContent = "";
       document.getElementById("pokemon-img").style.display = "none";
+      document.getElementById("next-button").style.display = "none";
+      document.getElementById("clear-button").style.display = "none";
 
       // 選択肢を生成
       const choices = new Set([correctAnswer]);
@@ -110,10 +131,13 @@
     }
 
     async function checkAnswer(selected) {
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+
       if (selected === correctAnswer) {
+        correctStreak++;
         const number = correctAnswer;
-        const name = await fetchPokemonName(number);
-        const fact = pokemonFacts[number] || "とくに知られていない特徴があるよ！";
+        const { name, fact } = await fetchPokemonData(number);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
 
         document.getElementById("result").textContent = "せいかい！やったね！";
@@ -122,13 +146,20 @@
         document.getElementById("pokemon-img").style.display = "inline";
         document.getElementById("pokemon-info").textContent =
           `ずかんナンバー#${number}ばんは「${name}」だよ！ちなみに、${name}は${fact}`;
+
+        if (correctStreak >= 10) {
+          document.getElementById("result").textContent += " 🎉 10問連続正解！おめでとう！";
+          document.getElementById("clear-button").style.display = "inline";
+        } else {
+          document.getElementById("next-button").style.display = "inline";
+        }
       } else {
+        correctStreak = 0;
         document.getElementById("result").textContent = `ざんねん！こたえは ${correctAnswer} だよ`;
         document.getElementById("pokemon-info").textContent = "";
         document.getElementById("pokemon-img").style.display = "none";
+        document.getElementById("next-button").style.display = "inline";
       }
-
-      setTimeout(newQuestion, 4000);
     }
 
     function markCleared() {
