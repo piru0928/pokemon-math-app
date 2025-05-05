@@ -35,7 +35,6 @@
       font-weight: bold;
       color: red;
       margin-top: 10px;
-      white-space: pre-line;
     }
     #pokemon-img {
       margin-top: 10px;
@@ -81,9 +80,10 @@
 
     async function fetchPokemonName(number) {
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
-        const data = await res.json();
-        return data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await response.json();
+        const name = data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+        return name;
       } catch {
         return "ポケモン";
       }
@@ -98,6 +98,7 @@
       num1 = Math.floor(Math.random() * 10) + 1;
       num2 = Math.floor(Math.random() * 10) + 1;
       correctAnswer = num1 + num2;
+
       document.getElementById("question").textContent = `${num1} ＋ ${num2} は いくつ？`;
       document.getElementById("result").textContent = "";
       document.getElementById("pokemon-info").textContent = "";
@@ -107,7 +108,10 @@
       updateStatus();
 
       const choices = new Set([correctAnswer]);
-      while (choices.size < 3) choices.add(Math.floor(Math.random() * 20) + 1);
+      while (choices.size < 3) {
+        choices.add(Math.floor(Math.random() * 20) + 1);
+      }
+
       const choiceArray = Array.from(choices).sort(() => Math.random() - 0.5);
       const choicesDiv = document.getElementById("choices");
       choicesDiv.innerHTML = "";
@@ -122,24 +126,21 @@
 
     async function checkAnswer(selected) {
       document.getElementById("choices").innerHTML = "";
-    
+
       if (selected === correctAnswer) {
         correctStreak++;
         const number = correctAnswer;
         const name = await fetchPokemonName(number);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
-    
+
         document.getElementById("result").textContent = "せいかい！";
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-    
-        // 🔴 表示内容を更新
-        document.getElementById("pokemon-info").innerHTML =
-          `ずかんナンバー ${number}：<span style="color:red; font-weight:bold; font-size:24px;">${name}</span>`;
-    
+        document.getElementById("pokemon-info").textContent = `ずかんナンバー ${number}：${name}`;
+
         updateStatus();
-    
+
         if (correctStreak >= 10) {
           document.getElementById("result").textContent += "\n🎉 10もん れんぞく せいかい！おめでとう！";
           document.getElementById("clear-button").style.display = "inline";
