@@ -23,6 +23,7 @@ function checkAnswer() {
 // 🌸/⭐ ステータスの表示更新
 function updateStatusIcons() {
   const statusMap = {
+    // さんすう
     "cleared-addition-1to5": "status-addition-1to5",
     "cleared-subtraction-1to5": "status-subtraction-1to5",
     "cleared-addition-1to10": "status-addition-1to10",
@@ -32,7 +33,20 @@ function updateStatusIcons() {
     "cleared-multiplication-1to10": "status-multiplication-1to10",
     "cleared-multiplication-1to100": "status-multiplication-1to100",
     "cleared-division-1to10": "status-division-1to10",
-    "cleared-division-1to10000": "status-division-1to10000"
+    "cleared-division-1to10000": "status-division-1to10000",
+
+    // こくご（japanese）
+    "cleared-ondoku": "status-ondoku",
+    "cleared-nani": "status-nani.html",
+    "cleared-yousu": "status-yousu.html",
+    "cleared-ugoki": "status-ugoki.html",
+    "cleared-kuttuki": "status-kuttuki.html",
+    "cleared-bun": "status-bun.html",
+    "cleared-kanji": "status-kanji.html",
+    "cleared-shugo": "status-shugo.html",
+    "cleared-soushoku": "status-soushoku.html",
+    "cleared-iikae": "status-iikae.html",
+    "cleared-onkun": "status-onkun.html"
   };
 
   for (const key in statusMap) {
@@ -64,7 +78,19 @@ function clearByUnit(subject) {
       "cleared-division-1to10",
       "cleared-division-1to10000"
     ],
-    japanese: [],
+    japanese: [
+      "cleared-ondoku",
+      "cleared-nani",
+      "cleared-yousu",
+      "cleared-ugoki",
+      "cleared-kuttuki",
+      "cleared-bun",
+      "cleared-kanji",
+      "cleared-shugo",
+      "cleared-soushoku",
+      "cleared-iikae",
+      "cleared-onkun"
+    ],
     english: []
   };
 
@@ -73,7 +99,7 @@ function clearByUnit(subject) {
 
   alert(`${subject} のデータを クリアしました`);
   updateStatusIcons();
-  showLocalStorage(); // デバッグ表示更新
+  showLocalStorage();
 }
 
 // 初期表示処理
