@@ -5,7 +5,9 @@
   <title>おんどく：ポケモンといっしょに</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="favicon.png" type="image/png" />
-  <script src="https://unpkg.com/wanakana"></script>
+  <!-- Kuroshiro関連ライブラリ -->
+  <script src="https://unpkg.com/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
+  <script src="https://unpkg.com/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -73,7 +75,7 @@
       <option value="4">レベル4</option>
       <option value="5">レベル5</option>
     </select>
-    <button id="start-button" onclick="start()">スタート！</button>
+    <button id="start-button">スタート！</button>
   </div>
 
   <img id="pokemon-img" src="" alt="ポケモン" style="display: none;" />
@@ -86,20 +88,25 @@
   <a href="index.html">← トップページへ</a>
 
   <script>
-    let currentSentence = "";
     let currentSentenceOriginal = "";
     let correctAnswer = "";
     let correctStreak = 0;
     let selectedLevel = 1;
+    let kuroshiro;
 
-    function start() {
+    document.getElementById("start-button").addEventListener("click", async () => {
       selectedLevel = parseInt(document.getElementById("level-select").value);
       document.getElementById("level-selection").style.display = "none";
       document.getElementById("choices").style.display = "block";
       correctStreak = 0;
       showCorrectCount();
+
+      // 初期化
+      kuroshiro = new Kuroshiro();
+      await kuroshiro.init(new KuromojiAnalyzer());
+
       loadPokemon();
-    }
+    });
 
     function showCorrectCount() {
       document.getElementById("correct-count").textContent = `せいかい：${correctStreak}もん`;
@@ -111,17 +118,18 @@
       const data = await res.json();
 
       const nameEntry = data.names.find(n => n.language.name === "ja");
-      const name = nameEntry ? nameEntry.name : "ポケモン";
-      correctAnswer = name;
+      correctAnswer = nameEntry ? nameEntry.name : "ポケモン";
 
       const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "ja");
       const rawText = flavorEntry ? flavorEntry.flavor_text.replace(/[\n\f]/g, " ") : "せつめいは みつかりませんでした。";
       currentSentenceOriginal = rawText;
-      currentSentence = wanakana.toHiragana(rawText);
 
-      document.getElementById("sentence").textContent = currentSentence;
+      const furiganaHTML = await kuroshiro.convert(rawText, { to: "hiragana", mode: "furigana" });
+      document.getElementById("sentence").innerHTML = furiganaHTML;
+
       document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
       document.getElementById("pokemon-img").style.display = "inline-block";
+
       showChoices();
     }
 
@@ -169,7 +177,7 @@
         alert("このブラウザでは よみあげが つかえません。");
         return;
       }
-      const uttr = new SpeechSynthesisUtterance(currentSentenceOriginal);
+      const uttr = new SpeechSynthesisUtterance(currentSentenceOriginal.replace(/【.*?】/, ""));
       uttr.lang = "ja-JP";
       speechSynthesis.cancel();
       speechSynthesis.speak(uttr);
