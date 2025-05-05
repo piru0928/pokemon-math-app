@@ -81,19 +81,23 @@
   <a href="index.html">← トップページへ</a>
 
   <script>
-    let questionsByLevel = {};
+    let questions = [];
     let current = {};
     let correctStreak = 0;
     let selectedLevel = 1;
 
-    async function loadQuestions() {
-      const res = await fetch('ondoku-questions.json');
-      questionsByLevel = await res.json();
-    }
-
     async function start() {
-      await loadQuestions();
       selectedLevel = parseInt(document.getElementById("level-select").value);
+      const fileName = `ondoku-level${selectedLevel}.json`;
+
+      try {
+        const res = await fetch(fileName);
+        questions = await res.json();
+      } catch (e) {
+        alert(`問題ファイル「${fileName}」が みつかりません。`);
+        return;
+      }
+
       document.getElementById("level-selection").style.display = "none";
       document.getElementById("choices").style.display = "block";
       correctStreak = 0;
@@ -106,8 +110,7 @@
     }
 
     function loadQuestion() {
-      const list = questionsByLevel[selectedLevel];
-      current = list[Math.floor(Math.random() * list.length)];
+      current = questions[Math.floor(Math.random() * questions.length)];
       document.getElementById("sentence").textContent = current.text;
       document.getElementById("question").textContent = "📘 もんだい：" + current.question;
       showChoices();
