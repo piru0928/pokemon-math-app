@@ -5,9 +5,8 @@
   <title>おんどく：ポケモンといっしょに</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="favicon.png" type="image/png" />
-  <!-- Kuroshiro関連ライブラリ -->
-  <script src="https://unpkg.com/kuroshiro@1.2.0/dist/kuroshiro.min.js"></script>
-  <script src="https://unpkg.com/kuroshiro-analyzer-kuromoji@1.1.0/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
+  <script src="https://unpkg.com/kuroshiro"></script>
+  <script src="https://unpkg.com/kuroshiro-analyzer-kuromoji"></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -92,20 +91,20 @@
     let correctAnswer = "";
     let correctStreak = 0;
     let selectedLevel = 1;
-    let kuroshiro;
+    let kuroshiro = null;
 
-    document.getElementById("start-button").addEventListener("click", async () => {
+    document.getElementById("start-button").addEventListener("click", async function start() {
       selectedLevel = parseInt(document.getElementById("level-select").value);
       document.getElementById("level-selection").style.display = "none";
       document.getElementById("choices").style.display = "block";
       correctStreak = 0;
       showCorrectCount();
 
-      // 初期化
-      kuroshiro = new Kuroshiro();
-      await kuroshiro.init(new KuromojiAnalyzer());
-
-      loadPokemon();
+      if (!kuroshiro) {
+        kuroshiro = new Kuroshiro();
+        await kuroshiro.init(new KuromojiAnalyzer());
+      }
+      await loadPokemon();
     });
 
     function showCorrectCount() {
@@ -118,18 +117,18 @@
       const data = await res.json();
 
       const nameEntry = data.names.find(n => n.language.name === "ja");
-      correctAnswer = nameEntry ? nameEntry.name : "ポケモン";
+      const name = nameEntry ? nameEntry.name : "ポケモン";
+      correctAnswer = name;
 
       const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "ja");
       const rawText = flavorEntry ? flavorEntry.flavor_text.replace(/[\n\f]/g, " ") : "せつめいは みつかりませんでした。";
       currentSentenceOriginal = rawText;
 
-      const furiganaHTML = await kuroshiro.convert(rawText, { to: "hiragana", mode: "furigana" });
-      document.getElementById("sentence").innerHTML = furiganaHTML;
+      const rubyText = await kuroshiro.convert(rawText, { to: "hiragana", mode: "furigana" });
 
+      document.getElementById("sentence").innerHTML = rubyText;
       document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
       document.getElementById("pokemon-img").style.display = "inline-block";
-
       showChoices();
     }
 
@@ -177,7 +176,7 @@
         alert("このブラウザでは よみあげが つかえません。");
         return;
       }
-      const uttr = new SpeechSynthesisUtterance(currentSentenceOriginal.replace(/【.*?】/, ""));
+      const uttr = new SpeechSynthesisUtterance(currentSentenceOriginal);
       uttr.lang = "ja-JP";
       speechSynthesis.cancel();
       speechSynthesis.speak(uttr);
