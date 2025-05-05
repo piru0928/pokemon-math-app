@@ -44,14 +44,23 @@ function clearByUnit(subject) {
   const ok = confirm(`「${subject}」のがくしゅうデータをけしても いいですか？`);
   if (!ok) return;
 
-  for (let key in localStorage) {
-    if (localStorage.hasOwnProperty(key) && key.includes(subject)) {
-      localStorage.removeItem(key);
-    }
-  }
+  const deleteMap = {
+    math: [
+      "cleared-addition-1to5",
+      "cleared-addition-1to10",
+      "cleared-addition-1to100"
+    ],
+    japanese: [],
+    english: []
+  };
+
+  const targets = deleteMap[subject] || [];
+
+  targets.forEach(key => localStorage.removeItem(key));
 
   alert(`${subject} のデータを クリアしました`);
-  updateStatusIcons(); // ステータスの見た目も更新
+  updateStatusIcons();
+  showLocalStorage(); // デバッグ表示更新
 }
 
 // 初期表示処理
