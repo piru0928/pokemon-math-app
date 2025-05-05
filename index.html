@@ -130,6 +130,39 @@
 
   <!-- ✅ スクリプト読み込みは一番下 -->
   <script src="script.js"></script>
+  <!-- 背景画像 -->
+  <script>
+    const MAX_POKEMON_ID = 151; // 初代ポケモンまで
+    const POKEMON_COUNT = 20; // 表示する画像数
+  
+    function getRandomId() {
+      return Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
+    }
+  
+    function createBackgroundPokemon() {
+      for (let i = 0; i < POKEMON_COUNT; i++) {
+        const id = getRandomId();
+        const img = document.createElement("img");
+        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+        img.style.position = "absolute";
+        img.style.opacity = "0.05";
+        img.style.width = "96px";
+        img.style.height = "96px";
+        img.style.zIndex = "-1";
+        img.style.top = `${Math.random() * 100}%`;
+        img.style.left = `${Math.random() * 100}%`;
+        img.style.transform = `rotate(${Math.random() * 360}deg)`;
+  
+        document.body.appendChild(img);
+      }
+    }
+  
+    window.onload = function () {
+      createBackgroundPokemon();
+      if (typeof updateStatusIcons === 'function') updateStatusIcons(); // 既存の初期処理も実行
+    };
+  </script>
+
   <!-- デバッグ用：アイコンリセット確認 -->
   <div style="margin-top: 40px; padding: 10px; border-top: 2px dashed #ccc;">
   <h3>🛠 デバッグ用 localStorage の中身</h3>
