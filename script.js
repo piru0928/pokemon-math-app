@@ -60,4 +60,13 @@ window.onload = function () {
     newQuestion();
   }
   updateStatusIcons();
+}
+
+// デバッグ用：アイコンリセット確認
+function showLocalStorage() {
+  const output = Object.entries(localStorage)
+    .map(([key, value]) => `${key} = ${value}`)
+    .join('\n');
+  document.getElementById("debug-storage").textContent = output || "(何も保存されていません)";
 };
+
