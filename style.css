@@ -6,14 +6,6 @@ body {
   padding: 30px;
 }
 
-body {
-  background-color: #fdf6e3;
-  background-image: url('images/bg-pokemon.png'); /* 薄いポケモン画像を用意 */
-  background-repeat: repeat;
-  background-size: 120px;
-  opacity: 0.95;
-}
-
 h1 {
   color: #2c3e50;
   font-size: 24px;
