@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>たしざん：1から10まで</title>
-  <script src="https://unpkg.com/kuroshiro/dist/kuroshiro.min.js"></script>
-  <script src="https://unpkg.com/kuroshiro-analyzer-kuromoji/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <script src="https://unpkg.com/wanakana"></script> <!-- ひらがな変換ライブラリ -->
   <style>
     body {
       font-family: "Arial", sans-serif;
@@ -13,13 +13,8 @@
       text-align: center;
       padding: 20px;
     }
-    h1 {
-      color: #ef6c00;
-    }
-    #question {
-      font-size: 24px;
-      margin: 20px;
-    }
+    h1 { color: #ef6c00; }
+    #question { font-size: 24px; margin: 20px; }
     .choice {
       font-size: 20px;
       padding: 10px 20px;
@@ -29,9 +24,7 @@
       cursor: pointer;
       background-color: #ffcc80;
     }
-    .choice:hover {
-      background-color: #ffe0b2;
-    }
+    .choice:hover { background-color: #ffe0b2; }
     #result {
       font-size: 20px;
       margin-top: 15px;
@@ -60,9 +53,7 @@
       cursor: pointer;
       display: none;
     }
-    #next-button:hover {
-      background-color: #66bb6a;
-    }
+    #next-button:hover { background-color: #66bb6a; }
     #status {
       margin: 10px;
       font-size: 18px;
@@ -87,58 +78,39 @@
   <script>
     let num1, num2, correctAnswer;
     let correctStreak = 0;
-    let kuroshiro;
-
-    async function initializeKuroshiro() {
-      kuroshiro = new Kuroshiro();
-      await kuroshiro.init(new KuromojiAnalyzer());
-    }
 
     async function fetchPokemonData(number) {
       try {
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
         const data = await response.json();
-
-        const names = data.names;
-        const japaneseNameEntry = names.find(name => name.language.name === "ja");
-        const japaneseName = japaneseNameEntry ? japaneseNameEntry.name : "ポケモン";
-
-        const flavorTextEntries = data.flavor_text_entries;
-        const japaneseFlavorEntry = flavorTextEntries.find(entry => entry.language.name === "ja");
-        const rawText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくちょうは まだ ないよ";
-        const flavorText = await kuroshiro.convert(rawText, { to: "hiragana" });
-
+        const japaneseName = data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+        const rawText = data.flavor_text_entries.find(e => e.language.name === "ja")?.flavor_text.replace(/\n|\f/g, ' ') || "とくちょうは まだ ないよ";
+        const flavorText = wanakana.toHiragana(rawText, { passRomaji: true });
         return { name: japaneseName, fact: flavorText };
-      } catch (error) {
+      } catch (e) {
         return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
       }
     }
 
     function updateStatus() {
       const remaining = 10 - correctStreak;
-      document.getElementById("status").textContent =
-        `ただいま ${correctStreak}もんせいかい！\nあと ${remaining}もんで クリア！`;
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もんせいかい！\nあと ${remaining}もんで クリア！`;
     }
 
     function newQuestion() {
       num1 = Math.floor(Math.random() * 10) + 1;
       num2 = Math.floor(Math.random() * 10) + 1;
       correctAnswer = num1 + num2;
-
       document.getElementById("question").textContent = `${num1} ＋ ${num2} は いくつ？`;
       document.getElementById("result").textContent = "";
       document.getElementById("pokemon-info").textContent = "";
       document.getElementById("pokemon-img").style.display = "none";
       document.getElementById("next-button").style.display = "none";
       document.getElementById("clear-button").style.display = "none";
-
       updateStatus();
 
       const choices = new Set([correctAnswer]);
-      while (choices.size < 3) {
-        choices.add(Math.floor(Math.random() * 20) + 1);
-      }
-
+      while (choices.size < 3) choices.add(Math.floor(Math.random() * 20) + 1);
       const choiceArray = Array.from(choices).sort(() => Math.random() - 0.5);
       const choicesDiv = document.getElementById("choices");
       choicesDiv.innerHTML = "";
@@ -153,7 +125,6 @@
 
     async function checkAnswer(selected) {
       document.getElementById("choices").innerHTML = "";
-
       if (selected === correctAnswer) {
         correctStreak++;
         const number = correctAnswer;
@@ -164,11 +135,9 @@
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-        document.getElementById("pokemon-info").textContent =
-          `ずかんナンバー ${number}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
+        document.getElementById("pokemon-info").textContent = `ずかんナンバー ${number}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
 
         updateStatus();
-
         if (correctStreak >= 10) {
           document.getElementById("result").textContent += "\n🎉 10もん れんぞく せいかい！おめでとう！";
           document.getElementById("clear-button").style.display = "inline";
@@ -191,7 +160,7 @@
       window.location.href = "index.html";
     }
 
-window.onload = async function () {
-  await initializeKuroshiro();
-  newQuestion();
-};
+    window.onload = newQuestion;
+  </script>
+</body>
+</html>
