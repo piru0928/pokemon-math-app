@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>おんどく：ポケモンといっしょに</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fffaf0;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #e74c3c;
+      font-size: 24px;
+    }
+    #pokemon-img {
+      width: 120px;
+      height: 120px;
+      margin-top: 20px;
+    }
+    #sentence {
+      margin: 20px auto;
+      font-size: 20px;
+      max-width: 500px;
+      line-height: 1.6;
+      background: #fef5e7;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #f5cba7;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #f39c12;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e67e22;
+    }
+  </style>
+</head>
+<body>
+  <h1>📖 おんどく：ポケモンといっしょに</h1>
+  <img id="pokemon-img" src="" alt="ポケモン" style="display: none;" />
+  <div id="sentence">ポケモンのせつめいが ここに ひょうじされます。</div>
+  <button onclick="loadPokemon()">🔁 べつのポケモン</button>
+  <button onclick="readText()">🔊 よみあげる</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    let currentSentence = "";
+
+    async function loadPokemon() {
+      const id = Math.floor(Math.random() * 151) + 1;
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+      const data = await res.json();
+
+      const nameEntry = data.names.find(n => n.language.name === "ja");
+      const name = nameEntry ? nameEntry.name : "ポケモン";
+
+      const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "ja");
+      const rawText = flavorEntry ? flavorEntry.flavor_text.replace(/\n|\f/g, " ") : "せつめいは みつかりませんでした。";
+
+      const sentence = `【${name}】\n${rawText}`;
+      currentSentence = sentence;
+
+      document.getElementById("sentence").textContent = sentence;
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+      document.getElementById("pokemon-img").style.display = "inline-block";
+    }
+
+    function readText() {
+      if (!window.speechSynthesis) {
+        alert("このブラウザでは よみあげが つかえません。");
+        return;
+      }
+      const uttr = new SpeechSynthesisUtterance(currentSentence.replace(/【.*?】/, ""));
+      uttr.lang = "ja-JP";
+      speechSynthesis.cancel(); // 前の音声をキャンセル
+      speechSynthesis.speak(uttr);
+    }
+
+    // 初期表示
+    window.onload = loadPokemon;
+  </script>
+</body>
+</html>
