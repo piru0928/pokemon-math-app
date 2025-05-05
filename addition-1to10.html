@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>たしざん：1から10まで</title>
   <link rel="icon" href="favicon.png" type="image/png">
-  <script src="https://unpkg.com/wanakana"></script> <!-- ひらがな変換ライブラリ -->
   <style>
     body {
       font-family: "Arial", sans-serif;
@@ -32,9 +31,10 @@
       white-space: pre-line;
     }
     #pokemon-info {
-      font-size: 16px;
+      font-size: 24px;
+      font-weight: bold;
+      color: red;
       margin-top: 10px;
-      color: #333;
       white-space: pre-line;
     }
     #pokemon-img {
@@ -79,16 +79,13 @@
     let num1, num2, correctAnswer;
     let correctStreak = 0;
 
-    async function fetchPokemonData(number) {
+    async function fetchPokemonName(number) {
       try {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
-        const data = await response.json();
-        const japaneseName = data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
-        const rawText = data.flavor_text_entries.find(e => e.language.name === "ja")?.flavor_text.replace(/\n|\f/g, ' ') || "とくちょうは まだ ないよ";
-        const flavorText = wanakana.toHiragana(rawText, { passRomaji: true });
-        return { name: japaneseName, fact: flavorText };
-      } catch (e) {
-        return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await res.json();
+        return data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+      } catch {
+        return "ポケモン";
       }
     }
 
@@ -125,19 +122,21 @@
 
     async function checkAnswer(selected) {
       document.getElementById("choices").innerHTML = "";
+
       if (selected === correctAnswer) {
         correctStreak++;
         const number = correctAnswer;
-        const { name, fact } = await fetchPokemonData(number);
+        const name = await fetchPokemonName(number);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
 
-        document.getElementById("result").textContent = "せいかい！\nやったね！";
+        document.getElementById("result").textContent = "せいかい！";
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-        document.getElementById("pokemon-info").textContent = `ずかんナンバー ${number}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
+        document.getElementById("pokemon-info").innerHTML = `「${name}」`;
 
         updateStatus();
+
         if (correctStreak >= 10) {
           document.getElementById("result").textContent += "\n🎉 10もん れんぞく せいかい！おめでとう！";
           document.getElementById("clear-button").style.display = "inline";
