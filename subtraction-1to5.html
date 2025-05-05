@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ひきざん：1から5まで</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #fff8e1;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #ef6c00; }
+    #question { font-size: 24px; margin: 20px; }
+    .choice {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background-color: #ffcc80;
+    }
+    .choice:hover { background-color: #ffe0b2; }
+    #result {
+      font-size: 20px;
+      margin-top: 15px;
+      color: #4caf50;
+      white-space: pre-line;
+    }
+    #pokemon-info {
+      font-size: 24px;
+      font-weight: bold;
+      color: red;
+      margin-top: 10px;
+    }
+    #pokemon-img {
+      margin-top: 10px;
+      width: 96px;
+      height: 96px;
+    }
+    #next-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #81c784;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+    #next-button:hover { background-color: #66bb6a; }
+    #status {
+      margin: 10px;
+      font-size: 18px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>➖ ひきざん：1から5まで</h1>
+  <div id="status">ただいま 0もんせいかい！ あと 10もんで クリア！</div>
+  <div id="question">ここに もんだい が でるよ</div>
+  <div id="choices"></div>
+  <div id="result"></div>
+  <img id="pokemon-img" src="" alt="" style="display:none;">
+  <div id="pokemon-info"></div>
+  <button id="next-button" onclick="newQuestion()">つぎのもんだい</button>
+  <br><br>
+  <button onclick="markCleared()" style="display:none;" id="clear-button">🌸 クリア！トップに もどる</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    let num1, num2, correctAnswer;
+    let correctStreak = 0;
+
+    async function fetchPokemonName(number) {
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await res.json();
+        const japaneseName = data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+        return japaneseName;
+      } catch {
+        return "ポケモン";
+      }
+    }
+
+    function updateStatus() {
+      const remaining = 10 - correctStreak;
+      document.getElementById("status").textContent =
+        `ただいま ${correctStreak}もんせいかい！\nあと ${remaining}もんで クリア！`;
+    }
+
+    function newQuestion() {
+      num1 = Math.floor(Math.random() * 5) + 1;
+      num2 = Math.floor(Math.random() * 5) + 1;
+      if (num2 > num1) [num1, num2] = [num2, num1]; // 引き算でマイナスを防ぐ
+      correctAnswer = num1 - num2;
+
+      document.getElementById("question").textContent = `${num1} − ${num2} は いくつ？`;
+      document.getElementById("result").textContent = "";
+      document.getElementById("pokemon-info").textContent = "";
+      document.getElementById("pokemon-img").style.display = "none";
+      document.getElementById("next-button").style.display = "none";
+      document.getElementById("clear-button").style.display = "none";
+      updateStatus();
+
+      const choices = new Set([correctAnswer]);
+      while (choices.size < 3) {
+        choices.add(Math.floor(Math.random() * 6));
+      }
+
+      const choiceArray = Array.from(choices).sort(() => Math.random() - 0.5);
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      choiceArray.forEach(value => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.textContent = value;
+        btn.onclick = () => checkAnswer(value);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    async function checkAnswer(selected) {
+      document.getElementById("choices").innerHTML = "";
+
+      if (selected === correctAnswer) {
+        correctStreak++;
+        const number = correctAnswer + 1;
+        const name = await fetchPokemonName(number);
+        const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
+
+        document.getElementById("result").textContent = "せいかい！";
+        document.getElementById("pokemon-img").src = imgUrl;
+        document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
+        document.getElementById("pokemon-img").style.display = "inline";
+        document.getElementById("pokemon-info").textContent = `ずかんナンバー ${number}：${name}`;
+
+        updateStatus();
+
+        if (correctStreak >= 10) {
+          document.getElementById("result").textContent += "\n🎉 10もん れんぞく せいかい！おめでとう！";
+          document.getElementById("clear-button").style.display = "inline";
+        } else {
+          document.getElementById("next-button").style.display = "inline";
+        }
+      } else {
+        correctStreak = 0;
+        document.getElementById("result").textContent = `ざんねん！\nこたえは ${correctAnswer} だよ`;
+        document.getElementById("pokemon-info").textContent = "";
+        document.getElementById("pokemon-img").style.display = "none";
+        document.getElementById("next-button").style.display = "inline";
+        updateStatus();
+      }
+    }
+
+    function markCleared() {
+      localStorage.setItem("cleared-subtraction-1to5", "true");
+      alert("クリアじょうほう を ほぞんしたよ！");
+      window.location.href = "index.html";
+    }
+
+    window.onload = newQuestion;
+  </script>
+</body>
+</html>
