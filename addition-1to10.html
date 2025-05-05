@@ -157,8 +157,9 @@
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-        document.getElementById("pokemon-info").textContent =
-          `ずかんナンバー ${number}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
+        document.getElementById("pokemon-info").innerHTML =
+          `ずかんナンバー ${number}ばん は「${name}」だよ！<br>ちなみに、${name}は<br><small>${rawText}</small><br>（ひらがな：${fact}）`;
+
 
         updateStatus();
 
