@@ -5,8 +5,6 @@
   <title>おんどく：ポケモンといっしょに</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="favicon.png" type="image/png" />
-  <script src="https://unpkg.com/kuroshiro"></script>
-  <script src="https://unpkg.com/kuroshiro-analyzer-kuromoji"></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -18,15 +16,10 @@
       color: #e74c3c;
       font-size: 24px;
     }
-    #pokemon-img {
-      width: 120px;
-      height: 120px;
-      margin-top: 20px;
-    }
     #sentence {
       margin: 20px auto;
       font-size: 20px;
-      max-width: 500px;
+      max-width: 600px;
       line-height: 1.6;
       background: #fef5e7;
       padding: 16px;
@@ -74,10 +67,9 @@
       <option value="4">レベル4</option>
       <option value="5">レベル5</option>
     </select>
-    <button id="start-button">スタート！</button>
+    <button id="start-button" onclick="start()">スタート！</button>
   </div>
 
-  <img id="pokemon-img" src="" alt="ポケモン" style="display: none;" />
   <div id="sentence">ポケモンのせつめいが ここに ひょうじされます。</div>
   <div id="choices" style="display: none;"></div>
   <div id="correct-count">せいかい：0もん</div>
@@ -87,88 +79,90 @@
   <a href="index.html">← トップページへ</a>
 
   <script>
-    let currentSentenceOriginal = "";
-    let correctAnswer = "";
-    let correctStreak = 0;
-    let selectedLevel = 1;
-    let kuroshiro = null;
+    const levels = {
+      1: [{
+        text: "ピカチュウは　でんきを　つかって　てきを　びりびり　させます。",
+        question: "ピカチュウが　つかう　ちからは？",
+        choices: ["みず", "でんき", "こおり"],
+        answer: "でんき"
+      }],
+      2: [{
+        text: "ゼニガメは　こうらの　なかに　かおを　ひっこめて　てきを　まもります。そして　みずを　くちから　だして　たたかいます。",
+        question: "ゼニガメは　なにを　くちから　だしますか？",
+        choices: ["ひ", "くさ", "みず"],
+        answer: "みず"
+      }],
+      3: [{
+        text: "フシギダネは　せなかの　タネから　はっぱを　のばして　こうげきします。ひかりを　あびると　タネが　おおきく　そだちます。",
+        question: "タネは　なにを　あびると　そだちますか？",
+        choices: ["ひかり", "あめ", "かぜ"],
+        answer: "ひかり"
+      }],
+      4: [{
+        text: "カビゴンは　たくさん　たべて　すぐに　ねてしまう　ポケモンです。でも　たたかいに　なると　おおきな　からだで　てきを　ふきとばします。",
+        question: "カビゴンは　ふだん　なにを　していますか？",
+        choices: ["はしっている", "ねている", "とんでいる"],
+        answer: "ねている"
+      }],
+      5: [{
+        text: "リザードンは　たかく　そらを　とび、くちから　ほのおを　はいて　てきを　いっきに　やっつけます。だけど　こどもや　よわいものには　やさしく　することが　できます。こころも　つよく　やさしい　ポケモンです。",
+        question: "リザードンは　どんな　こころを　もっていますか？",
+        choices: ["つよくてやさしい", "こわくてきびしい", "よわくてやさしい"],
+        answer: "つよくてやさしい"
+      }]
+    };
 
-    document.getElementById("start-button").addEventListener("click", async function start() {
+    let selectedLevel = 1;
+    let correctStreak = 0;
+    let current = {};
+
+    function start() {
       selectedLevel = parseInt(document.getElementById("level-select").value);
       document.getElementById("level-selection").style.display = "none";
       document.getElementById("choices").style.display = "block";
       correctStreak = 0;
-      showCorrectCount();
-
-      if (!kuroshiro) {
-        kuroshiro = new Kuroshiro();
-        await kuroshiro.init(new KuromojiAnalyzer());
-      }
-      await loadPokemon();
-    });
-
-    function showCorrectCount() {
-      document.getElementById("correct-count").textContent = `せいかい：${correctStreak}もん`;
+      loadQuestion();
     }
 
-    async function loadPokemon() {
-      const id = Math.floor(Math.random() * 151) + 1;
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-      const data = await res.json();
+    function loadQuestion() {
+      const list = levels[selectedLevel];
+      current = list[Math.floor(Math.random() * list.length)];
 
-      const nameEntry = data.names.find(n => n.language.name === "ja");
-      const name = nameEntry ? nameEntry.name : "ポケモン";
-      correctAnswer = name;
-
-      const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "ja");
-      const rawText = flavorEntry ? flavorEntry.flavor_text.replace(/[\n\f]/g, " ") : "せつめいは みつかりませんでした。";
-      currentSentenceOriginal = rawText;
-
-      const rubyText = await kuroshiro.convert(rawText, { to: "hiragana", mode: "furigana" });
-
-      document.getElementById("sentence").innerHTML = rubyText;
-      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-      document.getElementById("pokemon-img").style.display = "inline-block";
+      document.getElementById("sentence").textContent = current.text;
       showChoices();
+      updateCorrectCount();
     }
 
-    async function showChoices() {
-      const choices = new Set();
-      choices.add(correctAnswer);
-      while (choices.size < 3) {
-        const dummyId = Math.floor(Math.random() * 151) + 1;
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${dummyId}`);
-        const data = await res.json();
-        const dummyNameEntry = data.names.find(n => n.language.name === "ja");
-        if (dummyNameEntry) choices.add(dummyNameEntry.name);
-      }
-
-      const choiceArray = Array.from(choices).sort(() => Math.random() - 0.5);
+    function showChoices() {
       const container = document.getElementById("choices");
       container.innerHTML = "";
-      choiceArray.forEach(name => {
+      const shuffled = [...current.choices].sort(() => Math.random() - 0.5);
+      shuffled.forEach(choice => {
         const btn = document.createElement("button");
         btn.className = "choice-button";
-        btn.textContent = name;
-        btn.onclick = () => checkAnswer(name);
+        btn.textContent = choice;
+        btn.onclick = () => checkAnswer(choice);
         container.appendChild(btn);
       });
     }
 
-    function checkAnswer(selectedName) {
-      if (selectedName === correctAnswer) {
+    function checkAnswer(choice) {
+      if (choice === current.answer) {
         correctStreak++;
         alert("せいかい！すごいね！");
+        if (correctStreak >= 10) {
+          alert("🎉 10もんれんぞくせいかい！ごうかくだよ！");
+          correctStreak = 0;
+        }
       } else {
-        correctStreak = 0;
-        alert(`ざんねん！ただしいこたえは「${correctAnswer}」だよ`);
-      }
-      showCorrectCount();
-      if (correctStreak >= 10) {
-        alert("🎉 10もんれんぞくせいかい！ごうかくだよ！");
+        alert(`ざんねん！こたえは「${current.answer}」だよ`);
         correctStreak = 0;
       }
-      loadPokemon();
+      loadQuestion();
+    }
+
+    function updateCorrectCount() {
+      document.getElementById("correct-count").textContent = `せいかい：${correctStreak}もん`;
     }
 
     function readText() {
@@ -176,7 +170,7 @@
         alert("このブラウザでは よみあげが つかえません。");
         return;
       }
-      const uttr = new SpeechSynthesisUtterance(currentSentenceOriginal);
+      const uttr = new SpeechSynthesisUtterance(current.text);
       uttr.lang = "ja-JP";
       speechSynthesis.cancel();
       speechSynthesis.speak(uttr);
