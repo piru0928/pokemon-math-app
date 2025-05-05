@@ -101,9 +101,9 @@
         const rawText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくちょうは まだ ないよ";
         const flavorText = wanakana.toHiragana(rawText, { passRomaji: true });
 
-        return { name: japaneseName, fact: flavorText };
+        return { name: japaneseName, fact: flavorText, raw: rawText };
       } catch (error) {
-        return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
+        return { name: "ポケモン", fact: "とくちょうは まだ ないよ", raw: "とくちょうは まだ ないよ" };
       }
     }
 
@@ -150,16 +150,16 @@
       if (selected === correctAnswer) {
         correctStreak++;
         const number = correctAnswer;
-        const { name, fact } = await fetchPokemonData(number);
+        const { name, fact, raw } = await fetchPokemonData(number);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
 
         document.getElementById("result").textContent = "せいかい！\nやったね！";
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-        document.getElementById("pokemon-info").innerHTML =
-          `ずかんナンバー ${number}ばん は「${name}」だよ！<br>ちなみに、${name}は<br><small>${rawText}</small><br>（ひらがな：${fact}）`;
 
+        document.getElementById("pokemon-info").innerHTML =
+          `ずかんナンバー ${number}ばん は「${name}」だよ！<br>ちなみに、${name}は<br><small>${raw}</small><br>（ひらがな：${fact}）`;
 
         updateStatus();
 
