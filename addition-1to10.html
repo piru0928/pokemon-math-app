@@ -122,21 +122,24 @@
 
     async function checkAnswer(selected) {
       document.getElementById("choices").innerHTML = "";
-
+    
       if (selected === correctAnswer) {
         correctStreak++;
         const number = correctAnswer;
         const name = await fetchPokemonName(number);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
-
+    
         document.getElementById("result").textContent = "せいかい！";
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-        document.getElementById("pokemon-info").innerHTML = `「${name}」`;
-
+    
+        // 🔴 表示内容を更新
+        document.getElementById("pokemon-info").innerHTML =
+          `ずかんナンバー ${number}：<span style="color:red; font-weight:bold; font-size:24px;">${name}</span>`;
+    
         updateStatus();
-
+    
         if (correctStreak >= 10) {
           document.getElementById("result").textContent += "\n🎉 10もん れんぞく せいかい！おめでとう！";
           document.getElementById("clear-button").style.display = "inline";
