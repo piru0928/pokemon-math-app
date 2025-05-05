@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>たしざん：1から10まで</title>
-  <script src="https://unpkg.com/wanakana"></script> <!-- ひらがな変換ライブラリ -->
+  <script src="https://unpkg.com/kuroshiro/dist/kuroshiro.min.js"></script>
+  <script src="https://unpkg.com/kuroshiro-analyzer-kuromoji/dist/kuroshiro-analyzer-kuromoji.min.js"></script>
   <style>
     body {
       font-family: "Arial", sans-serif;
@@ -86,6 +87,12 @@
   <script>
     let num1, num2, correctAnswer;
     let correctStreak = 0;
+    let kuroshiro;
+
+    async function initializeKuroshiro() {
+      kuroshiro = new Kuroshiro();
+      await kuroshiro.init(new KuromojiAnalyzer());
+    }
 
     async function fetchPokemonData(number) {
       try {
@@ -99,11 +106,11 @@
         const flavorTextEntries = data.flavor_text_entries;
         const japaneseFlavorEntry = flavorTextEntries.find(entry => entry.language.name === "ja");
         const rawText = japaneseFlavorEntry ? japaneseFlavorEntry.flavor_text.replace(/\n|\f/g, ' ') : "とくちょうは まだ ないよ";
-        const flavorText = wanakana.toHiragana(rawText, { passRomaji: true });
+        const flavorText = await kuroshiro.convert(rawText, { to: "hiragana" });
 
-        return { name: japaneseName, fact: flavorText, raw: rawText };
+        return { name: japaneseName, fact: flavorText };
       } catch (error) {
-        return { name: "ポケモン", fact: "とくちょうは まだ ないよ", raw: "とくちょうは まだ ないよ" };
+        return { name: "ポケモン", fact: "とくちょうは まだ ないよ" };
       }
     }
 
@@ -150,16 +157,15 @@
       if (selected === correctAnswer) {
         correctStreak++;
         const number = correctAnswer;
-        const { name, fact, raw } = await fetchPokemonData(number);
+        const { name, fact } = await fetchPokemonData(number);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
 
         document.getElementById("result").textContent = "せいかい！\nやったね！";
         document.getElementById("pokemon-img").src = imgUrl;
         document.getElementById("pokemon-img").alt = `ポケモン：${name}`;
         document.getElementById("pokemon-img").style.display = "inline";
-
-        document.getElementById("pokemon-info").innerHTML =
-          `ずかんナンバー ${number}ばん は「${name}」だよ！<br>ちなみに、${name}は<br><small>${raw}</small><br>（ひらがな：${fact}）`;
+        document.getElementById("pokemon-info").textContent =
+          `ずかんナンバー ${number}ばん は「${name}」だよ！\nちなみに、${name}は\n${fact}`;
 
         updateStatus();
 
@@ -185,7 +191,8 @@
       window.location.href = "index.html";
     }
 
-    window.onload = newQuestion;
-  </script>
-</body>
-</html>
+    window.onload = async function () {
+      await initializeKuroshiro();
+     
+::contentReference[oaicite:37]{index=37}
+ 
