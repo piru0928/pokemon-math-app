@@ -5,6 +5,7 @@
   <title>おんどく：ポケモンといっしょに</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="favicon.png" type="image/png">
+  <script src="https://unpkg.com/wanakana"></script>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -15,6 +16,14 @@
     h1 {
       color: #e74c3c;
       font-size: 24px;
+    }
+    #level-select {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    #start-button {
+      font-size: 18px;
+      padding: 6px 14px;
     }
     #pokemon-img {
       width: 120px;
@@ -31,50 +40,120 @@
       border-radius: 12px;
       border: 1px solid #f5cba7;
     }
-    button {
-      font-size: 18px;
+    #question-box {
+      margin-top: 20px;
+    }
+    .choice {
+      display: block;
+      margin: 10px auto;
+      font-size: 16px;
       padding: 10px 20px;
-      margin: 10px;
-      background-color: #f39c12;
-      color: white;
+      width: 60%;
       border: none;
       border-radius: 8px;
+      background-color: #f39c12;
+      color: white;
       cursor: pointer;
     }
-    button:hover {
+    .choice:hover {
       background-color: #e67e22;
+    }
+    .status {
+      margin: 12px 0;
+      font-size: 18px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <h1>📖 おんどく：ポケモンといっしょに</h1>
+
+  <div>
+    <label for="level">レベルをえらんでね：</label>
+    <select id="level-select">
+      <option value="1">レベル 1</option>
+      <option value="2">レベル 2</option>
+      <option value="3">レベル 3</option>
+      <option value="4">レベル 4</option>
+      <option value="5">レベル 5</option>
+    </select>
+    <button id="start-button" onclick="start()">はじめる</button>
+  </div>
+
   <img id="pokemon-img" src="" alt="ポケモン" style="display: none;" />
-  <div id="sentence">ポケモンのせつめいが ここに ひょうじされます。</div>
-  <button onclick="loadPokemon()">🔁 べつのポケモン</button>
+  <div id="sentence">レベルをえらんで、スタートしてね。</div>
+  <div class="status" id="status"></div>
+  <div id="question-box"></div>
   <button onclick="readText()">🔊 よみあげる</button>
   <br><br>
   <a href="index.html">← トップページへ</a>
 
   <script>
     let currentSentence = "";
+    let correctStreak = 0;
+    let currentAnswer = "";
+
+    async function start() {
+      correctStreak = 0;
+      document.getElementById("status").textContent = "";
+      await loadPokemon();
+    }
 
     async function loadPokemon() {
       const id = Math.floor(Math.random() * 151) + 1;
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
       const data = await res.json();
 
-      const nameEntry = data.names.find(n => n.language.name === "ja");
-      const name = nameEntry ? nameEntry.name : "ポケモン";
+      const name = data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+      const flavor = data.flavor_text_entries.find(e => e.language.name === "ja")?.flavor_text || "せつめいは みつかりません。";
+      const plainText = flavor.replace(/\n|\f/g, " ");
+      const hiraganaText = wanakana.toHiragana(plainText, { passRomaji: true });
 
-      const flavorEntry = data.flavor_text_entries.find(e => e.language.name === "ja");
-      const rawText = flavorEntry ? flavorEntry.flavor_text.replace(/\n|\f/g, " ") : "せつめいは みつかりませんでした。";
-
-      const sentence = `【${name}】\n${rawText}`;
+      const sentence = `【${name}】\n${hiraganaText}`;
       currentSentence = sentence;
+      currentAnswer = name;
 
       document.getElementById("sentence").textContent = sentence;
       document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
       document.getElementById("pokemon-img").style.display = "inline-block";
+
+      showQuestion(name);
+    }
+
+    function showQuestion(answer) {
+      const choices = [answer];
+      while (choices.length < 3) {
+        const random = "ポケモン" + Math.floor(Math.random() * 999);
+        if (!choices.includes(random)) choices.push(random);
+      }
+      choices.sort(() => Math.random() - 0.5);
+
+      const box = document.getElementById("question-box");
+      box.innerHTML = "<p>これは だれの せつめい？</p>";
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.textContent = choice;
+        btn.onclick = () => checkAnswer(choice);
+        box.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const result = document.getElementById("status");
+      if (selected === currentAnswer) {
+        correctStreak++;
+        result.textContent = `せいかい！れんぞく ${correctStreak} もん！`;
+        if (correctStreak >= 10) {
+          result.textContent += " 🌸おめでとう！ごうかく！";
+        } else {
+          setTimeout(() => loadPokemon(), 1500);
+        }
+      } else {
+        correctStreak = 0;
+        result.textContent = "ざんねん！ また ちょうせんしてね。";
+        setTimeout(() => loadPokemon(), 2000);
+      }
     }
 
     function readText() {
@@ -84,12 +163,9 @@
       }
       const uttr = new SpeechSynthesisUtterance(currentSentence.replace(/【.*?】/, ""));
       uttr.lang = "ja-JP";
-      speechSynthesis.cancel(); // 前の音声をキャンセル
+      speechSynthesis.cancel();
       speechSynthesis.speak(uttr);
     }
-
-    // 初期表示
-    window.onload = loadPokemon;
   </script>
 </body>
 </html>
