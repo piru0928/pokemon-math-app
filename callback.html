@@ -26,35 +26,22 @@
   <div id="status">いま、とうろくちゅうです...</div>
 
   <script>
-    // クエリパラメータを取得
-    function getQueryParams() {
-      const params = {};
-      window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (_, key, value) {
-        params[key] = decodeURIComponent(value);
+  const params = new URLSearchParams(location.search);
+  const code = params.get("code");
+  const state = params.get("state");
+
+  if (code) {
+    fetch("https://script.google.com/macros/s/AKfycbxrlj-L-ujDtFfiv--8D2yk6hjS9JIcrghfVIOUNDt5ZrBpxE1g61SfG3lbVVsJjt7B/exec?code=" + code + "&state=" + state)
+      .then(res => res.text())
+      .then(txt => {
+        document.body.innerHTML = "<h2>" + txt + "</h2><p>これでLINE通知の登録が完了しました。</p>";
+      })
+      .catch(err => {
+        document.body.innerHTML = "<h2>エラーが発生しました。</h2><p>" + err + "</p>";
       });
-      return params;
-    }
-
-    async function sendToGAS() {
-      const { code, state } = getQueryParams();
-
-      if (!code || !state) {
-        document.getElementById("status").textContent = "エラー：code または state がみつかりません。";
-        return;
-      }
-
-      const GAS_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
-
-      try {
-        const res = await fetch(`${GAS_URL}?mode=register&code=${code}&state=${state}`);
-        const text = await res.text();
-        document.getElementById("status").textContent = text || "とうろくが せいこうしました！";
-      } catch (error) {
-        document.getElementById("status").textContent = "エラーが はっせいしました：" + error.message;
-      }
-    }
-
-    window.onload = sendToGAS;
+  } else {
+    document.body.innerHTML = "<h2>認証に失敗しました。</h2>";
+  }
   </script>
 </body>
 </html>
