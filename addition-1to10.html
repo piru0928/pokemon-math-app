@@ -75,6 +75,7 @@
   <a href="index.html">← トップページへ</a>
 
   <script>
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
     let num1, num2, correctAnswer;
     let correctStreak = 0;
 
@@ -159,6 +160,18 @@
 
     function markCleared() {
       localStorage.setItem("cleared-addition-1to10", "true");
+
+      // ✅ LINE通知を送信
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          name: "なぎ",
+          stage: "たしざん：1から10まで",
+          score: 10,
+          date: new Date().toLocaleString()
+        })
+      });
+
       alert("クリアじょうほう を ほぞんしたよ！");
       window.location.href = "index.html";
     }
