@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>LINE連携完了</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0fff0;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #2ecc71;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>✅ LINEれんけいが かんりょうしました！</h1>
+  <div id="status">いま、とうろくちゅうです...</div>
+
+  <script>
+    // クエリパラメータを取得
+    function getQueryParams() {
+      const params = {};
+      window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (_, key, value) {
+        params[key] = decodeURIComponent(value);
+      });
+      return params;
+    }
+
+    async function sendToGAS() {
+      const { code, state } = getQueryParams();
+
+      if (!code || !state) {
+        document.getElementById("status").textContent = "エラー：code または state がみつかりません。";
+        return;
+      }
+
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
+
+      try {
+        const res = await fetch(`${GAS_URL}?mode=register&code=${code}&state=${state}`);
+        const text = await res.text();
+        document.getElementById("status").textContent = text || "とうろくが せいこうしました！";
+      } catch (error) {
+        document.getElementById("status").textContent = "エラーが はっせいしました：" + error.message;
+      }
+    }
+
+    window.onload = sendToGAS;
+  </script>
+</body>
+</html>
