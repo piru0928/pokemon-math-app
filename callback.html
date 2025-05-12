@@ -26,22 +26,22 @@
   <div id="status">いま、とうろくちゅうです...</div>
 
   <script>
-  const params = new URLSearchParams(location.search);
-  const code = params.get("code");
-  const state = params.get("state");
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
 
-  if (code) {
-    fetch("https://script.google.com/macros/s/AKfycbxrlj-L-ujDtFfiv--8D2yk6hjS9JIcrghfVIOUNDt5ZrBpxE1g61SfG3lbVVsJjt7B/exec?code=" + code + "&state=" + state)
-      .then(res => res.text())
-      .then(txt => {
-        document.body.innerHTML = "<h2>" + txt + "</h2><p>これでLINE通知の登録が完了しました。</p>";
-      })
-      .catch(err => {
-        document.body.innerHTML = "<h2>エラーが発生しました。</h2><p>" + err + "</p>";
-      });
-  } else {
-    document.body.innerHTML = "<h2>認証に失敗しました。</h2>";
-  }
+    if (code) {
+      fetch("https://script.google.com/macros/s/AKfycbxrlj-L-ujDtFfiv--8D2yk6hjS9JIcrghfVIOUNDt5ZrBpxE1g61SfG3lbVVsJjt7B/exec?code=" + encodeURIComponent(code) + "&state=" + encodeURIComponent(state))
+        .then(res => res.text())
+        .then(txt => {
+          document.getElementById("status").innerHTML = `<p>${txt}</p><p>これでLINE通知の登録が完了しました。</p>`;
+        })
+        .catch(err => {
+          document.getElementById("status").innerHTML = `<p>エラーが発生しました。</p><p>${err}</p>`;
+        });
+    } else {
+      document.getElementById("status").innerHTML = "<p>認証に失敗しました。もう一度お試しください。</p>";
+    }
   </script>
 </body>
 </html>
