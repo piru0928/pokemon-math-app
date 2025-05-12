@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ポケモンおべんきょうサイト</title>
-  <!-- ファビコン設定 -->
-  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="icon" href="favicon.png" type="image/png" />
   <style>
     body {
       font-family: 'Arial', sans-serif;
       background-color: #fdf6e3;
       color: #333;
-      padding: 0px;
+      padding: 20px;
+      text-align: center;
     }
     h1 {
       color: #e74c3c;
       font-size: 28px;
       margin-bottom: 20px;
-      text-align: center;
     }
     .category {
       background: #fff8dc;
@@ -27,12 +25,10 @@
       padding: 20px;
       margin: 20px auto;
       max-width: 500px;
-      box-shadow: none;
+      text-align: left;
     }
     .category h2 {
-      margin-top: 0;
       color: #d35400;
-      font-size: 20px;
     }
     ul {
       list-style: none;
@@ -73,103 +69,50 @@
     .clear-button:hover {
       background-color: #f368e0;
     }
+    #line-register {
+      background: #00c300;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #line-register:hover {
+      background: #00a000;
+    }
   </style>
 </head>
 <body>
   <h1>ポケモンおべんきょうサイト</h1>
+
   <div class="category">
-    <div class="category">
     <h2>＜さんすう＞</h2>
     <ul>
-      <li><span class="status" id="status-addition-1to5">⭐</span><a href="addition-1to5.html">たしざん：1から5まで</a></li>
-      <li><span class="status" id="status-subtraction-1to5">⭐</span><a href="subtraction-1to5.html">ひきざん：1から5まで</a></li>
       <li><span class="status" id="status-addition-1to10">⭐</span><a href="addition-1to10.html">たしざん：1から10まで</a></li>
-      <li><span class="status" id="status-subtraction-1to10">⭐</span><a href="subtraction-1to10.html">ひきざん：1から10まで</a></li>
-      <li><span class="status" id="status-addition-1to100">⭐</span><a href="addition-1to100.html">たしざん：1から100まで</a></li>
-      <li><span class="status" id="status-subtraction-1to100">⭐</span><a href="subtraction-1to100.html">ひきざん：100まで</a></li>
-      <li><span class="status" id="status-multiplication-1to10">⭐</span><a href="multiplication-1to10.html">かけざん：1から10まで</a></li>
-      <li><span class="status" id="status-multiplication-1to100">⭐</span><a href="multiplication-1to100.html">かけざん：100まで</a></li>
-      <li><span class="status" id="status-division-1to10">⭐</span><a href="division-1to10.html">わりざん：1から10まで</a></li>
-      <li><span class="status" id="status-division-1to10000">⭐</span><a href="division-1to10000.html">わりざん：10000まで</a></li>
     </ul>
-    <button class="clear-button" onclick="clearByUnit('math')">🌱 さんすうのデータをクリア</button>
   </div>
 
-
-  <div class="category">
-    <h2>＜こくご＞</h2>
-    <ul>
-      <li><span class="status" id="status-ondoku">⭐</span><a href="ondoku.html">おんどく</a></li>
-      <li><span class="status" id="status-nani.html">⭐</span><a href="nani.html">なにがでてきた？</a></li>
-      <li><span class="status" id="status-yousu.html">⭐</span><a href="yousu.html">ようすことば</a></li>
-      <li><span class="status" id="status-ugoki.html">⭐</span><a href="ugoki.html">うごきことば</a></li>
-      <li><span class="status" id="status-kuttuki.html">⭐</span><a href="kuttuki.html">くっつきことば</a></li>
-      <li><span class="status" id="status-bun.html">⭐</span><a href="bun.html">ぶんをよみとる</a></li>
-      <li><span class="status" id="status-kanji.html">⭐</span><a href="kanji.html">漢字</a></li>
-      <li><span class="status" id="status-shugo.html">⭐</span><a href="shugo.html">主語と述語</a></li>
-      <li><span class="status" id="status-soushoku.html">⭐</span><a href="soushoku.html">装飾語</a></li>
-      <li><span class="status" id="status-iikae.html">⭐</span><a href="iikae.html">いいかえ</a></li>
-      <li><span class="status" id="status-onkun.html">⭐</span><a href="onkun.html">音と訓</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('japanese')">🌱 こくごのデータをクリア</button>
+  <!-- ✅ LINE通知登録ボタン -->
+  <div style="margin: 30px auto;">
+    <h2>📩 保護者の方へ</h2>
+    <p>LINEでお子さまの学習完了通知を受け取るには、下のボタンから登録してください。</p>
+    <button id="line-register">LINEで通知登録する</button>
   </div>
 
-
-  <div class="category">
-    <h2>＜えいご＞</h2>
-    <ul>
-      <li><span class="status">⭐</span><a href="#">くだもの</a></li>
-      <li><span class="status">⭐</span><a href="#">おやつ</a></li>
-      <li><span class="status">⭐</span><a href="#">へや</a></li>
-      <li><span class="status">⭐</span><a href="#">おおきい、ちいさい</a></li>
-      <li><span class="status">⭐</span><a href="#">すき、たべる、のむ</a></li>
-      <li><span class="status">⭐</span><a href="#">5W</a></li>
-      <li><span class="status">⭐</span><a href="#">STORY</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('english')">🌱 えいごのデータをクリア</button>
-  </div>
-
-  <!-- ✅ スクリプト読み込みは一番下 -->
-  <script src="script.js"></script>
-  <!-- 背景画像 -->
   <script>
-    const MAX_POKEMON_ID = 151; // 初代ポケモンまで
-    const POKEMON_COUNT = 20; // 表示する画像数
-  
-    function getRandomId() {
-      return Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
-    }
-  
-    function createBackgroundPokemon() {
-      for (let i = 0; i < POKEMON_COUNT; i++) {
-        const id = getRandomId();
-        const img = document.createElement("img");
-        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-        img.style.position = "absolute";
-        img.style.opacity = "0.5";
-        img.style.width = "96px";
-        img.style.height = "96px";
-        img.style.zIndex = "-1";
-        img.style.top = `${Math.random() * 100}%`;
-        img.style.left = `${Math.random() * 100}%`;
-        img.style.transform = `rotate(${Math.random() * 360}deg)`;
-  
-        document.body.appendChild(img);
-      }
-    }
-  
-    window.onload = function () {
-      createBackgroundPokemon();
-      if (typeof updateStatusIcons === 'function') updateStatusIcons(); // 既存の初期処理も実行
+    document.getElementById("line-register").onclick = function () {
+      const clientId = "2007395696"; // ← あなたのLINEチャネルID
+      const redirectUri = encodeURIComponent("https://piru0928.github.io/pokemon-math-app/callback.html"); // ← あなたが作成するcallback.htmlのURL
+      const state = Math.random().toString(36).substring(2);
+
+      const loginUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=openid%20profile`;
+
+      window.location.href = loginUrl;
     };
   </script>
 
-  <!-- デバッグ用：アイコンリセット確認 -->
-  <div style="margin-top: 40px; padding: 10px; border-top: 2px dashed #ccc;">
-  <h3>🛠 デバッグ用 localStorage の中身</h3>
-  <pre id="debug-storage" style="background:#eee; padding:10px; border-radius:5px;"></pre>
-  <button onclick="showLocalStorage()">📋 表示更新</button>
-</div>
-
+  <!-- 既存のscript.js等あれば下に記載 -->
+  <script src="script.js"></script>
 </body>
 </html>
