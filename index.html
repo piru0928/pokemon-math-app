@@ -103,7 +103,7 @@
   <script>
     document.getElementById("line-register").onclick = function () {
       const clientId = "2007397325"; // ← あなたのLINEチャネルID
-      const redirectUri = encodeURIComponent("https://piru0928.github.io/pokemon-math-app/callback.html"); // ← あなたが作成するcallback.htmlのURL
+      const redirectUri = encodeURIComponent("https://script.google.com/macros/s/AKfycbxrlj-L-ujDtFfiv--8D2yk6hjS9JIcrghfVIOUNDt5ZrBpxE1g61SfG3lbVVsJjt7B/exec"); // ← あなたが作成するcallback.htmlのURL
       const state = Math.random().toString(36).substring(2);
 
       const loginUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=openid%20profile`;
