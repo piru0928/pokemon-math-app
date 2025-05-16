@@ -1,119 +1,118 @@
-let num1, num2;
-
-// 問題を新しく出す関数（1〜10まで）
-function newQuestion() {
-  num1 = Math.floor(Math.random() * 10) + 1;
-  num2 = Math.floor(Math.random() * 10) + 1;
-  document.getElementById("question").textContent = `${num1} + ${num2} = ?`;
-  document.getElementById("answer").value = "";
-  document.getElementById("result").textContent = "";
-}
-
-// 答えをチェックする関数
-function checkAnswer() {
-  const userAnswer = parseInt(document.getElementById("answer").value);
-  if (userAnswer === num1 + num2) {
-    document.getElementById("result").textContent = "せいかい！すごいね！";
-  } else {
-    document.getElementById("result").textContent = `ざんねん！こたえは ${num1 + num2} だよ`;
-  }
-  setTimeout(newQuestion, 1500);
-}
-
-// 🌸/⭐ ステータスの表示更新
-function updateStatusIcons() {
-  const statusMap = {
-    // さんすう
-    "cleared-addition-1to5": "status-addition-1to5",
-    "cleared-subtraction-1to5": "status-subtraction-1to5",
-    "cleared-addition-1to10": "status-addition-1to10",
-    "cleared-subtraction-1to10": "status-subtraction-1to10",
-    "cleared-addition-1to100": "status-addition-1to100",
-    "cleared-subtraction-1to100": "status-subtraction-1to100",
-    "cleared-multiplication-1to10": "status-multiplication-1to10",
-    "cleared-multiplication-1to100": "status-multiplication-1to100",
-    "cleared-division-1to10": "status-division-1to10",
-    "cleared-division-1to10000": "status-division-1to10000",
-
-    // こくご（japanese）
-    "cleared-ondoku": "status-ondoku",
-    "cleared-nani": "status-nani.html",
-    "cleared-yousu": "status-yousu.html",
-    "cleared-ugoki": "status-ugoki.html",
-    "cleared-kuttuki": "status-kuttuki.html",
-    "cleared-bun": "status-bun.html",
-    "cleared-kanji": "status-kanji.html",
-    "cleared-shugo": "status-shugo.html",
-    "cleared-soushoku": "status-soushoku.html",
-    "cleared-iikae": "status-iikae.html",
-    "cleared-onkun": "status-onkun.html"
-  };
-
-  for (const key in statusMap) {
-    const el = document.getElementById(statusMap[key]);
-    if (el) {
-      el.textContent = "⭐";
-      if (localStorage.getItem(key) === "true") {
-        el.textContent = "🌸";
-      }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ポケモンおべんきょうサイト</title>
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fdf6e3;
+      color: #333;
+      padding: 20px;
+      text-align: center;
     }
-  }
-}
+    h1 {
+      color: #e74c3c;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .category {
+      background: #fff8dc;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 500px;
+      text-align: left;
+    }
+    .category h2 {
+      color: #d35400;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+    }
+    .status {
+      display: inline-block;
+      width: 48px;
+      margin-right: 8px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    a {
+      text-decoration: none;
+      color: #2980b9;
+      font-weight: bold;
+    }
+    a:hover {
+      color: #c0392b;
+    }
+    .clear-button {
+      display: block;
+      margin: 10px auto;
+      padding: 8px 16px;
+      font-size: 14px;
+      background-color: #f78fb3;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .clear-button:hover {
+      background-color: #f368e0;
+    }
+    #line-register {
+      background: #00c300;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #line-register:hover {
+      background: #00a000;
+    }
+  </style>
+</head>
+<body>
+  <h1>ポケモンおべんきょうサイト</h1>
 
-// 単元ごとのデータを削除
-function clearByUnit(subject) {
-  const ok = confirm(`「${subject}」のがくしゅうデータをけしても いいですか？`);
-  if (!ok) return;
+  <div class="category">
+    <h2>＜さんすう＞</h2>
+    <ul>
+      <li><span class="status" id="status-addition-1to10">⭐</span><a href="addition-1to10.html">たしざん：1から10まで</a></li>
+    </ul>
+  </div>
 
-  const deleteMap = {
-    math: [
-      "cleared-addition-1to5",
-      "cleared-subtraction-1to5",
-      "cleared-addition-1to10",
-      "cleared-subtraction-1to10",
-      "cleared-addition-1to100",
-      "cleared-subtraction-1to100",
-      "cleared-multiplication-1to10",
-      "cleared-multiplication-1to100",
-      "cleared-division-1to10",
-      "cleared-division-1to10000"
-    ],
-    japanese: [
-      "cleared-ondoku",
-      "cleared-nani",
-      "cleared-yousu",
-      "cleared-ugoki",
-      "cleared-kuttuki",
-      "cleared-bun",
-      "cleared-kanji",
-      "cleared-shugo",
-      "cleared-soushoku",
-      "cleared-iikae",
-      "cleared-onkun"
-    ],
-    english: []
-  };
+  <!-- ✅ LINE通知登録ボタン -->
+  <div style="margin: 30px auto;">
+    <h2>📩 保護者の方へ</h2>
+    <p>LINEでお子さまの学習完了通知を受け取るには、下のボタンから登録してください。</p>
+    <button id="line-register">LINEで通知登録する</button>
+  </div>
 
-  const targets = deleteMap[subject] || [];
-  targets.forEach(key => localStorage.removeItem(key));
+  <script>
+    document.getElementById("line-register").onclick = function () {
+      const clientId = "2007395696"; // ← あなたのLINEチャネルID
+      const redirectUri = encodeURIComponent("https://piru0928.github.io/pokemon-math-app/callback.html"); // ← あなたが作成するcallback.htmlのURL
+      const state = Math.random().toString(36).substring(2);
 
-  alert(`${subject} のデータを クリアしました`);
-  updateStatusIcons();
-  showLocalStorage();
-}
+      const loginUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=openid%20profile`;
 
-// 初期表示処理
-window.onload = function () {
-  if (document.getElementById("question")) {
-    newQuestion();
-  }
-  updateStatusIcons();
-};
+      window.location.href = loginUrl;
+    };
+  </script>
 
-// デバッグ用：localStorage 確認
-function showLocalStorage() {
-  const output = Object.entries(localStorage)
-    .map(([key, value]) => `${key} = ${value}`)
-    .join('\n');
-  document.getElementById("debug-storage").textContent = output || "(何も保存されていません)";
-};
+  <!-- 既存のscript.js等あれば下に記載 -->
+  <script src="script.js"></script>
+</body>
+</html>
