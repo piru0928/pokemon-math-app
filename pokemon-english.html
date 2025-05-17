@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ポケモンクイズ（英語）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #fff8dc;
+      text-align: center;
+      padding: 20px;
+    }
+    img {
+      width: 120px;
+      height: 120px;
+    }
+    .choices {
+      margin-top: 20px;
+    }
+    .choices button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+    .result {
+      font-size: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ポケモンクイズ（日本語名を当てよう）</h1>
+  <div>
+    <img id="pokemon-img" src="" alt="ポケモン">
+  </div>
+  <div class="choices" id="choices"></div>
+  <div class="result" id="result"></div>
+
+  <script>
+    let correctName = "";
+    let correctCount = 0;
+
+    async function getPokemonData(id) {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      const data = await res.json();
+      const image = data.sprites.other['official-artwork'].front_default;
+
+      const jpRes = await fetch(data.species.url);
+      const jpData = await jpRes.json();
+      const jpNameObj = jpData.names.find(n => n.language.name === "ja");
+      const jpName = jpNameObj ? jpNameObj.name : "不明";
+
+      return { image, name: jpName };
+    }
+
+    async function getRandomPokemonId() {
+      return Math.floor(Math.random() * 1010) + 1;
+    }
+
+    async function generateQuiz() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("choices").innerHTML = "";
+
+      const ids = new Set();
+      while (ids.size < 3) ids.add(await getRandomPokemonId());
+      const idList = [...ids];
+
+      const pokemons = await Promise.all(idList.map(id => getPokemonData(id)));
+
+      const correctIndex = Math.floor(Math.random() * 3);
+      correctName = pokemons[correctIndex].name;
+
+      document.getElementById("pokemon-img").src = pokemons[correctIndex].image;
+
+      pokemons.forEach(p => {
+        const btn = document.createElement("button");
+        btn.textContent = p.name;
+        btn.onclick = () => checkAnswer(p.name);
+        document.getElementById("choices").appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const result = document.getElementById("result");
+      if (selected === correctName) {
+        correctCount++;
+        result.textContent = `🎉 正解！（${correctCount}問連続）`;
+        if (correctCount >= 10) {
+          result.textContent = "🎊 10問連続正解！すごい！クリア！";
+          correctCount = 0;
+        }
+      } else {
+        result.textContent = `😢 不正解…正解は「${correctName}」だったよ`;
+        correctCount = 0;
+      }
+      setTimeout(generateQuiz, 2000);
+    }
+
+    generateQuiz();
+  </script>
+</body>
+</html>
