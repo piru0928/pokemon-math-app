@@ -47,6 +47,17 @@ function updateStatusIcons() {
     "cleared-soushoku": "status-soushoku.html",
     "cleared-iikae": "status-iikae.html",
     "cleared-onkun": "status-onkun.html"
+    
+    // えいご（english）
+    "cleared-pokemon-english": "status-pokemon-english",
+    "cleared-fruit": "status-fruit",
+    "cleared-snack": "status-snack",
+    "cleared-room": "status-room",
+    "cleared-bigsmall": "status-bigsmall",
+    "cleared-like-eat-drink": "status-like-eat-drink",
+    "cleared-5w": "status-5w",
+    "cleared-story": "status-story"
+
   };
 
   for (const key in statusMap) {
@@ -91,7 +102,16 @@ function clearByUnit(subject) {
       "cleared-iikae",
       "cleared-onkun"
     ],
-    english: []
+    english: [
+      "cleared-pokemon-english",
+      "cleared-fruit",
+      "cleared-snack",
+      "cleared-room",
+      "cleared-bigsmall",
+      "cleared-like-eat-drink",
+      "cleared-5w",
+      "cleared-story"
+    ]
   };
 
   const targets = deleteMap[subject] || [];
