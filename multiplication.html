@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>かけざん：ステップアップ</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #f3e5f5;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #7b1fa2; margin-bottom: 10px; }
+    #level-display { font-size: 20px; font-weight: bold; color: #4a148c; margin-bottom: 5px; }
+    #question { font-size: 32px; margin: 20px; font-weight: bold; }
+    
+    #answer-display {
+      font-size: 36px;
+      background: white;
+      border: 3px solid #ce93d8;
+      border-radius: 10px;
+      width: 200px;
+      height: 60px;
+      margin: 10px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #333;
+      min-height: 60px;
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 70px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .num-btn {
+      width: 70px;
+      height: 60px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #fff;
+      border: 2px solid #ce93d8;
+      border-radius: 10px;
+      box-shadow: 0 4px #8e24aa;
+    }
+    .num-btn:active { transform: translateY(2px); box-shadow: 0 2px #8e24aa; }
+    .num-btn.clear { background-color: #e1bee7; }
+    .num-btn.submit { background-color: #ba68c8; grid-column: span 3; width: 230px; margin-top: 5px; color: white; }
+
+    #result { font-size: 22px; margin-top: 15px; color: #388e3c; font-weight: bold; min-height: 30px; }
+    #pokemon-area { margin-top: 15px; }
+    #pokemon-img { width: 120px; height: 120px; background: white; border-radius: 50%; border: 4px solid #ba68c8; display: none; }
+    #pokemon-name { font-size: 20px; font-weight: bold; color: #e53935; margin-top: 5px; }
+
+    #next-button {
+      margin-top: 20px; padding: 12px 40px; font-size: 18px;
+      background-color: #6a1b9a; color: white; border: none; border-radius: 30px; cursor: pointer; display: none;
+    }
+    #status { margin: 10px; font-size: 16px; color: #555; }
+    #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 2.0.0 | Updated: 2026-05-11 07:00</div>
+  
+  <h1>✖️ かけざんクイズ</h1>
+  <div id="level-display">レベル 1</div>
+  <div id="status">ただいま 0もんせいかい！</div>
+  
+  <div id="question">よみこみちゅう...</div>
+  <div id="answer-display"></div>
+
+  <div id="controls">
+    <div class="numpad">
+      <button class="num-btn" onclick="addNum(1)">1</button>
+      <button class="num-btn" onclick="addNum(2)">2</button>
+      <button class="num-btn" onclick="addNum(3)">3</button>
+      <button class="num-btn" onclick="addNum(4)">4</button>
+      <button class="num-btn" onclick="addNum(5)">5</button>
+      <button class="num-btn" onclick="addNum(6)">6</button>
+      <button class="num-btn" onclick="addNum(7)">7</button>
+      <button class="num-btn" onclick="addNum(8)">8</button>
+      <button class="num-btn" onclick="addNum(9)">9</button>
+      <button class="num-btn clear" onclick="clearNum()">C</button>
+      <button class="num-btn" onclick="addNum(0)">0</button>
+      <button class="num-btn submit" onclick="checkAnswer()">けってい</button>
+    </div>
+  </div>
+
+  <div id="result"></div>
+  <div id="pokemon-area">
+    <img id="pokemon-img" src="" alt="">
+    <div id="pokemon-name"></div>
+  </div>
+
+  <button id="next-button" onclick="newQuestion()">つぎのもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    let num1, num2, correctAnswer;
+    let correctStreak = 0;
+    let userTyped = "";
+    let currentLevel = 1;
+
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, type, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(correct) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (correct) {
+          this._note(880, 'sine', now, 0.1); this._note(1100, 'sine', now + 0.1, 0.2);
+        } else {
+          this._note(200, 'sawtooth', now, 0.2); this._note(150, 'sawtooth', now + 0.2, 0.3);
+        }
+      }
+    };
+
+    async function fetchPokemonName(number) {
+      if (number === 0) return "ミュウ"; 
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await res.json();
+        return data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+      } catch { return "ポケモン"; }
+    }
+
+    function addNum(n) {
+      if (userTyped.length < 4) {
+        userTyped += n;
+        document.getElementById("answer-display").textContent = userTyped;
+      }
+    }
+
+    function clearNum() {
+      userTyped = "";
+      document.getElementById("answer-display").textContent = "";
+    }
+
+    function newQuestion() {
+      if (correctStreak < 5) {
+        currentLevel = correctStreak + 1;
+      } else {
+        currentLevel = Math.floor(Math.random() * 5) + 1;
+      }
+
+      switch(currentLevel) {
+        case 1: // 2~5の段（九九の基礎）
+          num1 = Math.floor(Math.random() * 4) + 2;
+          num2 = Math.floor(Math.random() * 9) + 1;
+          break;
+        case 2: // 6~9の段
+          num1 = Math.floor(Math.random() * 4) + 6;
+          num2 = Math.floor(Math.random() * 9) + 1;
+          break;
+        case 3: // 10台 × 1桁（例: 12 × 4）
+          num1 = Math.floor(Math.random() * 9) + 11;
+          num2 = Math.floor(Math.random() * 8) + 2;
+          break;
+        case 4: // 2桁 × 1桁（例: 45 × 3）
+          num1 = Math.floor(Math.random() * 80) + 20;
+          num2 = Math.floor(Math.random() * 7) + 3;
+          break;
+        case 5: // 2桁 × 2桁（例: 15 × 12）
+          num1 = Math.floor(Math.random() * 20) + 11;
+          num2 = Math.floor(Math.random() * 20) + 11;
+          break;
+      }
+
+      correctAnswer = num1 * num2;
+      userTyped = "";
+      
+      document.getElementById("level-display").textContent = `レベル ${currentLevel}`;
+      document.getElementById("question").textContent = `${num1} × ${num2} ＝ ？`;
+      document.getElementById("answer-display").textContent = "";
+      document.getElementById("result").textContent = "";
+      document.getElementById("pokemon-name").textContent = "";
+      document.getElementById("pokemon-img").style.display = "none";
+      document.getElementById("next-button").style.display = "none";
+      document.getElementById("controls").style.display = "block";
+      
+      updateStatus();
+    }
+
+    async function checkAnswer() {
+      if (userTyped === "") return;
+      
+      const selected = parseInt(userTyped);
+      document.getElementById("controls").style.display = "none";
+
+      if (selected === correctAnswer) {
+        correctStreak++;
+        Buzzer.play(true);
+        document.getElementById("result").textContent = "✨ せいかい！";
+        
+        const pokeNum = Math.min(correctAnswer, 1025);
+        const name = await fetchPokemonName(pokeNum);
+        document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeNum}.png`;
+        document.getElementById("pokemon-img").style.display = "inline";
+        document.getElementById("pokemon-name").textContent = `ずかんNo.${pokeNum}：${name}`;
+        
+        if (correctStreak === 5) {
+          document.getElementById("result").innerHTML += "<br>🎉 5もんクリア！マスターモード突入！";
+        }
+      } else {
+        correctStreak = 0;
+        Buzzer.play(false);
+        document.getElementById("result").textContent = `残念！ こたえは ${correctAnswer} だよ`;
+      }
+      
+      updateStatus();
+      document.getElementById("next-button").style.display = "inline";
+    }
+
+    function updateStatus() {
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+    }
+
+    window.onload = newQuestion;
+  </script>
+</body>
+</html>
