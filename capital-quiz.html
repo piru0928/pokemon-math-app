@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>しゅとクイズ</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #fce4ec;
+      text-align: center;
+      padding: 20px;
+      transition: background-color 0.3s;
+    }
+    h1 { color: #c2185b; margin-bottom: 5px; }
+    #flag-display { font-size: 80px; margin: 10px; line-height: 1; }
+    #country-name { font-size: 28px; color: #1976d2; font-weight: bold; margin-bottom: 10px; }
+    #question { font-size: 22px; margin: 5px; font-weight: bold; }
+    
+    #hint-box {
+      background: #fff; border: 2px dashed #f48fb1; padding: 10px;
+      margin: 10px auto; max-width: 500px; border-radius: 10px; color: #555; font-size: 16px;
+      display: none;
+    }
+    #hint-btn {
+      background-color: #f06292; color: white; border: none; padding: 8px 16px;
+      border-radius: 20px; cursor: pointer; font-weight: bold; margin-bottom: 10px;
+    }
+
+    #answer-area { margin: 20px auto; max-width: 500px; display: flex; justify-content: center; gap: 10px; }
+    #user-input {
+      font-size: 20px; padding: 12px; width: 60%; border-radius: 8px; border: 2px solid #f06292; outline: none;
+    }
+    #submit-btn {
+      padding: 10px 25px; font-size: 18px; border-radius: 8px; border: none; 
+      cursor: pointer; font-weight: bold; background-color: #c2185b; color: white;
+    }
+
+    #result { font-size: 20px; margin-top: 10px; color: #388e3c; font-weight: bold; white-space: pre-line; }
+    #pokemon-img { margin-top: 10px; width: 120px; height: 120px; background: #fff; border-radius: 50%; border: 4px solid #ffeb3b; }
+    
+    @keyframes seikai-bg-flash {
+      0%, 40%, 80% { background-color: #f8bbd0; }
+      20%, 60%, 100% { background-color: #fce4ec; }
+    }
+    .correct-flash { animation: seikai-bg-flash 1.2s ease-in-out; }
+    .poke-pop { animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+    @keyframes bounceIn { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); } }
+    
+    #next-button {
+      margin-top: 15px; padding: 12px 30px; font-size: 18px;
+      background-color: #4caf50; color: white; border: none; border-radius: 30px; cursor: pointer; display: none; box-shadow: 0 4px #2e7d32;
+    }
+    #status { margin: 10px; font-size: 16px; color: #555; }
+    #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; background: rgba(255, 255, 255, 0.5); padding: 2px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 1.0.0 | Updated: 2026-05-10 17:45</div>
+  
+  <h1>🏰 しゅとクイズ</h1>
+  <div id="status">ただいま 0もん れんぞくせいかい！</div>
+  <div id="flag-display"></div>
+  <div id="country-name"></div>
+  <div id="question">この くにの しゅとは どこかな？</div>
+
+  <button id="hint-btn" onclick="showHint()">💡 ヒントをみる</button>
+  <div id="hint-box">💡 ヒント：<span id="hint-text"></span></div>
+  
+  <div id="answer-area">
+    <input type="text" id="user-input" placeholder="しゅとのなまえを入力" autocomplete="off">
+    <button id="submit-btn" onclick="processAnswer()">決定</button>
+  </div>
+  
+  <div id="result"></div>
+  <img id="pokemon-img" src="" alt="" style="display:none;">
+  <div id="pokemon-info" style="font-size: 18px; font-weight: bold; color: #e91e63;"></div>
+  
+  <button id="next-button" onclick="newQuestion()">つぎのもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへもどる</a>
+
+  <script>
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
+    
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, type, start, duration, endFreq) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
+        gain.gain.setValueAtTime(0.1, start); gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(pattern) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (pattern === 'correct') {
+          this._note(880, 'sine', now, 0.1, 1320); this._note(880, 'sine', now + 0.2, 0.1, 1320);
+        } else {
+          this._note(200, 'sawtooth', now, 0.3, 100); this._note(200, 'sawtooth', now + 0.4, 0.3, 100);
+        }
+      }
+    };
+
+    // クイズデータ（capital_yomiにあいまい判定用の読みを入れます）
+    const quizData = [
+      { name: "日本（にほん）", flag: "🇯🇵", capital: "とうきょう", capital_yomi: "とうきょう", hint: "太陽（たいよう）が のぼる 国（くに）の 首都（しゅと）だよ！", pokeId: 338 },
+      { name: "アメリカ", flag: "🇺🇸", capital: "ワシントンD.C.", capital_yomi: "わしんとん", accept: ["わしんとんでぃーしー"], hint: "自由（じゆう）の 女神（めがみ）が 有名（ゆうめい）な 国の 首都だよ！", pokeId: 628 },
+      { name: "フランス", flag: "🇫🇷", capital: "パリ", capital_yomi: "ぱり", hint: "エッフェル塔（とう）が ある おしゃれな 街（まち）だよ！", pokeId: 907 },
+      { name: "イタリア", flag: "🇮🇹", capital: "ローマ", capital_yomi: "ろーま", hint: "ピザや パスタが 美味（おい）しい 国の 首都だよ！", pokeId: 143 },
+      { name: "イギリス", flag: "🇬🇧", capital: "ロンドン", capital_yomi: "ろんどん", hint: "時計台（とけいだい） ビッグベンが あるよ！", pokeId: 823 },
+      { name: "韓国（かんこく）", flag: "🇰🇷", capital: "ソウル", capital_yomi: "そうる", hint: "日本（にほん）から とっても 近（ちか）い 国の 首都だよ！", pokeId: 257 },
+      { name: "タイ", flag: "🇹🇭", capital: "バンコク", capital_yomi: "ばんこく", hint: "象（ぞう）さんが 大事（だいじ）にされている 国の 首都だよ！", pokeId: 231 },
+      { name: "インド", flag: "🇮🇳", capital: "ニューデリー", capital_yomi: "にゅーでりー", accept: ["にゅーでり", "でりー"], hint: "カレーが 有名（ゆうめい）な 国の 首都だよ！", pokeId: 232 }
+      // ※国名クイズの200カ国リストを参考に、capital（首都）ベースで追加可能です
+    ];
+
+    let currentQuestion;
+    let correctStreak = 0;
+
+    function showHint() {
+      document.getElementById("hint-box").style.display = "block";
+      document.getElementById("hint-btn").style.display = "none";
+    }
+
+    async function fetchPokemonName(number) {
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${number}`);
+        const data = await response.json();
+        return data.names.find(n => n.language.name === "ja")?.name || "ポケモン";
+      } catch { return "ポケモン"; }
+    }
+
+    function newQuestion() {
+      currentQuestion = quizData[Math.floor(Math.random() * quizData.length)];
+      document.getElementById("flag-display").textContent = currentQuestion.flag;
+      document.getElementById("country-name").textContent = currentQuestion.name;
+      document.getElementById("hint-text").textContent = currentQuestion.hint;
+      document.getElementById("hint-box").style.display = "none";
+      document.getElementById("hint-btn").style.display = "inline-block";
+      document.getElementById("result").textContent = "";
+      document.getElementById("pokemon-info").textContent = "";
+      document.getElementById("pokemon-img").style.display = "none";
+      document.getElementById("next-button").style.display = "none";
+      document.getElementById("answer-area").style.display = "flex";
+      document.getElementById("user-input").value = "";
+      document.getElementById("user-input").focus();
+      updateStatus();
+    }
+
+    function normalize(str) {
+      if (!str) return "";
+      return str.replace(/[ァ-ン]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0x60))
+                .replace(/[\s　、。！!？?・．.－-]/g, "")
+                .toLowerCase();
+    }
+
+    async function processAnswer() {
+      const userInput = document.getElementById("user-input").value.trim();
+      if (!userInput) return;
+
+      const userNorm = normalize(userInput);
+      const correctPatterns = [
+        currentQuestion.capital,
+        currentQuestion.capital_yomi,
+        ...(currentQuestion.accept || [])
+      ].map(p => normalize(p));
+
+      // 首都名は一部が含まれていれば正解とする（ワシントンD.C.への「ワシントン」対応など）
+      const isCorrect = correctPatterns.some(p => userNorm === p || userNorm.includes(p) || p.includes(userNorm));
+
+      document.getElementById("answer-area").style.display = "none";
+      document.getElementById("hint-btn").style.display = "none";
+
+      if (isCorrect) {
+        correctStreak++;
+        Buzzer.play('correct');
+        document.body.classList.add("correct-flash");
+        setTimeout(() => document.body.classList.remove("correct-flash"), 1200);
+
+        const pokeName = await fetchPokemonName(currentQuestion.pokeId);
+        document.getElementById("result").innerHTML = `せいかい！ こたえは 「${currentQuestion.capital}」 だよ！`;
+        document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
+        document.getElementById("pokemon-img").style.display = "inline";
+        document.getElementById("pokemon-img").classList.add("poke-pop");
+        document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.capital}」 だよ。`;
+      }
+      
+      updateStatus();
+      document.getElementById("next-button").style.display = "inline";
+    }
+
+    function updateStatus() {
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+    }
+
+    document.getElementById("user-input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") processAnswer();
+    });
+
+    window.onload = newQuestion;
+  </script>
+</body>
+</html>
