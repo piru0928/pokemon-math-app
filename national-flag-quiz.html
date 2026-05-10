@@ -125,8 +125,11 @@
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
     
     // 音源の定義
-    const soundCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/clink_clank.ogg');
-    const soundWrong = new Audio('https://actions.google.com/sounds/v1/cartoon/boing.ogg');
+    // ✅ より再生成功率の高いmp3音源（Wikimedia Commonsより）
+    // 正解：ベルの音
+    const soundCorrect = new Audio('https://upload.wikimedia.org/wikipedia/commons/b/bd/C_Major_Xylophone.mp3');
+    // 不正解：低いブザー音
+    const soundWrong = new Audio('https://upload.wikimedia.org/wikipedia/commons/5/5e/UHF_Incomplete.mp3');
 
     // ブラウザの音制限を解除するための儀式
     let audioInitialized = false;
