@@ -12,7 +12,7 @@
       background: #fff; border: 4px solid #3498db; padding: 25px;
       margin: 15px auto; max-width: 650px; border-radius: 15px;
       text-align: left; line-height: 2.2; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      min-height: 100px;
+      min-height: 120px;
     }
     #question-text { font-size: 22px; margin: 20px; font-weight: bold; color: #e67e22; }
     .choice {
@@ -28,8 +28,6 @@
       display: none; text-align: left; font-size: 16px; line-height: 1.6;
     }
     #pokemon-img { margin-top: 10px; width: 110px; height: 110px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
-    .poke-pop { animation: bounceIn 0.6s ease-out; }
-    @keyframes bounceIn { 0% { transform: scale(0); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
     #next-button {
       margin-top: 20px; padding: 15px 40px; font-size: 18px;
       background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none;
@@ -38,7 +36,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 2.2.0 | Updated: 2026-05-10 17:00</div>
+  <div id="version-info">Ver 2.3.0 | Updated: 2026-05-10 17:15</div>
   <h1>📖 たんぶんマスター</h1>
   <div id="level-display">レベル 1</div>
   <div id="status">あと 5問正解でマスターモード！</div>
@@ -93,14 +91,15 @@
       ],
       where: [
         { h: "くさむら", k: "草（くさ）むら" }, { h: "もり", k: "森（もり）" },
-        { h: "うみ", k: "海（うみ）" }, { h: "おしろ", k: "お城（しろ）" }
+        { h: "うみ", k: "海（うみ）" }, { h: "おしろ", k: "お城（しろ）" },
+        { h: "こうえん", k: "公園（こうえん）" }
       ],
       item: [
         { h: "あめ", k: "あめ" }, { h: "きのみ", k: "木（き）の実（み）" },
-        { h: "ふうせん", k: "風船（ふうせん）" }, { h: "おたから", k: "お宝（たから）" }
+        { h: "ふうせん", k: "風船（ふうせん）" }, { h: "おたから", k: "お宝（たから）" },
+        { h: "てがみ", k: "手紙（てがみ）" }
       ],
-      adj: ["大きくて重い", "キラキラ光る", "不思議な", "大切にしていた"],
-      reason: ["お腹がすいていたから", "プレゼントしたかったから", "道で見つけたから", "落としてしまったから"]
+      feel: ["うれしい", "かなしい", "びっくりした", "わくわくした"]
     };
 
     function generateQuestion() {
@@ -119,42 +118,57 @@
       let explanation = "";
       let options = [];
 
-      // レベル別の文章・論理構造
-      if (curLv <= 2) {
-        // Lv1-2: 単純構造 (AはBにいた。Cをした。)
-        const w = getV("who"), l = getV("where"), i = getV("item");
-        passage = `${w}は ${l}に いました。そこで ${i}を みつけました。`;
-        question = `${w}は なにを みつけましたか？`;
-        currentAns = i;
-        options = [i, "お花", "ぼうし"];
-        explanation = `文章のさいごに「${i}を みつけました」と書いてあるね。`;
+      const w = getV("who"), l = getV("where"), i = getV("item"), f = vocab.feel[Math.floor(Math.random()*4)];
 
-      } else if (curLv <= 5) {
-        // Lv3-5: 原因と結果 (AはBだからCをした)
-        const w = getV("who"), i = getV("item"), r = vocab.reason[Math.floor(Math.random()*4)];
-        passage = `${w}は ${r}ので、${i}を 手に入れようと 決（き）めました。`;
-        question = `${w}が ${i}を ほしがった 理由（りゆう）は何ですか？`;
-        currentAns = r.replace("から", "ので"); // 語尾合わせ
-        options = [currentAns, "きれいだったから", "頼まれたから"];
-        explanation = `「〜ので」の前を読んでみよう。理由が書いてあるよ。`;
-
-      } else if (curLv <= 8) {
-        // Lv6-8: 逆接と推論 (AはBしたが、実はCだった)
-        const w = getV("who"), l = getV("where"), i = getV("item");
-        passage = `${w}は ${l}で ${i}を さがしていましたが、なかなか 見（み）つかりませんでした。しかし、あきらめかけた その時（とき）、足（あし）もとに それを 発見（はっけん）しました。`;
-        question = `${i}は 最終的（さいしゅうてき）に どこにありましたか？`;
-        currentAns = "足もと";
-        options = ["足もと", l, "木の上"];
-        explanation = `「しかし」のあとの文章を読んでみて。「足もとにそれを発見した」とあるね。`;
-
+      if (curLv <= 3) {
+        // Lv1-3: 短い記述から特定
+        passage = `${l}に、${w}が いました。${w}は ${i}を もっていました。`;
+        const qType = Math.random() > 0.5;
+        if(qType) {
+          question = `${w}は どこに いましたか？`;
+          currentAns = l;
+          options = [l, "空の上", "家の中"];
+          explanation = `文章の最初の方に「${l}に」と書いてありますね。`;
+        } else {
+          question = `${w}は 何を もっていましたか？`;
+          currentAns = i;
+          options = [i, "ぼうし", "お花"];
+          explanation = `文章の最後に「${i}を もっていました」と書いてあります。`;
+        }
+      } else if (curLv <= 7) {
+        // Lv4-7: 接続詞（ので・でも）
+        const reasons = ["お腹がすいた", "道で見つけた", "友達にあげたい"];
+        const r = reasons[Math.floor(Math.random()*reasons.length)];
+        passage = `${w}は ${l}で ${i}を 見つけました。とても ${r}ので、${w}は ${f} 気持ちになりました。`;
+        
+        const qType = Math.random() > 0.5;
+        if(qType) {
+          question = `${w}が ${f} 気持ちになったのは なぜですか？`;
+          currentAns = `${r}から`;
+          options = [currentAns, "天気がよかったから", "走ったから"];
+          explanation = `「〜ので」の前の部分に、その時の理由が書いてありますよ。`;
+        } else {
+          question = `${w}は どこで ${i}を 見つけましたか？`;
+          currentAns = l;
+          options = [l, "学校", "山の上"];
+          explanation = `「${l}で」という場所の言葉を探してみよう。`;
+        }
       } else {
-        // Lv9-10: 複雑な修飾と論理展開
-        const w1 = getV("who"), w2 = "となりのおじさん";
-        passage = `${w1}は ${w2}から もらった 大切（たいせつ）な 手紙（てがみ）を 読んで、涙（なみだ）を 流（なが）しました。なぜなら、そこには ずっと 会（あ）いたかった 家族（かぞく）の 居場所（いばしょ）が 書（か）いてあったからです。`;
-        question = `${w1}が 泣（な）いたのは どうしてですか？`;
-        currentAns = "家族の居場所がわかったから";
-        options = ["家族の居場所がわかったから", "おじさんに怒られたから", "手紙をなくしたから"];
-        explanation = `「なぜなら」のあとの部分に、理由がくわしく書いてあるよ。`;
+        // Lv8-10: 逆接と詳細読解
+        passage = `${w}は ${l}へ ${i}を 届けに行こうとしました。しかし、途中で雨が降ってきたため、近くの洞窟（どうくつ）で休むことにしました。${w}は「少し残念だ」とつぶやきました。`;
+        
+        const qType = Math.random() > 0.5;
+        if(qType) {
+          question = `${w}は 最終的に どこで 休むことにしましたか？`;
+          currentAns = "洞窟（どうくつ）";
+          options = ["洞窟（どうくつ）", l, "自分の家"];
+          explanation = `「しかし」の後の展開を読みましょう。「洞窟で休むことにした」とあります。`;
+        } else {
+          question = `${w}は どうして 洞窟で休むことにしたのですか？`;
+          currentAns = "雨が降ってきたため";
+          options = ["雨が降ってきたため", "疲れたため", "道に迷ったため"];
+          explanation = `「〜ため」という言葉に注目すると、理由がわかります。`;
+        }
       }
 
       document.getElementById("passage-box").textContent = passage;
@@ -185,7 +199,6 @@
         const pokeId = Math.floor(Math.random() * 151) + 1;
         document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
         document.getElementById("pokemon-img").style.display = "inline";
-        document.getElementById("pokemon-img").classList.add("poke-pop");
       } else {
         correctStreak = 0;
         level = 1;
