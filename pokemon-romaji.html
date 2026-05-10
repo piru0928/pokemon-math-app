@@ -30,18 +30,27 @@
     #jp-name { font-size: 28px; font-weight: bold; color: #333; margin-top: 10px; }
     #ruby-name { font-size: 16px; color: #ff9800; font-weight: bold; }
 
-    /* 入力エリア */
-    #answer-area { margin: 15px auto; max-width: 500px; }
-    #user-input {
-      font-size: 24px; padding: 12px; width: 80%; border-radius: 8px;
-      border: 2px solid #ffb74d; outline: none; text-align: center;
-      text-transform: lowercase;
+    /* 選択肢エリア */
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 500px;
+      margin: 0 auto;
     }
-    #submit-btn {
-      margin-top: 15px; padding: 12px 40px; font-size: 20px;
-      background-color: #ef6c00; color: white; border: none;
-      border-radius: 10px; cursor: pointer; font-weight: bold;
+    .choice-btn {
+      padding: 15px 10px;
+      font-size: 20px;
+      font-weight: bold;
+      background-color: white;
+      border: 2px solid #ffb74d;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
     }
+    .choice-btn:hover { background-color: #fff8e1; border-color: #e65100; }
+    .choice-btn:active { transform: scale(0.95); }
+    .choice-btn:disabled { cursor: default; opacity: 0.8; }
 
     #result { font-size: 22px; margin-top: 15px; font-weight: bold; min-height: 30px; white-space: pre-line; }
     
@@ -56,7 +65,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.0.0 | Updated: 2026-05-11 07:40</div>
+  <div id="version-info">Ver 1.1.0 | Updated: 2026-05-11 07:50</div>
   
   <h1>⌨️ ローマ字マスター</h1>
   <div id="level-display">レベル 1</div>
@@ -68,11 +77,7 @@
     <div id="jp-name">？？？</div>
   </div>
   
-  <div id="answer-area">
-    <input type="text" id="user-input" placeholder="ローマ字を入力" autocomplete="off" spellcheck="false">
-    <br>
-    <button id="submit-btn" onclick="checkAnswer()">けってい！</button>
-  </div>
+  <div class="choices-container" id="choices"></div>
 
   <div id="result"></div>
   
@@ -82,7 +87,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/wanakana@4.0.2/wanakana.min.js"></script>
   <script>
-    let correctJpName = "";
+    let correctRomaji = "";
     let correctStreak = 0;
     let currentLevel = 1;
 
@@ -111,9 +116,7 @@
 
     async function generateQuiz() {
       document.getElementById("result").textContent = "";
-      document.getElementById("user-input").value = "";
-      document.getElementById("user-input").style.display = "inline-block";
-      document.getElementById("submit-btn").style.display = "inline-block";
+      document.getElementById("choices").innerHTML = "読み込み中...";
       document.getElementById("next-button").style.display = "none";
       
       if (correctStreak < 5) {
@@ -124,75 +127,78 @@
       document.getElementById("level-display").textContent = `レベル ${currentLevel}`;
       document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
 
-      // 出題範囲の設定
-      let id;
-      if (currentLevel === 1) {
-        // 短くて有名なポケモン
-        const easyIds = [1, 4, 7, 25, 35, 39, 132, 133, 151];
-        id = easyIds[Math.floor(Math.random() * easyIds.length)];
-      } else if (currentLevel === 2) {
-        id = Math.floor(Math.random() * 151) + 1;
-      } else {
-        id = Math.floor(Math.random() * 900) + 1;
-      }
+      let maxId = currentLevel <= 2 ? 151 : 900;
+      const targetId = Math.floor(Math.random() * maxId) + 1;
 
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${targetId}`);
         const data = await res.json();
-        correctJpName = data.names.find(n => n.language.name === "ja").name;
+        const jpName = data.names.find(n => n.language.name === "ja").name;
+        
+        // カタカナをひらがなにしてローマ字変換
+        const hiraName = jpName.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
+        correctRomaji = wanakana.toRomaji(hiraName).toLowerCase().replace(/[^a-z]/g, "");
 
-        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${targetId}`);
         const pokeData = await pokeRes.json();
 
         document.getElementById("pokemon-img").src = pokeData.sprites.other['official-artwork'].front_default;
-        document.getElementById("jp-name").textContent = correctJpName;
-        
-        // カタカナをひらがなに変換してルビ表示
-        const hiraName = correctJpName.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
+        document.getElementById("jp-name").textContent = jpName;
         document.getElementById("ruby-name").textContent = hiraName;
+
+        // 選択肢の作成
+        let options = [correctRomaji];
+        while (options.length < 4) {
+          let dummyId = Math.floor(Math.random() * maxId) + 1;
+          if (dummyId === targetId) continue;
+          
+          let dRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${dummyId}`);
+          let dData = await dRes.json();
+          let dJpName = dData.names.find(n => n.language.name === "ja").name;
+          let dHiraName = dJpName.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
+          let dRomaji = wanakana.toRomaji(dHiraName).toLowerCase().replace(/[^a-z]/g, "");
+          
+          if (!options.includes(dRomaji)) options.push(dRomaji);
+        }
+
+        options.sort(() => Math.random() - 0.5);
+
+        const choicesDiv = document.getElementById("choices");
+        choicesDiv.innerHTML = "";
+        options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "choice-btn";
+          btn.textContent = opt.toUpperCase();
+          btn.onclick = () => checkAnswer(opt);
+          choicesDiv.appendChild(btn);
+        });
 
       } catch (e) {
         generateQuiz();
       }
     }
 
-    function checkAnswer() {
-      const userInput = document.getElementById("user-input").value.trim().toLowerCase();
-      if (!userInput) return;
-
+    function checkAnswer(selected) {
       const resultArea = document.getElementById("result");
-      const hiraName = document.getElementById("ruby-name").textContent;
-      
-      // wanakanaでローマ字候補を作成
-      const expectedRomaji = wanakana.toRomaji(hiraName).toLowerCase();
-      
-      // 判定用のクレンジング（ポケモン特有の長音「ー」などは入力させない前提、または無視）
-      const normalizedInput = userInput.replace(/[^a-z]/g, "");
-      const normalizedExpected = expectedRomaji.replace(/[^a-z]/g, "");
+      const btns = document.querySelectorAll(".choice-btn");
+      btns.forEach(b => b.disabled = true);
 
-      document.getElementById("user-input").style.display = "none";
-      document.getElementById("submit-btn").style.display = "none";
-
-      if (normalizedInput === normalizedExpected) {
+      if (selected === correctRomaji) {
         correctStreak++;
         Buzzer.play(true);
         resultArea.style.color = "#2e7d32";
-        resultArea.textContent = `✨ せいかい！\n「${expectedRomaji.toUpperCase()}」`;
+        resultArea.textContent = `✨ せいかい！\n「${correctRomaji.toUpperCase()}」`;
         document.body.classList.add("correct-flash");
         setTimeout(() => document.body.classList.remove("correct-flash"), 1000);
       } else {
         correctStreak = 0;
         Buzzer.play(false);
         resultArea.style.color = "#d32f2f";
-        resultArea.textContent = `❌ ざんねん！\nせいかいは 「${expectedRomaji.toUpperCase()}」 だよ。`;
+        resultArea.textContent = `❌ ざんねん！\nせいかいは 「${correctRomaji.toUpperCase()}」 だよ。`;
       }
 
       document.getElementById("next-button").style.display = "inline-block";
     }
-
-    document.getElementById("user-input").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") checkAnswer();
-    });
 
     window.onload = generateQuiz;
   </script>
