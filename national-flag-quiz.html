@@ -325,8 +325,10 @@
   choicesDiv.innerHTML = "";
 
   // ✅ 効果音の準備（フリー素材のURLをお借りしています）
-  const soundCorrect = new Audio('https://otologic.jp/files/free/se/pdf/Quiz-Correct_Answer02-1.mp3');
-  const soundWrong = new Audio('https://otologic.jp/files/free/se/pdf/Quiz-Wrong_Answer02-1.mp3');
+  // 正解：ピコーン！
+  const soundCorrect = new Audio('https://orangefreesounds.com/wp-content/uploads/2014/10/Correct-answer.mp3');
+  // 不正解：ブブー
+  const soundWrong = new Audio('https://orangefreesounds.com/wp-content/uploads/2014/10/Wrong-answer-sound-effect.mp3');
 
   if (selected === currentQuestion.name) {
     correctStreak++;
