@@ -30,7 +30,6 @@
     #jp-name { font-size: 28px; font-weight: bold; color: #333; margin-top: 10px; }
     #ruby-name { font-size: 16px; color: #ff9800; font-weight: bold; }
 
-    /* 選択肢エリア */
     .choices-container {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -40,7 +39,7 @@
     }
     .choice-btn {
       padding: 15px 10px;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
       background-color: white;
       border: 2px solid #ffb74d;
@@ -65,7 +64,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.1.0 | Updated: 2026-05-11 07:50</div>
+  <div id="version-info">Ver 1.1.1 | Updated: 2026-05-11 07:55</div>
   
   <h1>⌨️ ローマ字マスター</h1>
   <div id="level-display">レベル 1</div>
@@ -78,7 +77,6 @@
   </div>
   
   <div class="choices-container" id="choices"></div>
-
   <div id="result"></div>
   
   <button id="next-button" onclick="generateQuiz()">つぎのもんだいへ！</button>
@@ -86,6 +84,7 @@
   <a href="index.html">← トップページへ</a>
 
   <script src="https://cdn.jsdelivr.net/npm/wanakana@4.0.2/wanakana.min.js"></script>
+
   <script>
     let correctRomaji = "";
     let correctStreak = 0;
@@ -115,8 +114,14 @@
     };
 
     async function generateQuiz() {
+      // 部品(wanakana)が届いていなければ待機
+      if (typeof wanakana === 'undefined') {
+        setTimeout(generateQuiz, 100);
+        return;
+      }
+
       document.getElementById("result").textContent = "";
-      document.getElementById("choices").innerHTML = "読み込み中...";
+      document.getElementById("choices").innerHTML = "よみこみちゅう...";
       document.getElementById("next-button").style.display = "none";
       
       if (correctStreak < 5) {
@@ -131,27 +136,32 @@
       const targetId = Math.floor(Math.random() * maxId) + 1;
 
       try {
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${targetId}`);
+        // API取得（5秒でタイムアウトするように設定）
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${targetId}`, { signal: controller.signal });
         const data = await res.json();
         const jpName = data.names.find(n => n.language.name === "ja").name;
         
-        // カタカナをひらがなにしてローマ字変換
         const hiraName = jpName.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
+        // wanakanaで変換
         correctRomaji = wanakana.toRomaji(hiraName).toLowerCase().replace(/[^a-z]/g, "");
 
-        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${targetId}`);
+        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${targetId}`, { signal: controller.signal });
         const pokeData = await pokeRes.json();
+        clearTimeout(timeoutId);
 
         document.getElementById("pokemon-img").src = pokeData.sprites.other['official-artwork'].front_default;
         document.getElementById("jp-name").textContent = jpName;
         document.getElementById("ruby-name").textContent = hiraName;
 
-        // 選択肢の作成
         let options = [correctRomaji];
         while (options.length < 4) {
           let dummyId = Math.floor(Math.random() * maxId) + 1;
           if (dummyId === targetId) continue;
           
+          // ダミーは速度重視で簡単な名前から生成
           let dRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${dummyId}`);
           let dData = await dRes.json();
           let dJpName = dData.names.find(n => n.language.name === "ja").name;
@@ -174,7 +184,9 @@
         });
 
       } catch (e) {
-        generateQuiz();
+        console.error(e);
+        // 失敗したら一瞬待って再試行
+        setTimeout(generateQuiz, 500);
       }
     }
 
@@ -200,7 +212,10 @@
       document.getElementById("next-button").style.display = "inline-block";
     }
 
-    window.onload = generateQuiz;
+    // 起動処理
+    window.onload = function() {
+      generateQuiz();
+    };
   </script>
 </body>
 </html>
