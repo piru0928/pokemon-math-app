@@ -2,119 +2,193 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ポケモン英語クイズ</title>
+  <title>ポケモン英語マスター</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background: #fff8dc;
+      background: #e8f5e9;
       text-align: center;
       padding: 20px;
+      transition: 0.3s;
     }
-    img {
-      width: 120px;
-      height: 120px;
+    h1 { color: #2e7d32; margin-bottom: 5px; }
+    #level-display { font-size: 20px; font-weight: bold; color: #1b5e20; margin-bottom: 5px; }
+    #status { font-size: 16px; color: #666; margin-bottom: 15px; }
+
+    #pokemon-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      min-width: 280px;
     }
-    .choices {
-      margin-top: 20px;
+    #pokemon-img { width: 180px; height: 180px; }
+    #jp-name { font-size: 24px; font-weight: bold; color: #333; margin-top: 10px; }
+
+    /* 入力エリア */
+    #answer-area { margin: 15px auto; max-width: 500px; }
+    #user-input {
+      font-size: 20px; padding: 12px; width: 80%; border-radius: 8px;
+      border: 2px solid #81c784; outline: none; text-align: center;
     }
-    .choices button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border-radius: 8px;
+    #submit-btn {
+      margin-top: 10px; padding: 10px 30px; font-size: 18px;
+      background-color: #2e7d32; color: white; border: none;
+      border-radius: 8px; cursor: pointer; font-weight: bold;
     }
-    .result {
-      font-size: 20px;
-      margin-top: 20px;
+
+    #result { font-size: 22px; margin-top: 15px; font-weight: bold; min-height: 30px; white-space: pre-line; }
+    
+    #hint-text { color: #ef6c00; font-weight: bold; margin-top: 10px; font-size: 18px; }
+
+    #next-button {
+      margin-top: 20px; padding: 12px 40px; font-size: 18px;
+      background-color: #4caf50; color: white; border: none;
+      border-radius: 30px; cursor: pointer; display: none;
     }
-    #nextBtn {
-      margin-top: 20px;
-      font-size: 16px;
-      padding: 10px 24px;
-      display: none;
-    }
+
+    .correct-flash { background-color: #c8e6c9 !important; }
+    #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; }
   </style>
 </head>
 <body>
-  <h1>ポケモンクイズ（英語名を当てよう）</h1>
-  <div>
-    <img id="pokemon-img" src="" alt="ポケモン">
+  <div id="version-info">Ver 2.0.0 | Updated: 2026-05-11 07:20</div>
+  
+  <h1>🐾 ポケモン英語マスター</h1>
+  <div id="level-display">レベル 1</div>
+  <div id="status">よみこみちゅう...</div>
+
+  <div id="pokemon-card">
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div id="jp-name">？？？</div>
+    <div id="hint-text"></div>
   </div>
-  <div class="choices" id="choices"></div>
-  <div class="result" id="result"></div>
-  <button id="nextBtn" onclick="generateQuiz()">次の問題へ</button>
+  
+  <div id="answer-area">
+    <input type="text" id="user-input" placeholder="英語の名前を入力" autocomplete="off" spellcheck="false">
+    <br>
+    <button id="submit-btn" onclick="checkAnswer()">けってい！</button>
+  </div>
+
+  <div id="result"></div>
+  
+  <button id="next-button" onclick="generateQuiz()">つぎのもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
 
   <script>
-    let correctName = "";
+    let correctEnName = "";
     let correctJpName = "";
-    let correctCount = 0;
+    let correctStreak = 0;
+    let currentLevel = 1;
 
-    async function getPokemonData(id) {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-      const data = await res.json();
-      const image = data.sprites.other['official-artwork'].front_default;
-      const enName = data.name;
-
-      const jpRes = await fetch(data.species.url);
-      const jpData = await jpRes.json();
-      const jpNameObj = jpData.names.find(n => n.language.name === "ja");
-      const jpName = jpNameObj ? jpNameObj.name : "不明";
-
-      return { image, enName, jpName };
-    }
-
-    async function getRandomPokemonId() {
-      return Math.floor(Math.random() * 1010) + 1;
-    }
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, type, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(correct) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (correct) {
+          this._note(880, 'sine', now, 0.1); this._note(1100, 'sine', now + 0.1, 0.2);
+        } else {
+          this._note(200, 'sawtooth', now, 0.2); this._note(150, 'sawtooth', now + 0.2, 0.3);
+        }
+      }
+    };
 
     async function generateQuiz() {
+      // リセット
       document.getElementById("result").textContent = "";
-      document.getElementById("choices").innerHTML = "";
-      document.getElementById("nextBtn").style.display = "none";
+      document.getElementById("user-input").value = "";
+      document.getElementById("user-input").style.display = "inline-block";
+      document.getElementById("submit-btn").style.display = "inline-block";
+      document.getElementById("next-button").style.display = "none";
+      document.getElementById("hint-text").textContent = "";
+      
+      // レベル決定
+      if (correctStreak < 5) {
+        currentLevel = correctStreak + 1;
+      } else {
+        currentLevel = Math.floor(Math.random() * 5) + 1;
+      }
+      document.getElementById("level-display").textContent = `レベル ${currentLevel}`;
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
 
-      const ids = new Set();
-      while (ids.size < 3) ids.add(await getRandomPokemonId());
-      const idList = [...ids];
+      // ポケモンIDの範囲設定（レベルが高いほど全世代から出る）
+      let maxId = currentLevel === 1 ? 151 : (currentLevel === 2 ? 386 : 1010);
+      const id = Math.floor(Math.random() * maxId) + 1;
 
-      const pokemons = await Promise.all(idList.map(id => getPokemonData(id)));
+      try {
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        const data = await res.json();
+        correctEnName = data.name.toLowerCase();
+        
+        const speciesRes = await fetch(data.species.url);
+        const speciesData = await speciesRes.json();
+        correctJpName = speciesData.names.find(n => n.language.name === "ja").name;
 
-      const correctIndex = Math.floor(Math.random() * 3);
-      correctName = pokemons[correctIndex].enName;
-      correctJpName = pokemons[correctIndex].jpName;
+        document.getElementById("pokemon-img").src = data.sprites.other['official-artwork'].front_default;
+        document.getElementById("jp-name").textContent = correctJpName;
 
-      document.getElementById("pokemon-img").src = pokemons[correctIndex].image;
+        // レベルに応じたヒント表示
+        let displayHint = "";
+        if (currentLevel === 1) {
+          // 全文字伏せ字だが、文字数と最初の一文字を表示
+          displayHint = correctEnName.charAt(0).toUpperCase() + "_".repeat(correctEnName.length - 1);
+        } else if (currentLevel === 2) {
+          displayHint = "文字数: " + correctEnName.length;
+        } else {
+          displayHint = "？？？";
+        }
+        document.getElementById("hint-text").textContent = displayHint;
 
-      pokemons.forEach(p => {
-        const btn = document.createElement("button");
-        btn.textContent = capitalize(p.enName);
-        btn.onclick = () => checkAnswer(p.enName);
-        document.getElementById("choices").appendChild(btn);
-      });
+      } catch (e) {
+        generateQuiz(); // エラー時はやり直し
+      }
     }
 
-    function checkAnswer(selected) {
-      const result = document.getElementById("result");
-      document.getElementById("choices").innerHTML = "";
+    function checkAnswer() {
+      const userInput = document.getElementById("user-input").value.trim().toLowerCase();
+      if (!userInput) return;
 
-      if (selected === correctName) {
-        correctCount++;
-        result.textContent = `🎉 Correct! (${correctJpName} / ${capitalize(correctName)})`;
-        if (correctCount >= 10) {
-          result.textContent += "\n🎊 10問連続正解！おめでとう！";
-          correctCount = 0;
-        }
+      const resultArea = document.getElementById("result");
+      document.getElementById("user-input").style.display = "none";
+      document.getElementById("submit-btn").style.display = "none";
+
+      if (userInput === correctEnName) {
+        correctStreak++;
+        Buzzer.play(true);
+        resultArea.style.color = "#2e7d32";
+        resultArea.textContent = `✨ Correct!! \n英語で「${correctEnName.toUpperCase()}」正解！`;
+        document.body.classList.add("correct-flash");
+        setTimeout(() => document.body.classList.remove("correct-flash"), 1000);
       } else {
-        result.textContent = `😢 Wrong... 正解は ${correctJpName} (${capitalize(correctName)})`;
-        correctCount = 0;
+        correctStreak = 0;
+        Buzzer.play(false);
+        resultArea.style.color = "#d32f2f";
+        resultArea.textContent = `❌ Wrong...\n正解は「${correctEnName.toUpperCase()}」でした。`;
       }
 
-      document.getElementById("nextBtn").style.display = "inline-block";
+      document.getElementById("next-button").style.display = "inline-block";
     }
 
-    function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    // Enterキー対応
+    document.getElementById("user-input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") checkAnswer();
+    });
 
     generateQuiz();
   </script>
