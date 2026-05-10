@@ -54,22 +54,12 @@
       position: fixed; bottom: 10px; right: 10px; font-size: 10px;
       color: #90a4ae; background: rgba(255, 255, 255, 0.5); padding: 2px 5px; border-radius: 4px;
     }
-    .sample-menu {
-      background:#fff; padding:10px; margin:10px auto; max-width:500px; 
-      border-radius:10px; border:1px solid #ccc;
-    }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.4.2 | Updated: 2026-05-10 11:00</div>
+  <div id="version-info">Ver 1.4.3 | Updated: 2026-05-10 11:15</div>
   
   <h1>🚩 こっきクイズ</h1>
-
-  <div class="sample-menu">
-    <p style="font-size:12px; margin:0 0 5px 0;">🎵 効果音のしちょう（このボタンで おとが きけるよ）</p>
-    <button onclick="Buzzer.play('correct')">✨ キラキラ×2（せいかい）</button>
-    <button onclick="Buzzer.play('wrong')">⤵ ガッカリ×2（はずれ）</button>
-  </div>
   
   <div id="status">ただいま 0もん れんぞくせいかい！</div>
   <div id="flag-display"></div>
@@ -90,45 +80,29 @@
   <script>
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
     
-    // 電子ブザー音生成クラス（mp3不要・絶対に鳴る仕組み）
     const Buzzer = {
       ctx: new (window.AudioContext || window.webkitAudioContext)(),
-      
-      // 単発の音を鳴らす内部機能
       _note(freq, type, start, duration, endFreq) {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-        
         osc.type = type;
         osc.frequency.setValueAtTime(freq, start);
-        if (endFreq) {
-          osc.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
-        }
-        
+        if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
         gain.gain.setValueAtTime(0.1, start);
         gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
-        
         osc.start(start);
         osc.stop(start + duration);
       },
-
       play(pattern) {
         if (this.ctx.state === 'suspended') this.ctx.resume();
         const now = this.ctx.currentTime;
-
         if (pattern === 'correct') {
-          // キラキラを2回繰り返す
-          // 1回目
           this._note(880, 'sine', now, 0.1, 1320);
-          // 2回目 (0.2秒後)
           this._note(880, 'sine', now + 0.2, 0.1, 1320);
         } else if (pattern === 'wrong') {
-          // ガッカリを2回繰り返す
-          // 1回目
           this._note(200, 'sawtooth', now, 0.3, 100);
-          // 2回目 (0.4秒後)
           this._note(200, 'sawtooth', now + 0.4, 0.3, 100);
         }
       }
@@ -143,7 +117,7 @@
       { name: "韓国（かんこく）", flag: "🇰🇷", capital: "ソウル", hint: "キムチや 焼き肉が おいしい！", pokeId: 257, reason: "テコンドーのように けりわざが とくいだから！" },
       { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" },
       { name: "ベトナム", flag: "🇻🇳", capital: "ハノイ", hint: "「フォー」という お米の めんが ゆうめい！", pokeId: 708, reason: "ベトナムの もりには ふしぎな 植物がいっぱい！" }
-      // ※ここに以前の100カ国データを自由に追加できます
+      // ※ここに以前の100カ国データを追加してください
     ];
 
     let currentQuestion;
@@ -198,8 +172,7 @@
 
       if (selected === currentQuestion.name) {
         correctStreak++;
-        Buzzer.play('correct'); // キラキラ×2
-
+        Buzzer.play('correct');
         document.body.classList.add("correct-flash");
         setTimeout(() => document.body.classList.remove("correct-flash"), 1200);
 
@@ -210,16 +183,33 @@
         document.getElementById("pokemon-img").style.display = "inline";
         document.getElementById("pokemon-img").classList.add("poke-pop");
         document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
+
+        if (correctStreak === 10) {
+          markCleared();
+          document.getElementById("result").innerHTML += `<br><b style="color:red;">🎉 10もんクリア！おめでとう！</b>`;
+        }
       } else {
         correctStreak = 0;
-        Buzzer.play('wrong'); // ガッカリ×2
+        Buzzer.play('wrong');
         document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。\n（しゅと：${currentQuestion.capital}）`;
       }
-      
       updateStatus();
       document.getElementById("next-button").style.display = "inline";
     }
 
+    function markCleared() {
+      localStorage.setItem("cleared-country-quiz", "true");
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        mode: 'no-cors',
+        body: JSON.stringify({
+          name: "なぎ",
+          stage: "しゃかい：くにのなまえクイズ",
+          score: correctStreak,
+          date: new Date().toLocaleString()
+        })
+      });
+    }
     window.onload = newQuestion;
   </script>
 </body>
