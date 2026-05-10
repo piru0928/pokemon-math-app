@@ -83,6 +83,8 @@
   </style>
 </head>
 <body>
+  <div style="display:none;" id="dev-info" data-version="1.2.0" data-updated="2026-05-10 10:15"></div>
+  
   <h1>🚩 くにのなまえクイズ</h1>
   <div id="status">ただいま 0もん れんぞくせいかい！</div>
   
@@ -318,25 +320,24 @@
     }
 
     window.onload = newQuestion;
-
     async function checkAnswer(selected) {
   const choicesDiv = document.getElementById("choices");
   const body = document.body;
   choicesDiv.innerHTML = "";
 
-  // ✅ 効果音の準備（フリー素材のURLをお借りしています）
-  // 正解：ピコーン！
-  const soundCorrect = new Audio('https://orangefreesounds.com/wp-content/uploads/2014/10/Correct-answer.mp3');
-  // 不正解：ブブー
-  const soundWrong = new Audio('https://orangefreesounds.com/wp-content/uploads/2014/10/Wrong-answer-sound-effect.mp3');
+  // ✅ 安定した音源URLに差し替え
+  // 正解：明るいチャイム音
+  const soundCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/clink_clank.ogg');
+  // 不正解：低いおならのようなガッカリ音
+  const soundWrong = new Audio('https://actions.google.com/sounds/v1/cartoon/boing.ogg');
 
   if (selected === currentQuestion.name) {
     correctStreak++;
     
-    // ✅ 正解の音を鳴らす
-    soundCorrect.play();
+    // ✅ 正解の音を鳴らす（エラーを防ぐため、再生前に読み込みを明示）
+    soundCorrect.load();
+    soundCorrect.play().catch(e => console.log("音の再生に失敗しました:", e));
 
-    // ✅ 画面を光らせる演出
     body.classList.add("correct-flash");
     setTimeout(() => body.classList.remove("correct-flash"), 500);
 
@@ -360,12 +361,14 @@
     correctStreak = 0;
     
     // ✅ 不正解の音を鳴らす
-    soundWrong.play();
+    soundWrong.load();
+    soundWrong.play().catch(e => console.log("音の再生に失敗しました:", e));
 
     document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。<br>（しゅと：${currentQuestion.capital}）`;
     document.getElementById("next-button").style.display = "inline";
     updateStatus();
   }
+}
 }
   </script>
 </body>
