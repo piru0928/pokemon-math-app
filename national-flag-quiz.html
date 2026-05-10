@@ -318,6 +318,53 @@
     }
 
     window.onload = newQuestion;
+
+    async function checkAnswer(selected) {
+  const choicesDiv = document.getElementById("choices");
+  const body = document.body;
+  choicesDiv.innerHTML = "";
+
+  if (selected === currentQuestion.name) {
+    correctStreak++;
+    
+    // ✅ 正解の演出：画面を光らせる
+    body.classList.add("correct-flash");
+    setTimeout(() => body.classList.remove("correct-flash"), 500);
+
+    // ✅ 効果音（簡易版：ブラウザの読み上げ機能で「ピンポン！」）
+    const uttr = new SpeechSynthesisUtterance("ピンポーン！せいかい！");
+    uttr.rate = 1.5;
+    window.speechSynthesis.speak(uttr);
+
+    const pokeName = await fetchPokemonName(currentQuestion.pokeId);
+    const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
+
+    document.getElementById("result").innerHTML = `せいかい！<br>しゅとは 「${currentQuestion.capital}」 だよ！`;
+    document.getElementById("pokemon-reason").textContent = `なぜこのポケモン？：${currentQuestion.reason}`;
+    document.getElementById("pokemon-img").src = imgUrl;
+    document.getElementById("pokemon-img").style.display = "inline";
+    document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
+
+    if (correctStreak === FIRST_GOAL) {
+      markCleared();
+      document.getElementById("result").innerHTML += `<br><span class="clear-msg">🎉 10もんクリア！ おめでとう！</span>`;
+    }
+
+    updateStatus();
+    document.getElementById("next-button").style.display = "inline";
+  } else {
+    correctStreak = 0;
+    
+    // ✅ 不正解の効果音
+    const uttr = new SpeechSynthesisUtterance("ブブー！ざんねん！");
+    uttr.rate = 1.5;
+    window.speechSynthesis.speak(uttr);
+
+    document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。<br>（しゅと：${currentQuestion.capital}）`;
+    document.getElementById("next-button").style.display = "inline";
+    updateStatus();
+  }
+}   
   </script>
 </body>
 </html>
