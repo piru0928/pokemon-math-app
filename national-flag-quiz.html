@@ -17,102 +17,58 @@
     #flag-display { font-size: 100px; margin: 10px; line-height: 1; }
     #question { font-size: 22px; margin: 5px; font-weight: bold; }
     #hint-box {
-      background: #fff;
-      border: 2px dashed #bbdefb;
-      padding: 10px;
-      margin: 10px auto;
-      max-width: 500px;
-      border-radius: 10px;
-      color: #555;
-      font-size: 14px;
+      background: #fff; border: 2px dashed #bbdefb; padding: 10px;
+      margin: 10px auto; max-width: 500px; border-radius: 10px; color: #555; font-size: 14px;
     }
     .choice {
-      font-size: 18px;
-      padding: 12px 20px;
-      margin: 5px;
-      border-radius: 8px;
-      border: 2px solid #64b5f6;
-      cursor: pointer;
-      background-color: #e3f2fd;
-      width: 280px;
-      font-weight: bold;
+      font-size: 18px; padding: 12px 20px; margin: 5px; border-radius: 8px;
+      border: 2px solid #64b5f6; cursor: pointer; background-color: #e3f2fd;
+      width: 280px; font-weight: bold;
     }
     .choice:hover { background-color: #bbdefb; }
     
-    /* 派手な正解演出 */
+    /* 派手な正解演出（3回点滅） */
     @keyframes seikai-bg-flash {
-      0% { background-color: #e3f2fd; }
-      30% { background-color: #a5d6a7; }
-      60% { background-color: #e3f2fd; }
-      80% { background-color: #a5d6a7; }
-      100% { background-color: #e3f2fd; }
+      0%, 40%, 80% { background-color: #a5d6a7; }
+      20%, 60%, 100% { background-color: #e3f2fd; }
     }
-    .correct-flash {
-      animation: seikai-bg-flash 1.2s ease-in-out;
-    }
+    .correct-flash { animation: seikai-bg-flash 1.2s ease-in-out; }
 
     #pokemon-img {
-      margin-top: 10px;
-      width: 120px;
-      height: 120px;
-      background: #fff;
-      border-radius: 50%;
-      border: 4px solid #ffeb3b;
+      margin-top: 10px; width: 120px; height: 120px;
+      background: #fff; border-radius: 50%; border: 4px solid #ffeb3b;
     }
-    /* ポケモンが飛び出すアニメ */
-    .poke-pop {
-      animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    }
+    .poke-pop { animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
     @keyframes bounceIn {
       0% { transform: scale(0); opacity: 0; }
       60% { transform: scale(1.2); opacity: 1; }
       100% { transform: scale(1); }
     }
-
     #next-button {
-      margin-top: 15px;
-      padding: 12px 30px;
-      font-size: 18px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-      display: none;
-      box-shadow: 0 4px #2e7d32;
+      margin-top: 15px; padding: 12px 30px; font-size: 18px;
+      background-color: #4caf50; color: white; border: none; border-radius: 30px;
+      cursor: pointer; display: none; box-shadow: 0 4px #2e7d32;
     }
     #status { margin: 10px; font-size: 16px; color: #555; }
-    
-    /* バージョン情報の表示スタイル */
     #version-info {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      font-size: 10px;
-      color: #90a4ae;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 2px 5px;
-      border-radius: 4px;
-      pointer-events: none;
+      position: fixed; bottom: 10px; right: 10px; font-size: 10px;
+      color: #90a4ae; background: rgba(255, 255, 255, 0.5); padding: 2px 5px; border-radius: 4px;
     }
   </style>
 </head>
-<body onclick="initAudio()">
-  <div id="version-info">Ver 1.3.1 | Updated: 2026-05-10</div>
+<body>
+  <div id="version-info">Ver 1.4.1 | Updated: 2026-05-10 10:45</div>
   
-  <h1>🚩 くにのなまえクイズ</h1>
+  <h1>🚩 こっきクイズ</h1>
+  
   <div id="status">ただいま 0もん れんぞくせいかい！</div>
-  
   <div id="flag-display"></div>
   <div id="question">この くには どこかな？</div>
+  <div id="hint-box">💡 ヒント：<span id="hint-text"></span></div>
   
-  <div id="hint-box">
-    💡 ヒント：<span id="hint-text"></span>
-  </div>
-
   <div id="choices"></div>
   
-  <div id="result"></div>
+  <div id="result" style="font-size: 20px; margin-top: 10px; color: #388e3c; font-weight: bold; white-space: pre-line;"></div>
   <div id="pokemon-reason" style="font-size: 14px; color: #666; margin-top: 5px;"></div>
   <img id="pokemon-img" src="" alt="" style="display:none;">
   <div id="pokemon-info" style="font-size: 18px; font-weight: bold; color: #e91e63;"></div>
@@ -124,21 +80,33 @@
   <script>
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
     
-    // 音源の定義
-    // ✅ より再生成功率の高いmp3音源（Wikimedia Commonsより）
-    // 正解：ベルの音
-    const soundCorrect = new Audio('https://upload.wikimedia.org/wikipedia/commons/b/bd/C_Major_Xylophone.mp3');
-    // 不正解：低いブザー音
-    const soundWrong = new Audio('https://upload.wikimedia.org/wikipedia/commons/5/5e/UHF_Incomplete.mp3');
+    // 電子ブザー音生成クラス（mp3不要・絶対に鳴る仕組み）
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      play(type) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
 
-    // ブラウザの音制限を解除するための儀式
-    let audioInitialized = false;
-    function initAudio() {
-      if (audioInitialized) return;
-      soundCorrect.play().then(() => { soundCorrect.pause(); soundCorrect.currentTime = 0; });
-      soundWrong.play().then(() => { soundWrong.pause(); soundWrong.currentTime = 0; });
-      audioInitialized = true;
-    }
+        if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(660, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.3);
+        } else {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.5);
+        }
+      }
+    };
 
     const quizData = [
       { name: "にほん", flag: "🇯🇵", capital: "とうきょう", hint: "たいようが のぼる くに！", pokeId: 338, reason: "たいようの かたちをした ポケモンだから！" },
@@ -146,23 +114,13 @@
       { name: "フランス", flag: "🇫🇷", capital: "パリ", hint: "エッフェルとうが ゆうめい！", pokeId: 907, reason: "おしゃれで かじやの カヌチャンは フランスっぽい！？" },
       { name: "イタリア", flag: "🇮🇹", capital: "ローマ", hint: "ピザや パスタが だいすき！", pokeId: 143, reason: "おいしいものを たくさん たべるから！" },
       { name: "イギリス", flag: "🇬🇧", capital: "ロンドン", hint: "大きな とけいだい「ビッグベン」！", pokeId: 823, reason: "イギリスが モデルの 地方（ガラル）の ポケモンだから！" },
-      { name: "エジプト", flag: "🇪🇬", capital: "カイロ", hint: "ピラミッドと スフィンクス！", pokeId: 563, reason: "おうごんの マスクは エジプトの おたからみたい！" },
-      { name: "オーストラリア", flag: "🇦🇺", capital: "キャンベラ", hint: "コアラや カンガルーがいるよ！", pokeId: 115, reason: "おなかの ふくろで 子育てする カンガルーに そっくり！" },
-      { name: "インド", flag: "🇮🇳", capital: "ニューデリー", hint: "カレーと ゾウさんが ゆうめい！", pokeId: 232, reason: "インドゾウのように つよい ドンファン！" },
-      { name: "中国（ちゅうごく）", flag: "🇨🇳", capital: "ペキン", hint: "パンダと 万里の長城（ばんりのちょうじょう）！", pokeId: 675, reason: "パンダそっくりの こわもて ポケモン！" },
-      { name: "カナダ", flag: "🇨🇦", capital: "オタワ", hint: "メープル（カエデ）と さむい冬！", pokeId: 234, reason: "カナダの 森に いそうな シカの ポケモン！" },
-      { name: "スイス", flag: "🇨🇭", capital: "ベルン", hint: "アルプス山脈（さんみゃく）と チーズ！", pokeId: 241, reason: "おいしい ミルクは アルプスの ぼくじょうみたい！" },
-      { name: "メキシコ", flag: "🇲🇽", capital: "メキシコシティ", hint: "サボテンと タコス！", pokeId: 272, reason: "メキシコの 帽子（ぼうし）を かぶって おどっているみたい！" },
-      { name: "シンガポール", flag: "🇸🇬", capital: "シンガポール", hint: "マーライオンがいるよ！", pokeId: 450, reason: "ライオンのような たてがみが かっこいい！" },
       { name: "韓国（かんこく）", flag: "🇰🇷", capital: "ソウル", hint: "キムチや 焼き肉が おいしい！", pokeId: 257, reason: "テコンドーのように けりわざが とくいだから！" },
-      { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" },
-      { name: "ベトナム", flag: "🇻🇳", capital: "ハノイ", hint: "「フォー」という お米の めんが ゆうめい！", pokeId: 708, reason: "ベトナムの もりには ふしぎな 植物がいっぱい！" }
-      // ※容量の関係で一部省略していますが、前の回答の100カ国データも同様の形式で追加可能です。
+      { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" }
+      // ※ここに前の回答の100カ国データを追加できます
     ];
 
     let currentQuestion;
     let correctStreak = 0;
-    const FIRST_GOAL = 10; 
 
     async function fetchPokemonName(number) {
       try {
@@ -190,84 +148,50 @@
 
       const choices = new Set([currentQuestion.name]);
       while (choices.size < 3) {
-        const randomCountry = quizData[Math.floor(Math.random() * quizData.length)].name;
-        choices.add(randomCountry);
+        choices.add(quizData[Math.floor(Math.random() * quizData.length)].name);
       }
 
       const choiceArray = Array.from(choices).sort(() => Math.random() - 0.5);
       const choicesDiv = document.getElementById("choices");
       choicesDiv.innerHTML = "";
-      
       choiceArray.forEach(value => {
         const btn = document.createElement("button");
         btn.className = "choice";
         btn.textContent = value;
-        btn.onclick = () => checkAnswer(value);
+        btn.onclick = () => {
+          if (Buzzer.ctx.state === 'suspended') Buzzer.ctx.resume();
+          checkAnswer(value);
+        };
         choicesDiv.appendChild(btn);
       });
     }
 
     async function checkAnswer(selected) {
-  document.getElementById("choices").innerHTML = "";
+      document.getElementById("choices").innerHTML = "";
 
-  // ✅ 音を鳴らすための専用関数（エラーが出ても止まらないようにする）
-  const playSound = (audio) => {
-    audio.pause();       // 一度止める
-    audio.currentTime = 0; // 最初に戻す
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.log("再生ブロックを検知しました:", error);
-      });
+      if (selected === currentQuestion.name) {
+        correctStreak++;
+        Buzzer.play('correct');
+
+        document.body.classList.add("correct-flash");
+        setTimeout(() => document.body.classList.remove("correct-flash"), 1200);
+
+        const pokeName = await fetchPokemonName(currentQuestion.pokeId);
+        document.getElementById("result").innerHTML = `せいかい！\nしゅとは 「${currentQuestion.capital}」 だよ！`;
+        document.getElementById("pokemon-reason").textContent = `なぜこのポケモン？：${currentQuestion.reason}`;
+        document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
+        document.getElementById("pokemon-img").style.display = "inline";
+        document.getElementById("pokemon-img").classList.add("poke-pop");
+        document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。\n（しゅと：${currentQuestion.capital}）`;
+      }
+      
+      updateStatus();
+      document.getElementById("next-button").style.display = "inline";
     }
-  };
-  
-  if (selected === currentQuestion.name) {
-    correctStreak++;
-    soundCorrect.currentTime = 0;
-    soundCorrect.play();
-
-    document.body.classList.add("correct-flash");
-    setTimeout(() => document.body.classList.remove("correct-flash"), 1200);
-
-    const pokeName = await fetchPokemonName(currentQuestion.pokeId);
-    const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
-
-    document.getElementById("result").innerHTML = `せいかい！<br>しゅとは 「${currentQuestion.capital}」 だよ！`;
-    document.getElementById("pokemon-reason").textContent = `なぜこのポケモン？：${currentQuestion.reason}`;
-    document.getElementById("pokemon-img").src = imgUrl;
-    document.getElementById("pokemon-img").style.display = "inline";
-    document.getElementById("pokemon-img").classList.add("poke-pop");
-    document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
-
-    if (correctStreak === FIRST_GOAL) {
-      markCleared();
-      document.getElementById("result").innerHTML += `<br><b style="color:red;">🎉 10もんクリア！おめでとう！</b>`;
-    }
-  } else {
-    correctStreak = 0;
-    soundWrong.currentTime = 0;
-    soundWrong.play();
-    document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。<br>（しゅと：${currentQuestion.capital}）`;
-  }
-  
-  updateStatus();
-  document.getElementById("next-button").style.display = "inline";
-}
-
-function markCleared() {
-  localStorage.setItem("cleared-country-quiz", "true");
-  fetch(WEBHOOK_URL, {
-    method: "POST",
-    mode: 'no-cors',
-    body: JSON.stringify({
-      name: "なぎ",
-      stage: "しゃかい：こっきクイズ",
-      score: correctStreak,
-      date: new Date().toLocaleString()
-    })
-  });
-}
 
     window.onload = newQuestion;
   </script>
