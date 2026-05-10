@@ -324,17 +324,19 @@
   const body = document.body;
   choicesDiv.innerHTML = "";
 
+  // ✅ 効果音の準備（フリー素材のURLをお借りしています）
+  const soundCorrect = new Audio('https://otologic.jp/files/free/se/pdf/Quiz-Correct_Answer02-1.mp3');
+  const soundWrong = new Audio('https://otologic.jp/files/free/se/pdf/Quiz-Wrong_Answer02-1.mp3');
+
   if (selected === currentQuestion.name) {
     correctStreak++;
     
-    // ✅ 正解の演出：画面を光らせる
+    // ✅ 正解の音を鳴らす
+    soundCorrect.play();
+
+    // ✅ 画面を光らせる演出
     body.classList.add("correct-flash");
     setTimeout(() => body.classList.remove("correct-flash"), 500);
-
-    // ✅ 効果音（簡易版：ブラウザの読み上げ機能で「ピンポン！」）
-    const uttr = new SpeechSynthesisUtterance("ピンポーン！せいかい！");
-    uttr.rate = 1.5;
-    window.speechSynthesis.speak(uttr);
 
     const pokeName = await fetchPokemonName(currentQuestion.pokeId);
     const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
@@ -355,16 +357,14 @@
   } else {
     correctStreak = 0;
     
-    // ✅ 不正解の効果音
-    const uttr = new SpeechSynthesisUtterance("ブブー！ざんねん！");
-    uttr.rate = 1.5;
-    window.speechSynthesis.speak(uttr);
+    // ✅ 不正解の音を鳴らす
+    soundWrong.play();
 
     document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。<br>（しゅと：${currentQuestion.capital}）`;
     document.getElementById("next-button").style.display = "inline";
     updateStatus();
   }
-}   
+}
   </script>
 </body>
 </html>
