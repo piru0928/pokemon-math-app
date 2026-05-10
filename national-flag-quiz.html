@@ -57,7 +57,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.4.3 | Updated: 2026-05-10 11:15</div>
+  <div id="version-info">Ver 1.4.4 | Updated: 2026-05-10 11:15</div>
   
   <h1>🚩 こっきクイズ</h1>
   
@@ -109,6 +109,7 @@
     };
 
     const quizData = [
+      // --- 主要な国 ---
       { name: "にほん", flag: "🇯🇵", capital: "とうきょう", hint: "たいようが のぼる くに！", pokeId: 338, reason: "たいようの かたちをした ポケモンだから！" },
       { name: "アメリカ", flag: "🇺🇸", capital: "ワシントンD.C.", hint: "じゆうの めがみが あるよ！", pokeId: 628, reason: "アメリカの シンボル、ハクトウワシに にているから！" },
       { name: "フランス", flag: "🇫🇷", capital: "パリ", hint: "エッフェルとうが ゆうめい！", pokeId: 907, reason: "おしゃれで かじやの カヌチャンは フランスっぽい！？" },
@@ -116,8 +117,118 @@
       { name: "イギリス", flag: "🇬🇧", capital: "ロンドン", hint: "大きな とけいだい「ビッグベン」！", pokeId: 823, reason: "イギリスが モデルの 地方（ガラル）の ポケモンだから！" },
       { name: "韓国（かんこく）", flag: "🇰🇷", capital: "ソウル", hint: "キムチや 焼き肉が おいしい！", pokeId: 257, reason: "テコンドーのように けりわざが とくいだから！" },
       { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" },
-      { name: "ベトナム", flag: "🇻🇳", capital: "ハノイ", hint: "「フォー」という お米の めんが ゆうめい！", pokeId: 708, reason: "ベトナムの もりには ふしぎな 植物がいっぱい！" }
-      // ※ここに以前の100カ国データを追加してください
+      { name: "ベトナム", flag: "🇻🇳", capital: "ハノイ", hint: "「フォー」という お米の めんが ゆうめい！", pokeId: 708, reason: "ベトナムの もりには ふしぎな 植物がいっぱい！" },
+      // --- アジア ---
+      { name: "北朝鮮（きたちょうせん）", flag: "🇰🇵", capital: "ピョンヤン", hint: "大きな マスゲームが ゆうめい！", pokeId: 306, reason: "よろいのような かたい 体を もっているから！" },
+      { name: "台湾（たいわん）", flag: "🇹🇼", capital: "タイペイ", hint: "タピオカミルクティーと 夜市（よいち）！", pokeId: 854, reason: "おいしい お茶（ちゃ）の ポケモンだから！" },
+      { name: "香港（ほんこん）", flag: "🇭🇰", capital: "（ちゅうごくの 特別行政区）", hint: "100万ドルの 夜景（やけい）！", pokeId: 181, reason: "夜道を 明るく てらしてくれるから！" },
+      { name: "モンゴル", flag: "🇲🇳", capital: "ウランバートル", hint: "ひろい 草原（そうげん）と お相撲（すもう）！", pokeId: 297, reason: "お相撲さんのような つよい 張り手！" },
+      { name: "ミャンマー", flag: "🇲🇲", capital: "ネピドー", hint: "キラキラした 黄金（おうごん）の塔！", pokeId: 129, reason: "金の コイキングに なれるかも！？" },
+      { name: "モルディブ", flag: "🇲🇻", capital: "マレ", hint: "サンゴ礁（しょう）の きれいな海！", pokeId: 222, reason: "サンゴの ポケモン サニーゴ！" },
+      { name: "ブルネイ", flag: "🇧🇳", capital: "バンダルスリブガワン", hint: "石油（せきゆ）が とれる お金持ちの国！", pokeId: 53, reason: "宝石を もっていて ゴージャスだから！" },
+      { name: "東ティモール", flag: "🇹🇱", capital: "ディリ", hint: "21世紀（せいき）に 生まれた 新しい国！", pokeId: 175, reason: "たまごから 生まれたばかりの トゲピー！" },
+      { name: "カタール", flag: "🇶🇦", capital: "ドーハ", hint: "サッカーワールドカップが 開かれたよ！", pokeId: 815, reason: "エースストライカーの ポケモン！" },
+      { name: "クウェート", flag: "🇰🇼", capital: "クウェートシティ", hint: "ガソリンが 水よりも 安い！？", pokeId: 324, reason: "体の中に 石炭（せきたん）を もっているから！" },
+      // --- ヨーロッパ ---
+      { name: "フィンランド", flag: "🇫🇮", capital: "ヘルシンキ", hint: "サンタさんと サウナの国！", pokeId: 225, reason: "サンタクロースのような デリバード！" },
+      { name: "ノルウェー", flag: "🇳🇴", capital: "オスロ", hint: "オーロラが とっても きれい！", pokeId: 699, reason: "オーロラのような ひれを 持っているから！" },
+      { name: "スウェーデン", flag: "🇸🇪", capital: "ストックホルム", hint: "ノーベル賞（しょう）の くに！", pokeId: 137, reason: "デジタルな ポリゴンは 理科（りか）に ぴったり！" },
+      { name: "デンマーク", flag: "🇩🇰", capital: "コペンハーゲン", hint: "レゴブロックが 生まれたよ！", pokeId: 80, reason: "のんびりした 王さま（ヤドキング）！" },
+      { name: "アイスランド", flag: "🇮🇸", capital: "レイキャビク", hint: "氷（こおり）と 火山（かざん）の島！", pokeId: 219, reason: "体の中に マグマが もえているから！" },
+      { name: "ベルギー", flag: "🇧🇪", capital: "ブリュッセル", hint: "チョコと ワッフルが ゆうめい！", pokeId: 869, reason: "おいしい お菓子（おかし）の なかま！" },
+      { name: "オランダ", flag: "🇳🇱", capital: "アムステルダム", hint: "風車（ふうしゃ）と チューリップ！", pokeId: 189, reason: "お花のように 風にのって 飛ぶから！" },
+      { name: "ポーランド", flag: "🇵🇱", capital: "ワルシャワ", hint: "ショパンの ふるさと！", pokeId: 358, reason: "風鈴（ふうりん）のような きれいな音！" },
+      { name: "ハンガリー", flag: "🇭🇺", capital: "ブダペスト", hint: "ドナウ川の 夜景が 美しい！", pokeId: 131, reason: "きれいな 水のそばに いるから！" },
+      { name: "チェコ", flag: "🇨🇿", capital: "プラハ", hint: "お城（おしろ）が 魔法の国みたい！", pokeId: 430, reason: "魔法使い（まほうつかい）の ポケモン！" },
+      { name: "スロバキア", flag: "🇸🇰", capital: "ブラチスラバ", hint: "山が 多くて 自然がいっぱい！", pokeId: 448, reason: "山の 修行（しゅぎょう）が 似合うから！" },
+      { name: "ウクライナ", flag: "🇺🇦", capital: "キーウ", hint: "ひまわりが たくさん 咲いているよ！", pokeId: 192, reason: "ひまわりといえば キマワリ！" },
+      { name: "ルーマニア", flag: "🇷🇴", capital: "ブカレスト", hint: "ドラキュラの お城がある！？", pokeId: 42, reason: "コウモリといえば ゴルバット！" },
+      { name: "ブルガリア", flag: "🇧🇬", capital: "ソフィア", hint: "ヨーグルトと バラの花！", pokeId: 407, reason: "手に バラの花を 持っているから！" },
+      { name: "クロアチア", flag: "🇭🇷", capital: "ザグレブ", hint: "アドリア海の 真珠（しんじゅ）！", pokeId: 91, reason: "真珠（しんじゅ）を もっているから！" },
+      { name: "セルビア", flag: "🇷🇸", capital: "ベオグラード", hint: "テニスの つよい選手が たくさん！", pokeId: 25, reason: "すばやく 動くのが とくいだから！" },
+      { name: "スロベニア", flag: "🇸🇮", capital: "リュブリャナ", hint: "エメラルド色の きれいな川！", pokeId: 101, reason: "キラキラした 模様（もよう）が きれいだから！" },
+      { name: "ルクセンブルク", flag: "🇱🇺", capital: "ルクセンブルク", hint: "お金持ちが 集まる 小さな国！", pokeId: 133, reason: "色んな 可能性（かのうせい）を 持っているから！" },
+      { name: "モナコ", flag: "🇲🇨", capital: "モナコ", hint: "F1レースが 街のなかを 走るよ！", pokeId: 53, reason: "ゴージャスな 雰囲気が ぴったり！" },
+      { name: "バチカン市国", flag: "🇻🇦", capital: "バチカン", hint: "世界で いちばん 小さい国！", pokeId: 172, reason: "とっても 小さくて かわいいから！" },
+      { name: "アンドラ", flag: "🇦🇩", capital: "アンドラ・ラ・ベリャ", hint: "ピレネー山脈の 中にある国！", pokeId: 215, reason: "雪山（ゆきやま）に すんでいるから！" },
+      { name: "マルタ", flag: "🇲🇹", capital: "バレッタ", hint: "地中海に うかぶ 騎士（きし）の島！", pokeId: 898, reason: "気高い 王さまの ポケモン！" },
+      // --- アフリカ ---
+      { name: "ケニア", flag: "🇰🇪", capital: "ナイロビ", hint: "野生（やせい）の 動物がいっぱい！", pokeId: 233, reason: "サバンナを かける 3つの頭！" },
+      { name: "モロッコ", flag: "🇲🇦", capital: "ラバト", hint: "砂漠（さばく）と カラフルな街！", pokeId: 844, reason: "砂の上を 力強く はしるから！" },
+      { name: "南アフリカ", flag: "🇿🇦", capital: "プレトリア", hint: "ダイヤモンドが たくさん！", pokeId: 719, reason: "宝石（ほうせき）の お姫さま！" },
+      { name: "マダガスカル", flag: "🇲🇬", capital: "アンタナナリボ", hint: "バオバブの木と キツネザル！", pokeId: 511, reason: "森の なかまの サルだから！" },
+      { name: "ナイジェリア", flag: "🇳🇬", capital: "アブジャ", hint: "アフリカで いちばん 人口が多い！", pokeId: 440, reason: "みんなに 幸せを はこぶから！" },
+      { name: "エチオピア", flag: "🇪🇹", capital: "アディスアベバ", hint: "コーヒーが はじめて見つかった！", pokeId: 274, reason: "コーヒーの 木に そっくり！？" },
+      { name: "アルジェリア", flag: "🇩🇿", capital: "アルジェ", hint: "アフリカで いちばん 面積が広い！", pokeId: 450, reason: "広い 砂漠（さばく）の 王さま！" },
+      { name: "タンザニア", flag: "🇹🇿", capital: "ドドマ", hint: "アフリカ一 高い山 キリマンジャロ！", pokeId: 248, reason: "山のように どっしり 強い！" },
+      { name: "ガーナ", flag: "🇬🇭", capital: "アクラ", hint: "チョコレートの カカオが ゆうめい！", pokeId: 869, reason: "おいしい お菓子をつくる ポケモン！" },
+      { name: "セネガル", flag: "🇸🇳", capital: "ダカール", hint: "ピンク色の 湖（レトバ湖）！", pokeId: 39, reason: "ピンク色の まんまる ポケモン！" },
+      { name: "カメルーン", flag: "🇨🇲", capital: "ヤウンデ", hint: "サッカーチームの愛称は ライオン！", pokeId: 668, reason: "燃える ライオン カエンジシ！" },
+      { name: "チュニジア", flag: "🇹🇳", capital: "チュニス", hint: "スターウォーズの 撮影場所があるよ！", pokeId: 386, reason: "宇宙（うちゅう）から 来たみたい！" },
+      { name: "ウガンダ", flag: "🇺🇬", capital: "カンパラ", hint: "「アフリカの 真珠」と よばれるよ！", pokeId: 120, reason: "キラキラした 水の 宝石！" },
+      { name: "ジンバブエ", flag: "🇿🇼", capital: "ハラレ", hint: "巨大（きょだい）な 滝（たき） ビクトリアの滝！", pokeId: 130, reason: "滝を のぼる ギャラドス！" },
+      // --- 北米・中南米 ---
+      { name: "ブラジル", flag: "🇧🇷", capital: "ブラジリア", hint: "サッカーと アマゾンジャングル！", pokeId: 811, reason: "ジャングルの リズムが 聞こえそう！" },
+      { name: "アルゼンチン", flag: "🇦🇷", capital: "ブエノスアイレス", hint: "サッカー選手 メッシの国！", pokeId: 813, reason: "サッカーが とっても 上手！" },
+      { name: "チリ", flag: "🇨🇱", capital: "サンティアゴ", hint: "世界一 細長い国！", pokeId: 299, reason: "鼻が 磁石（じしゃく）になっているよ！" },
+      { name: "ペルー", flag: "🇵🇪", capital: "リマ", hint: "空中都市（くうちゅうとし）マチュピチュ！", pokeId: 911, reason: "空（そら）に うかぶ お墓（はか）みたい！" },
+      { name: "コロンビア", flag: "🇨🇴", capital: "ボゴタ", hint: "コーヒーと きれいな エメラルド！", pokeId: 101, reason: "宝石のように きれいな 模様！" },
+      { name: "キューバ", flag: "🇨🇺", capital: "ハバナ", hint: "古い 車が たくさん 走っている！", pokeId: 83, reason: "ずっと 変わらない 姿で 人気！" },
+      { name: "ジャマイカ", flag: "🇯🇲", capital: "キングストン", hint: "レゲエ音楽（おんがく）の国！", pokeId: 271, reason: "音楽に合わせて おどるのが 大好き！" },
+      { name: "パナマ", flag: "🇵🇦", capital: "パナマシティ", hint: "大きな 運河（うんが）があるよ！", pokeId: 80, reason: "のんびり 水を ながめている！" },
+      { name: "コスタリカ", flag: "🇨🇷", capital: "サンホセ", hint: "虹色（にじいろ）の 鳥がいるよ！", pokeId: 250, reason: "伝説（でんせつ）の 虹色の鳥！" },
+      { name: "エクアドル", flag: "🇪🇨", capital: "キト", hint: "赤道（せきどう）の国！巨大なカメ！", pokeId: 131, reason: "背中に のせてくれる カメ！" },
+      { name: "ボリビア", flag: "🇧🇴", capital: "ラパス", hint: "空を うつす ウユニ塩湖（えんこ）！", pokeId: 131, reason: "きれいな 水の上を 進むから！" },
+      { name: "パラグアイ", flag: "🇵🇾", capital: "アスンシオン", hint: "大きな 川と 森の国！", pokeId: 273, reason: "森の なかで かくれんぼ！" },
+      { name: "ウルグアイ", flag: "🇺🇾", capital: "モンテビデオ", hint: "世界で はじめて W杯を 開いた！", pokeId: 813, reason: "サッカーが 大得意だから！" },
+      { name: "ベネズエラ", flag: "🇻🇪", capital: "カラカス", hint: "世界一 高い 滝がある！", pokeId: 130, reason: "滝を のぼって 龍になる！" },
+      // --- オセアニア　---
+      { name: "ニュージーランド", flag: "🇳🇿", capital: "ウェリントン", hint: "羊（ひつじ）が たくさん！", pokeId: 179, reason: "羊（ひつじ）の ポケモン メリープ！" },
+      { name: "フィジー", flag: "🇫🇯", capital: "スバ", hint: "きれいな 海の 南の島！", pokeId: 771, reason: "海の なかに すんでいるから！" },
+      { name: "パプアニューギニア", flag: "🇵🇬", capital: "ポートモレスビー", hint: "極楽鳥（ごくらくちょう）がいるよ！", pokeId: 250, reason: "とっても 美しい 羽をもつ鳥！" },
+      { name: "サモア", flag: "🇼🇸", capital: "アピア", hint: "ラグビーが とっても 強い！", pokeId: 297, reason: "力強い 張り手で たたかう！" },
+      // --- その他 ---
+      { name: "ポルトガル", flag: "🇵🇹", capital: "リスボン", hint: "金平糖（こんぺいとう）の ルーツ！", pokeId: 774, reason: "金平糖（こんぺいとう）みたいな 姿！" },
+      { name: "アイルランド", flag: "🇮🇪", capital: "ダブリン", hint: "妖精（ようせい）の島と よばれる！", pokeId: 281, reason: "妖精（ようせい）のような 美しさ！" },
+      { name: "ギリシャ", flag: "🇬🇷", capital: "アテネ", hint: "オリンピックが はじまった国！", pokeId: 493, reason: "神話（しんわ）に 出てくる 神さま！" },
+      { name: "トルコ", flag: "🇹🇷", capital: "アンカラ", hint: "のびーる アイスが ゆうめい！", pokeId: 132, reason: "アイスのように びよーんと 伸びる！" },
+      { name: "イスラエル", flag: "🇮🇱", capital: "エルサレム", hint: "歴史（れきし）の ふるい国！", pokeId: 120, reason: "海の 宝石（ほうせき）のように きれい！" },
+      { name: "ヨルダン", flag: "🇯🇴", capital: "アンマン", hint: "岩（いわ）を けずった 遺跡（いせき）！", pokeId: 377, reason: "岩（いわ）の 遺跡（いせき）のような 姿！" },
+      { name: "イラン", flag: "🇮🇷", capital: "テヘラン", hint: "ペルシャじゅうたんの国！", pokeId: 52, reason: "ペルシャといえば ニャース（ペルシアン）！" },
+      { name: "イラク", flag: "🇮🇶", capital: "バグダッド", hint: "とっても ふるい 文明のはじまり！", pokeId: 344, reason: "ふるい 土偶（どぐう）のような 姿！" },
+      { name: "サウジアラビア", flag: "🇸🇦", capital: "リヤド", hint: "砂漠（さばく）の 石油の国！", pokeId: 323, reason: "砂漠（さばく）を 歩く ラクダ！" },
+      { name: "ネパール", flag: "🇳🇵", capital: "カトマンズ", hint: "世界一 高い山 エベレスト！", pokeId: 376, reason: "山のように どっしり 強い！" },
+      { name: "スリランカ", flag: "🇱🇰", capital: "スリジャヤワルダナプラコッテ", hint: "紅茶（こうちゃ）と 宝石の島！", pokeId: 855, reason: "ポットに 入った 紅茶の ポケモン！" },
+      { name: "バングラデシュ", flag: "🇧🇩", capital: "ダッカ", hint: "ベンガルトラが すんでいるよ！", pokeId: 59, reason: "トラのように 強くて かっこいい！" },
+      { name: "パキスタン", flag: "🇵🇰", capital: "イスラマバード", hint: "高い 山が たくさんある！", pokeId: 745, reason: "岩山（いわやま）を かけぬける！" },
+      { name: "ウズベキスタン", flag: "🇺🇿", capital: "タシケント", hint: "青い タイルが きれいな国！", pokeId: 448, reason: "青い 色が とっても きれい！" },
+      { name: "ラオス", flag: "🇱🇦", capital: "ビエンチャン", hint: "象（ぞう）の国と いわれていたよ！", pokeId: 232, reason: "力強い ゾウの ポケモン！" },
+      { name: "カンボジア", flag: "🇰🇭", capital: "プノンペン", hint: "巨大な 遺跡 アンコールワット！", pokeId: 486, reason: "巨大な 遺跡を つくった！？" },
+      { name: "ブータン", flag: "🇧🇹", capital: "ティンプー", hint: "雷龍（らいりゅう）の国！", pokeId: 149, reason: "ドラゴンのように 優しくて 強い！" },
+      { name: "マレーシア", flag: "🇲🇾", capital: "クアラルンプール", hint: "巨大な ツインタワーがある！", pokeId: 884, reason: "高い ビルのような ジュラルドン！" },
+      { name: "インドネシア", flag: "🇮🇩", capital: "ジャカルタ", hint: "島が いちばん たくさんある！", pokeId: 130, reason: "海の 王さまといえば ギャラドス！" },
+      { name: "フィリピン", flag: "🇵🇭", capital: "マニラ", hint: "甘い マンゴーが 大好き！", pokeId: 421, reason: "お日さまの 光で 元気いっぱい！" },
+      { name: "シンガポール", flag: "🇸🇬", capital: "シンガポール", hint: "口から 水をはく マーライオン！", pokeId: 450, reason: "砂を はきだす カバルドン！" },
+      { name: "ジョージア", flag: "🇬🇪", capital: "トビリシ", hint: "ワイン はじまりの国！", pokeId: 124, reason: "おしゃれな 席が 似合うから！？" },
+      { name: "アゼルバイジャン", flag: "🇦🇿", capital: "バクー", hint: "火（ひ）の国！泥の火山！", pokeId: 126, reason: "燃える 体を もっているから！" },
+      { name: "アルメニア", flag: "🇦🇲", capital: "エレバン", hint: "とっても 古い 教会の国！", pokeId: 493, reason: "すべてを はじめた 神さまのよう！" },
+      { name: "エストニア", flag: "🇪🇪", capital: "タリン", hint: "IT（アイティー）が すすんだ国！", pokeId: 137, reason: "デジタルな 世界の ポケモン！" },
+      { name: "ラトビア", flag: "🇱🇻", capital: "リガ", hint: "バルト海の 貴婦人と よばれる街！", pokeId: 282, reason: "とっても 気品（きひん）があるから！" },
+      { name: "リトアニア", flag: "🇱🇹", capital: "ビリニュス", hint: "琥珀（こはく）が たくさんとれる！", pokeId: 138, reason: "ふるい 化石（かせき）から 生まれた！" },
+      { name: "モルドバ", flag: "🇲🇩", capital: "キシナウ", hint: "ワインの 地下貯蔵庫が 世界一！", pokeId: 213, reason: "ツボの 中で ジュースを つくる！" },
+      { name: "アルバニア", flag: "🇦🇱", capital: "ティラナ", hint: "ワシの デザインの 旗だよ！", pokeId: 628, reason: "勇ましい（いさましい） ワシの姿！" },
+      { name: "キプロス", flag: "🇨🇾", capital: "ニコシア", hint: "地図（ちず）が 旗に かいてある！", pokeId: 131, reason: "みんなを 乗せて どこへでも 行く！" },
+      { name: "レバノン", flag: "🇱🇧", capital: "ベイルート", hint: "レバノン杉（すぎ）という 木が 旗！", pokeId: 185, reason: "木に そっくりな ウソッキー！" },
+      { name: "リビア", flag: "🇱🇾", capital: "トリポリ", hint: "砂漠（さばく）に ねむる ふるい遺跡！", pokeId: 344, reason: "砂漠の 遺跡を まもっている！" },
+      { name: "マリ", flag: "🇲🇱", capital: "バマコ", hint: "泥（どろ）で できた 大きな教会！", pokeId: 88, reason: "泥（どろ）の なかま ベトベター！" },
+      { name: "スーダン", flag: "🇸🇩", capital: "ハルツーム", hint: "ナイル川が 合流する 場所！", pokeId: 130, reason: "川を 自由に およぎまわる！" },
+      { name: "ルワンダ", flag: "🇷🇼", capital: "キガリ", hint: "「千の丘の国」と よばれる 自然！", pokeId: 248, reason: "山（丘）のように 強くて 大きい！" },
+      { name: "ボツワナ", flag: "🇧🇼", capital: "ハボローネ", hint: "ゾウさんが 世界一 たくさんいる！", pokeId: 232, reason: "力強い ゾウの ドンファン！" },
+      { name: "ナミビア", flag: "🇳🇦", capital: "ウィントフック", hint: "世界一 ふるい 砂漠がある！", pokeId: 450, reason: "砂漠（さばく）の 王さま カバルドン！" },
+      { name: "ジャマイカ", flag: "🇯🇲", capital: "キングストン", hint: "走るのが 速い人が たくさん！", pokeId: 254, reason: "ジャングルの なかを 速くはしる！" },
+      { name: "ドミニカ共和国", flag: "🇩🇴", capital: "サントドミンゴ", hint: "野球（やきゅう）が とっても 人気！", pokeId: 539, reason: "かっこいい 打撃（だげき）を きめる！" },
+      { name: "バハマ", flag: "🇧🇸", capital: "ナッソー", hint: "泳ぐ ブタさんが いる島があるよ！", pokeId: 220, reason: "水あそびが 大好きな ウリムー！" },
+      { name: "バルバドス", flag: "🇧🇧", capital: "ブリッジタウン", hint: "ポセイドンの 三叉槍（みつまた）！", pokeId: 130, reason: "海の 荒ぶる 神のようだから！" }
     ];
 
     let currentQuestion;
