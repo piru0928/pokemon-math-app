@@ -36,7 +36,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 2.3.0 | Updated: 2026-05-10 17:15</div>
+  <div id="version-info">Ver 2.3.1 | Updated: 2026-05-10 17:03</div>
   <h1>📖 たんぶんマスター</h1>
   <div id="level-display">レベル 1</div>
   <div id="status">あと 5問正解でマスターモード！</div>
@@ -139,7 +139,7 @@
         // Lv4-7: 接続詞（ので・でも）
         const reasons = ["お腹がすいた", "道で見つけた", "友達にあげたい"];
         const r = reasons[Math.floor(Math.random()*reasons.length)];
-        passage = `${w}は ${l}で ${i}を 見つけました。とても ${r}ので、${w}は ${f} 気持ちになりました。`;
+        passage = `${w}は ${l}で ${i}を 見つけました。 ${r}ので、${w}は ${f} 気持ちになりました。`;
         
         const qType = Math.random() > 0.5;
         if(qType) {
