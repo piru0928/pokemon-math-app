@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>せかいの くにのなまえ（国旗クイズ）</title>
+  <title>こっきクイズ</title>
   <link rel="icon" href="favicon.png" type="image/png">
   <style>
     body {
@@ -64,6 +64,15 @@
       border-radius: 50%;
       border: 4px solid #ffeb3b;
     }
+    /* 正解した時のキラキラ演出 */
+    @keyframes seikai-flash {
+      0% { background-color: #e3f2fd; }
+      50% { background-color: #c8e6c9; }
+      100% { background-color: #e3f2fd; }
+    }
+    .correct-flash {
+      animation: seikai-flash 0.5s ease-in-out;
+    }
     #next-button {
       margin-top: 15px;
       padding: 12px 30px;
@@ -83,7 +92,7 @@
   </style>
 </head>
 <body>
-  <div style="display:none;" id="dev-info" data-version="1.2.0" data-updated="2026-05-10 10:15"></div>
+  <div style="display:none;" id="dev-info" data-version="1.2.1" data-updated="2026-05-10 10:20"></div>
   
   <h1>🚩 くにのなまえクイズ</h1>
   <div id="status">ただいま 0もん れんぞくせいかい！</div>
@@ -109,9 +118,7 @@
   <script>
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
     
-    // クイズデータ（200カ国に向けて随時追加可能）
     const quizData = [
-      // 主要国
       { name: "にほん", flag: "🇯🇵", capital: "とうきょう", hint: "たいようが のぼる くに！", pokeId: 338, reason: "たいようの かたちをした ポケモンだから！" },
       { name: "アメリカ", flag: "🇺🇸", capital: "ワシントンD.C.", hint: "じゆうの めがみが あるよ！", pokeId: 628, reason: "アメリカの シンボル、ハクトウワシに にているから！" },
       { name: "フランス", flag: "🇫🇷", capital: "パリ", hint: "エッフェルとうが ゆうめい！", pokeId: 907, reason: "おしゃれで かじやの カヌチャンは フランスっぽい！？" },
@@ -125,7 +132,6 @@
       { name: "スイス", flag: "🇨🇭", capital: "ベルン", hint: "アルプス山脈（さんみゃく）と チーズ！", pokeId: 241, reason: "おいしい ミルクは アルプスの ぼくじょうみたい！" },
       { name: "メキシコ", flag: "🇲🇽", capital: "メキシコシティ", hint: "サボテンと タコス！", pokeId: 272, reason: "メキシコの 帽子（ぼうし）を かぶって おどっているみたい！" },
       { name: "シンガポール", flag: "🇸🇬", capital: "シンガポール", hint: "マーライオンがいるよ！", pokeId: 450, reason: "ライオンのような たてがみが かっこいい！" },
-      // アジア
       { name: "韓国（かんこく）", flag: "🇰🇷", capital: "ソウル", hint: "キムチや 焼き肉が おいしい！", pokeId: 257, reason: "テコンドーのように けりわざが とくいだから！" },
       { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" },
       { name: "ベトナム", flag: "🇻🇳", capital: "ハノイ", hint: "「フォー」という お米の めんが ゆうめい！", pokeId: 708, reason: "ベトナムの もりには ふしぎな 植物がいっぱい！" },
@@ -135,7 +141,6 @@
       { name: "トルコ", flag: "🇹🇷", capital: "アンカラ", hint: "のびーる アイス「ドンドゥルマ」！", pokeId: 132, reason: "アイスみたいに びよーんと のびるから！" },
       { name: "サウジアラビア", flag: "🇸🇦", capital: "リヤド", hint: "さばくが 広がる 石油（せきゆ）の国！", pokeId: 323, reason: "さばくに すんでいる ラクダに そっくり！" },
       { name: "イスラエル", flag: "🇮🇱", capital: "エルサレム", hint: "とっても しおからい「死海（しかい）」があるよ！", pokeId: 120, reason: "海（うみ）の 宝石（ほうせき）のように きれいな国！" },
-      // ヨーロッパ
       { name: "ドイツ", flag: "🇩🇪", capital: "ベルリン", hint: "ソーセージと 車づくりが ゆうめい！", pokeId: 601, reason: "かっこいい 歯車（はぐるま）の ポケモンだから！" },
       { name: "スペイン", flag: "🇪🇸", capital: "マドリード", hint: "情熱（じょうねつ）の フラメンコと 闘牛（とうぎゅう）！", pokeId: 128, reason: "闘牛（とうぎゅう）といえば ケンタロス！" },
       { name: "ポルトガル", flag: "🇵🇹", capital: "リスボン", hint: "カステラや 金平糖（こんぺいとう）の ルーツ！", pokeId: 774, reason: "金平糖（こんぺいとう）みたいな 姿をしているから！" },
@@ -151,7 +156,6 @@
       { name: "デンマーク", flag: "🇩🇰", capital: "コペンハーゲン", hint: "レゴブロックが 生まれた国！", pokeId: 80, reason: "のんびりした 王さまのような くに！" },
       { name: "ポーランド", flag: "🇵🇱", capital: "ワルシャワ", hint: "ショパンの ふるさと！コペルニクスも！", pokeId: 358, reason: "きれいな 音を かなでるから！" },
       { name: "ウクライナ", flag: "🇺🇦", capital: "キーウ", hint: "ひまわりが 国の花だよ！", pokeId: 192, reason: "ひまわりといえば キマワリ！" },
-      // アフリカ
       { name: "ケニア", flag: "🇰🇪", capital: "ナイロビ", hint: "サバンナで 野生（やせい）の 動物が見れる！", pokeId: 233, reason: "サバンナを かける 3つの頭の ポケモン！" },
       { name: "モロッコ", flag: "🇲🇦", capital: "ラバト", hint: "カラフルな 街並みと 砂漠（さばく）！", pokeId: 844, reason: "砂漠（さばく）を 力強く はしるから！" },
       { name: "南アフリカ", flag: "🇿🇦", capital: "プレトリア", hint: "ダイヤモンドがたくさん とれるよ！", pokeId: 719, reason: "ほうせきの お姫さまみたい！" },
@@ -159,18 +163,13 @@
       { name: "エチオピア", flag: "🇪🇹", capital: "アディスアベバ", hint: "コーヒーの 木が 見つかった場所！", pokeId: 275, reason: "コーヒーのように ほろ苦い かお！？" },
       { name: "ガーナ", flag: "🇬🇭", capital: "アクラ", hint: "チョコの 原料（げんりょう） カカオ！", pokeId: 869, reason: "おいしい スイーツを つくるから！" },
       { name: "タンザニア", flag: "🇹🇿", capital: "ドドマ", hint: "アフリカ一 高い「キリマンジャロ」！", pokeId: 248, reason: "山のように 大きくて 強いから！" },
-      // 北米・中南米
       { name: "アルゼンチン", flag: "🇦🇷", capital: "ブエノスアイレス", hint: "サッカーが 大人気！メッシ選手の国！", pokeId: 815, reason: "エースストライカーと よばれるから！" },
       { name: "チリ", flag: "🇨🇱", capital: "サンティアゴ", hint: "世界一 細長い国！イースター島もある！", pokeId: 299, reason: "イースター島の モアイ像（ぞう）そっくり！" },
       { name: "ペルー", flag: "🇵🇪", capital: "リマ", hint: "空中都市（くうちゅうとし）マチュピチュ！", pokeId: 911, reason: "空（そら）に うかぶ お墓（はか）のよう！" },
       { name: "コロンビア", flag: "🇨🇴", capital: "ボゴタ", hint: "コーヒーと きれいな エメラルド！", pokeId: 101, reason: "キラキラした 宝石（ほうせき）のような 模様！" },
       { name: "キューバ", flag: "🇨🇺", capital: "ハバナ", hint: "古い 車が たくさん 走っているよ！", pokeId: 83, reason: "昔（むかし）から ずっと 同じ姿で 愛されている！" },
       { name: "ジャマイカ", flag: "🇯🇲", capital: "キングストン", hint: "レゲエ音楽（おんがく）と 走るのが速い人！", pokeId: 254, reason: "ジャングルの なかを 速く走るから！" },
-      // オセアニア
-      { name: "ニュージーランド", flag: "🇳🇿", capital: "ウェリントン", hint: "羊（ひつじ）が たくさん！キウイ鳥も！", pokeId: 181, reason: "もこもこの 羊（ひつじ）といえば デンリュウ！" },
       { name: "フィジー", flag: "🇫🇯", capital: "スバ", hint: "世界一 しあわせな国といわれる 南の島！", pokeId: 771, reason: "南（みなみ）の 海（うみ）に すんでいるから！" },
-      // どんどん追加（メジャー〜マイナーまで）
-      { name: "タイ（たい）", flag: "🇹🇭", capital: "バンコク", hint: "お寺と ゾウさんが いっぱい！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" },
       { name: "マレーシア", flag: "🇲🇾", capital: "クアラルンプール", hint: "世界一 高い ツインタワーがあったよ！", pokeId: 884, reason: "高い ビルみたいに 大きな ジュラルドン！" },
       { name: "ニュージーランド", flag: "🇳🇿", capital: "ウェリントン", hint: "羊（ひつじ）が たくさん！キウイ鳥も！", pokeId: 179, reason: "もこもこの メリープが いっぱい！" },
       { name: "アイスランド", flag: "🇮🇸", capital: "レイキャビク", hint: "氷（こおり）と 火山（かざん）の島！", pokeId: 219, reason: "体の中に マグマが もえているから！" },
@@ -180,7 +179,6 @@
       { name: "クロアチア", flag: "🇭🇷", capital: "ザグレブ", hint: "アドリア海の 真珠（しんじゅ）！", pokeId: 91, reason: "真珠（しんじゅ）を もっている パルシェン！" },
       { name: "ルーマニア", flag: "🇷🇴", capital: "ブカレスト", hint: "ドラキュラ伝説（でんせつ）があるよ！", pokeId: 42, reason: "ドラキュラといえば コウモリ！" },
       { name: "ネパール", flag: "🇳🇵", capital: "カトマンズ", hint: "世界一高い エベレストがある！", pokeId: 376, reason: "山のように どっしりして 強いから！" },
-      { name: "モンゴル", flag: "🇲🇳", capital: "ウランバートル", hint: "大草原（だいそうげん）の くに！", pokeId: 77, reason: "草原を かけぬける ポニータ！" },
       { name: "パキスタン", flag: "🇵🇰", capital: "イスラマバード", hint: "世界で2番目に高い山 K2がある！", pokeId: 745, reason: "山の けわしい 道でも 走れるから！" },
       { name: "イラン", flag: "🇮🇷", capital: "テヘラン", hint: "ペルシャじゅうたんが ゆうめい！", pokeId: 52, reason: "ペルシャといえば ニャース（ペルシアン）！" },
       { name: "イラク", flag: "🇮🇶", capital: "バグダッド", hint: "とっても古い 文明（ぶんめい）のはじまり！", pokeId: 344, reason: "古い 土偶（どぐう）のような デザイン！" },
@@ -189,7 +187,6 @@
       { name: "ルクセンブルク", flag: "🇱🇺", capital: "ルクセンブルク", hint: "小さくても 豊かな ヨーロッパの国！", pokeId: 133, reason: "たくさんの 可能性（かのうせい）を もっているから！" },
       { name: "カザフスタン", flag: "🇰🇿", capital: "アスタナ", hint: "宇宙（うちゅう）ロケットの発射場がある！", pokeId: 386, reason: "宇宙（うちゅう）から やってきた ポケモン！" },
       { name: "ウズベキスタン", flag: "🇺🇿", capital: "タシケント", hint: "青い タイルが きれいな イスラム建築！", pokeId: 448, reason: "青い 色が とっても きれいだから！" },
-      { name: "イスラエル", flag: "🇮🇱", capital: "エルサレム", hint: "歴史（れきし）と 砂漠（さばく）の国！", pokeId: 120, reason: "海の 宝石（ほうせき）のように きれい！" },
       { name: "ヨルダン", flag: "🇯🇴", capital: "アンマン", hint: "砂漠にある 遺跡（いせき）ペトラ！", pokeId: 377, reason: "岩（いわ）の 遺跡（いせき）のような ポケモン！" },
       { name: "レバノン", flag: "🇱🇧", capital: "ベイルート", hint: "レバノン杉（すぎ）という 木が ゆうめい！", pokeId: 185, reason: "木に そっくりな 姿をしているから！" },
       { name: "スリランカ", flag: "🇱🇰", capital: "スリジャヤワルダナプラコッテ", hint: "紅茶（こうちゃ）と 宝石の島！", pokeId: 855, reason: "ポットに入った 紅茶の ポケモン！" },
@@ -198,7 +195,6 @@
       { name: "ラオス", flag: "🇱🇦", capital: "ビエンチャン", hint: "象（ぞう）の国といわれていたよ！", pokeId: 232, reason: "力強い ゾウの ポケモン！" },
       { name: "ミャンマー", flag: "🇲🇲", capital: "ネピドー", hint: "キラキラ輝く 黄金（おうごん）の塔！", pokeId: 129, reason: "金色の 伝説（コイキング）になれるかも！" },
       { name: "ブータン", flag: "🇧🇹", capital: "ティンプー", hint: "雷龍（らいりゅう）の国！", pokeId: 149, reason: "ドラゴンのように 強くて やさしい！" },
-      { name: "ジャマイカ", flag: "🇯🇲", capital: "キングストン", hint: "レゲエ音楽（おんがく）の国！", pokeId: 271, reason: "音楽に合わせて おどるのが 大好き！" },
       { name: "パナマ", flag: "🇵🇦", capital: "パナマシティ", hint: "2つの海をつなぐ 運河（うんが）！", pokeId: 80, reason: "海（うみ）を のんびり ながめているから！" },
       { name: "コスタリカ", flag: "🇨🇷", capital: "サンホセ", hint: "美しい 鳥 ケツァールがいるよ！", pokeId: 250, reason: "虹色（にじいろ）の 羽をもつ 伝説の鳥！" },
       { name: "グアテマラ", flag: "🇬🇹", capital: "グアテマラシティ", hint: "マヤ文明（ぶんめい）の 遺跡！", pokeId: 492, reason: "自然（しぜん）を まもる 守り神！" },
@@ -208,24 +204,19 @@
       { name: "ウルグアイ", flag: "🇺🇾", capital: "モンテビデオ", hint: "サッカーと お肉が 大好き！", pokeId: 813, reason: "サッカーが とっても 上手だから！" },
       { name: "ベネズエラ", flag: "🇻🇪", capital: "カラカス", hint: "世界一高い 滝（たき）がある！", pokeId: 130, reason: "滝を のぼって 龍になるから！" },
       { name: "ナイジェリア", flag: "🇳🇬", capital: "アブジャ", hint: "アフリカで いちばん 人口が多い！", pokeId: 440, reason: "たくさんの 人に 幸せをはこぶ！" },
-      { name: "エチオピア", flag: "🇪🇹", capital: "アディスアベバ", hint: "コーヒーの ふるさと！", pokeId: 274, reason: "コーヒーの 木のような ポケモン！" },
       { name: "アルジェリア", flag: "🇩🇿", capital: "アルジェ", hint: "アフリカで いちばん 面積が広い！", pokeId: 450, reason: "広い 砂漠（さばく）の 王さま！" },
       { name: "リビア", flag: "🇱🇾", capital: "トリポリ", hint: "砂漠と 古い 遺跡（いせき）！", pokeId: 344, reason: "砂漠の 遺跡に すんでいる！" },
-      { name: "マダガスカル", flag: "🇲🇬", capital: "アンタナナリボ", hint: "ふしぎな 動物の島！", pokeId: 511, reason: "めずらしい 猿（さる）の ポケモン！" },
-      { name: "チュニジア", flag: "🇹🇳", capital: "チュニス", hint: "スターウォーズの ロケ地がある！", pokeId: 386, reason: "宇宙（うちゅう）の 映画（えいが）みたいだから！" },
+      { name: "チュニジア", flag: "🇹🇳", capital: "チュニス", hint: "スターウォーズ의 ロケ地がある！", pokeId: 386, reason: "宇宙（うちゅう）の 映画（えいが）みたいだから！" },
       { name: "コートジボワール", flag: "🇨🇮", capital: "ヤムスク", hint: "象牙（ぞうげ）の 海岸という意味だよ！", pokeId: 232, reason: "かっこいい 牙（きば）をもっているから！" },
       { name: "セネガル", flag: "🇸🇳", capital: "ダカール", hint: "ピンク色の 湖（レトバ湖）があるよ！", pokeId: 39, reason: "ピンク色の まんまる ポケモン！" },
       { name: "カメルーン", flag: "🇨🇲", capital: "ヤウンデ", hint: "不屈の ライオン（サッカーの愛称）！", pokeId: 668, reason: "燃える ライオンの ポケモン！" },
-      { name: "マレーシア", flag: "🇲🇾", capital: "クアラルンプール", hint: "ジャングルと 都市（とし）！", pokeId: 252, reason: "ジャングルの なかの ポケモン！" },
-      { name: "フィリピン", flag: "🇵🇭", capital: "マニラ", hint: "甘い マンゴーが 大人気！", pokeId: 421, reason: "お日さまを あびて 元気いっぱい！" },
-      { name: "ネパール", flag: "🇳🇵", capital: "カトマンズ", hint: "ヒマラヤ山脈の ふもと！", pokeId: 215, reason: "雪山（ゆきやま）の けわしい所に すんでいる！" },
       { name: "ブルガリア", flag: "🇧🇬", capital: "ソフィア", hint: "ヨーグルトと バラの花！", pokeId: 407, reason: "バラの花を 両手に もっているから！" },
       { name: "セルビア", flag: "🇷🇸", capital: "ベオグラード", hint: "テニスが とっても 強い！", pokeId: 25, reason: "すばやく 動いて 技をきめる！" },
       { name: "ジョージア", flag: "🇬🇪", capital: "トビリシ", hint: "ワイン はじまりの国！", pokeId: 124, reason: "おしゃれで お酒（さけ）の席が 似合う！？" },
       { name: "アゼルバイジャン", flag: "🇦🇿", capital: "バクー", hint: "火（ひ）の国！泥の火山がある！", pokeId: 126, reason: "燃える 体を もっているから！" },
       { name: "アルメニア", flag: "🇦🇲", capital: "エレバン", hint: "とっても 古い キリスト教の国！", pokeId: 493, reason: "すべてを はじめた 神さまのよう！" },
       { name: "モンテネグロ", flag: "🇲🇪", capital: "ポドゴリツァ", hint: "黒い山 という意味の名前だよ！", pokeId: 442, reason: "黒い 影（かげ）のような ポケモン！" },
-      { name: "マルタ", flag: "🇲🇹", capital: "バレッタ", hint: "地中海に うかぶ 騎士（きし）の島！", pokeId: 898, reason: "騎士（きし）のように 気高いから！" },
+      { name: "マルタ", flag: "🇲🇹", capital: "バレッタ", hint: "地中海に うかぶ 騎士（きし）の島！", pokeId: 898, reason: "騎士（きし）のように 気高いから！" }
     ];
 
     let currentQuestion;
@@ -276,10 +267,21 @@
     }
 
     async function checkAnswer(selected) {
-      document.getElementById("choices").innerHTML = "";
+      const choicesDiv = document.getElementById("choices");
+      const body = document.body;
+      choicesDiv.innerHTML = "";
+
+      const soundCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/clink_clank.ogg');
+      const soundWrong = new Audio('https://actions.google.com/sounds/v1/cartoon/boing.ogg');
 
       if (selected === currentQuestion.name) {
         correctStreak++;
+        soundCorrect.load();
+        soundCorrect.play().catch(e => console.log("音の再生に失敗しました:", e));
+
+        body.classList.add("correct-flash");
+        setTimeout(() => body.classList.remove("correct-flash"), 500);
+
         const pokeName = await fetchPokemonName(currentQuestion.pokeId);
         const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
 
@@ -289,7 +291,6 @@
         document.getElementById("pokemon-img").style.display = "inline";
         document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
 
-        // 10問ごとにLINE通知（ずっと続けられるが、節目で記録）
         if (correctStreak === FIRST_GOAL) {
           markCleared();
           document.getElementById("result").innerHTML += `<br><span class="clear-msg">🎉 10もんクリア！ おめでとう！</span>`;
@@ -298,8 +299,10 @@
         updateStatus();
         document.getElementById("next-button").style.display = "inline";
       } else {
-        const lostStreak = correctStreak;
         correctStreak = 0;
+        soundWrong.load();
+        soundWrong.play().catch(e => console.log("音の再生に失敗しました:", e));
+
         document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。<br>（しゅと：${currentQuestion.capital}）`;
         document.getElementById("next-button").style.display = "inline";
         updateStatus();
@@ -320,56 +323,6 @@
     }
 
     window.onload = newQuestion;
-    async function checkAnswer(selected) {
-  const choicesDiv = document.getElementById("choices");
-  const body = document.body;
-  choicesDiv.innerHTML = "";
-
-  // ✅ 安定した音源URLに差し替え
-  // 正解：明るいチャイム音
-  const soundCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/clink_clank.ogg');
-  // 不正解：低いおならのようなガッカリ音
-  const soundWrong = new Audio('https://actions.google.com/sounds/v1/cartoon/boing.ogg');
-
-  if (selected === currentQuestion.name) {
-    correctStreak++;
-    
-    // ✅ 正解の音を鳴らす（エラーを防ぐため、再生前に読み込みを明示）
-    soundCorrect.load();
-    soundCorrect.play().catch(e => console.log("音の再生に失敗しました:", e));
-
-    body.classList.add("correct-flash");
-    setTimeout(() => body.classList.remove("correct-flash"), 500);
-
-    const pokeName = await fetchPokemonName(currentQuestion.pokeId);
-    const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${currentQuestion.pokeId}.png`;
-
-    document.getElementById("result").innerHTML = `せいかい！<br>しゅとは 「${currentQuestion.capital}」 だよ！`;
-    document.getElementById("pokemon-reason").textContent = `なぜこのポケモン？：${currentQuestion.reason}`;
-    document.getElementById("pokemon-img").src = imgUrl;
-    document.getElementById("pokemon-img").style.display = "inline";
-    document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
-
-    if (correctStreak === FIRST_GOAL) {
-      markCleared();
-      document.getElementById("result").innerHTML += `<br><span class="clear-msg">🎉 10もんクリア！ おめでとう！</span>`;
-    }
-
-    updateStatus();
-    document.getElementById("next-button").style.display = "inline";
-  } else {
-    correctStreak = 0;
-    
-    // ✅ 不正解の音を鳴らす
-    soundWrong.load();
-    soundWrong.play().catch(e => console.log("音の再生に失敗しました:", e));
-
-    document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。<br>（しゅと：${currentQuestion.capital}）`;
-    document.getElementById("next-button").style.display = "inline";
-    updateStatus();
-  }
-}
-}
   </script>
 </body>
 </html>
