@@ -54,20 +54,21 @@
       position: fixed; bottom: 10px; right: 10px; font-size: 10px;
       color: #90a4ae; background: rgba(255, 255, 255, 0.5); padding: 2px 5px; border-radius: 4px;
     }
+    .sample-menu {
+      background:#fff; padding:10px; margin:10px auto; max-width:500px; 
+      border-radius:10px; border:1px solid #ccc;
+    }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.4.1 | Updated: 2026-05-10 10:45</div>
+  <div id="version-info">Ver 1.4.2 | Updated: 2026-05-10 11:00</div>
   
   <h1>🚩 こっきクイズ</h1>
 
-  //音源試聴
-  <div style="background:#fff; padding:10px; margin:10px auto; max-width:500px; border-radius:10px; border:1px solid #ccc;">
-    <p style="font-size:12px; margin:0 0 5px 0;">🎵 効果音をえらんで試聴（しちょう）できるよ</p>
-    <button onclick="playSample('kira')">✨ キラキラ（正解）</button>
-    <button onclick="playSample('up')">⤴ ジャンプ（正解）</button>
-    <button onclick="playSample('down')">⤵ ガッカリ（不正解）</button>
-    <button onclick="playSample('short')">短いブブー（不正解）</button>
+  <div class="sample-menu">
+    <p style="font-size:12px; margin:0 0 5px 0;">🎵 効果音のしちょう（このボタンで おとが きけるよ）</p>
+    <button onclick="Buzzer.play('correct')">✨ キラキラ×2（せいかい）</button>
+    <button onclick="Buzzer.play('wrong')">⤵ ガッカリ×2（はずれ）</button>
   </div>
   
   <div id="status">ただいま 0もん れんぞくせいかい！</div>
@@ -89,96 +90,49 @@
   <script>
     const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz5p2qedT5CAxNXmd5NGUjNh0oivxDW1PcaDCf-AM2aVwHyfQf-VPJktVPDOqRek9A-/exec";
     
-    /*// 電子ブザー音生成クラス（mp3不要・絶対に鳴る仕組み）
+    // 電子ブザー音生成クラス（mp3不要・絶対に鳴る仕組み）
     const Buzzer = {
       ctx: new (window.AudioContext || window.webkitAudioContext)(),
-      play(type) {
+      
+      // 単発の音を鳴らす内部機能
+      _note(freq, type, start, duration, endFreq) {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.connect(gain);
         gain.connect(this.ctx.destination);
+        
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        if (endFreq) {
+          osc.frequency.exponentialRampToValueAtTime(endFreq, start + duration);
+        }
+        
+        gain.gain.setValueAtTime(0.1, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        
+        osc.start(start);
+        osc.stop(start + duration);
+      },
 
-        if (type === 'correct') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(660, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.1);
-          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.3);
-        } else {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.5);
+      play(pattern) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+
+        if (pattern === 'correct') {
+          // キラキラを2回繰り返す
+          // 1回目
+          this._note(880, 'sine', now, 0.1, 1320);
+          // 2回目 (0.2秒後)
+          this._note(880, 'sine', now + 0.2, 0.1, 1320);
+        } else if (pattern === 'wrong') {
+          // ガッカリを2回繰り返す
+          // 1回目
+          this._note(200, 'sawtooth', now, 0.3, 100);
+          // 2回目 (0.4秒後)
+          this._note(200, 'sawtooth', now + 0.4, 0.3, 100);
         }
       }
-    };*/
-
-    const Buzzer = {
-  ctx: new (window.AudioContext || window.webkitAudioContext)(),
-  
-  // 指定したパターンで音を鳴らす
-  play(pattern) {
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    const now = this.ctx.currentTime;
-
-    switch(pattern) {
-      case 'kira': // キラキラ（高い音が2回）
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.setValueAtTime(1320, now + 0.1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start();
-        osc.stop(now + 0.3);
-        break;
-
-      case 'up': // ジャンプ（ポヨーンと上がる）
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-        osc.start();
-        osc.stop(now + 0.2);
-        break;
-
-      case 'down': // ガッカリ（音が下がる）
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, now);
-        osc.frequency.linearRampToValueAtTime(100, now + 0.5);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-        osc.start();
-        osc.stop(now + 0.5);
-        break;
-
-      case 'short': // 短いブブー
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, now);
-        gain.gain.setValueAtTime(0.05, now);
-        gain.gain.setValueAtTime(0, now + 0.1);
-        gain.gain.setValueAtTime(0.05, now + 0.15);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start();
-        osc.stop(now + 0.3);
-        break;
-    }
-  }
-};
-
-// 試聴用ボタンのための関数
-function playSample(type) {
-  Buzzer.play(type);
-}
+    };
 
     const quizData = [
       { name: "にほん", flag: "🇯🇵", capital: "とうきょう", hint: "たいようが のぼる くに！", pokeId: 338, reason: "たいようの かたちをした ポケモンだから！" },
@@ -187,8 +141,9 @@ function playSample(type) {
       { name: "イタリア", flag: "🇮🇹", capital: "ローマ", hint: "ピザや パスタが だいすき！", pokeId: 143, reason: "おいしいものを たくさん たべるから！" },
       { name: "イギリス", flag: "🇬🇧", capital: "ロンドン", hint: "大きな とけいだい「ビッグベン」！", pokeId: 823, reason: "イギリスが モデルの 地方（ガラル）の ポケモンだから！" },
       { name: "韓国（かんこく）", flag: "🇰🇷", capital: "ソウル", hint: "キムチや 焼き肉が おいしい！", pokeId: 257, reason: "テコンドーのように けりわざが とくいだから！" },
-      { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" }
-      // ※ここに前の回答の100カ国データを追加できます
+      { name: "タイ", flag: "🇹🇭", capital: "バンコク", hint: "ゾウさんが 神さまとして 大事にされているよ！", pokeId: 231, reason: "かわいい ゾウの ポケモンだから！" },
+      { name: "ベトナム", flag: "🇻🇳", capital: "ハノイ", hint: "「フォー」という お米の めんが ゆうめい！", pokeId: 708, reason: "ベトナムの もりには ふしぎな 植物がいっぱい！" }
+      // ※ここに以前の100カ国データを自由に追加できます
     ];
 
     let currentQuestion;
@@ -243,7 +198,7 @@ function playSample(type) {
 
       if (selected === currentQuestion.name) {
         correctStreak++;
-        Buzzer.play('correct');
+        Buzzer.play('correct'); // キラキラ×2
 
         document.body.classList.add("correct-flash");
         setTimeout(() => document.body.classList.remove("correct-flash"), 1200);
@@ -257,7 +212,7 @@ function playSample(type) {
         document.getElementById("pokemon-info").textContent = `${pokeName} を ゲット！`;
       } else {
         correctStreak = 0;
-        Buzzer.play('wrong');
+        Buzzer.play('wrong'); // ガッカリ×2
         document.getElementById("result").innerHTML = `ざんねん！ こたえは 「${currentQuestion.name}」 だよ。\n（しゅと：${currentQuestion.capital}）`;
       }
       
