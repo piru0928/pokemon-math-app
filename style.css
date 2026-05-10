@@ -41,3 +41,26 @@ button {
   margin-top: 20px;
   color: #27ae60;
 }
+
+/* 正解した時のキラキラ演出 */
+@keyframes seikai-flash {
+  0% { background-color: #e3f2fd; }
+  50% { background-color: #c8e6c9; }
+  100% { background-color: #e3f2fd; }
+}
+
+/* ポケモンが飛び出す動き */
+@keyframes poke-pop {
+  0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+  70% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.correct-flash {
+  animation: seikai-flash 0.5s ease-in-out;
+}
+
+#pokemon-img {
+  /* ...既存のスタイルに以下を追加... */
+  animation: poke-pop 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+}
