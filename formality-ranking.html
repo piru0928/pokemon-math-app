@@ -576,7 +576,15 @@
       const ctn = document.getElementById("choices");
       ctn.innerHTML = "";
 
-      const currentLv = Math.min(5, Math.floor((st.stp - 1) / 1) + 1); // 1問ごとにLvアップ
+      let currentLv;
+      if (st.stp <= 5) {
+          // 5問目までは1問ごとにレベルアップ
+          currentLv = st.stp; 
+      } else {
+          // 6問目以降はレベル1〜5をランダムに選択
+          currentLv = Math.floor(Math.random() * 5) + 1; 
+      }
+      
       const pool = quizData[`lv${currentLv}`] || quizData.lv1;
       let q = pool[Math.floor(Math.random() * pool.length)];
       
@@ -634,9 +642,18 @@
       db.ref('formality').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
         const list = document.getElementById("rank-list");
         const items = [];
-        snapshot.forEach((child) => items.push(child.val()));
-        items.reverse();
-        list.innerHTML = items.map((r, i) => `<div class="rank-item"><span>${i+1}位: ${r.name} (${r.score}回)</span><span style="font-size:9px; color:#999;">${r.date}</span></div>`).join("");
+        // snapshotを配列に格納
+        snapshot.forEach((child) => {
+          items.push(child.val());
+        });
+        // スコア順（降順）にするために逆転させる
+        items.reverse(); 
+        
+        list.innerHTML = items.map((r, i) => `
+          <div class="rank-item">
+            <span>${i+1}位: ${r.name} (${r.score}回)</span>
+            <span style="font-size:9px; color:#999;">${r.date}</span>
+          </div>`).join("");
       });
     }
 
