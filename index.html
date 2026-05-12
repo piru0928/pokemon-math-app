@@ -2,165 +2,243 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ポケモンおべんきょうサイト</title>
   <link rel="icon" href="favicon.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-color: #f0f9ff;
+      --card-bg: #ffffff;
+      --text-main: #4a5568;
+      --accent-red: #ff7675;
+      --accent-blue: #74b9ff;
+      --accent-yellow: #ffeaa7;
+      --accent-green: #55efc4;
+    }
+
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #fdf6e3;
-      color: #333;
-      padding: 0px;
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px 10px;
+      overflow-x: hidden;
+      line-height: 1.6;
     }
+
     h1 {
-      color: #e74c3c;
-      font-size: 28px;
-      margin-bottom: 20px;
       text-align: center;
+      color: var(--accent-red);
+      font-size: 24px;
+      margin-bottom: 30px;
+      background: white;
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      width: 90%;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
     }
-    .category {
-      background: #fff8dc;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px auto;
+
+    .container {
       max-width: 500px;
-      box-shadow: none;
+      margin: 0 auto;
     }
+
+    .category {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      position: relative;
+      border-bottom: 5px solid #ddd;
+    }
+
+    /* 各カテゴリーの色分け */
+    .cat-math { border-color: #fab1a0; }
+    .cat-jp { border-color: #a29bfe; }
+    .cat-en { border-color: #81ecec; }
+    .cat-social { border-color: #ffeaa7; }
+    .cat-special { border-color: #ff78b0; }
+
     .category h2 {
-      margin-top: 0;
-      color: #d35400;
-      font-size: 20px;
+      margin: -10px 0 15px 0;
+      font-size: 18px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+
     ul {
       list-style: none;
       padding: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* スマホで2列に並べる */
+      gap: 10px;
     }
+
     li {
-      margin: 8px 0;
+      margin: 0;
+    }
+
+    .menu-item {
       display: flex;
+      flex-direction: column;
       align-items: center;
-    }
-    .status {
-      display: inline-block;
-      width: 48px;
-      margin-right: 8px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    a {
+      justify-content: center;
       text-decoration: none;
-      color: #2980b9;
+      background: #f8fafc;
+      padding: 15px 10px;
+      border-radius: 15px;
+      transition: transform 0.2s, background 0.2s;
+      border: 1px solid #edf2f7;
+    }
+
+    .menu-item:active {
+      transform: scale(0.95);
+      background: #edf2f7;
+    }
+
+    .status {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .menu-item span:last-child {
+      color: var(--text-main);
       font-weight: bold;
-    }
-    a:hover {
-      color: #c0392b;
-    }
-    .clear-button {
-      display: block;
-      margin: 10px auto;
-      padding: 8px 16px;
       font-size: 14px;
-      background-color: #f78fb3;
-      color: white;
+    }
+
+    .clear-button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 8px;
+      font-size: 12px;
+      background-color: #eee;
+      color: #888;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-    }
-    .clear-button:hover {
-      background-color: #f368e0;
+      font-family: inherit;
     }
 
-    /* バージョン情報の表示スタイル（他ページと統一） */
+    /* 背景のふわふわポケモン */
+    .bg-poke {
+      position: fixed;
+      z-index: -1;
+      opacity: 0.15;
+      pointer-events: none;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(10deg); }
+    }
+
     #version-info {
       position: fixed;
       bottom: 10px;
       right: 10px;
       font-size: 10px;
       color: #90a4ae;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 2px 5px;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 100;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .debug-area {
+      margin-top: 50px;
+      padding: 15px;
+      background: #eee;
+      border-radius: 15px;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.3.1 | Updated: 2026-05-12 12:45</div>
+  <div id="version-info">Ver 1.4.0 | Updated: 2026-05-12</div>
 
-  <h1>ポケモンおべんきょうサイト</h1>
+  <h1>ポケモンおべんきょう</h1>
 
-  <div class="category">
-    <h2>＜さんすう＞</h2>
-    <ul>
-      <li><span class="status" id="status-addition">⭐</span><a href="addition.html">たしざん</a></li>
-      <li><span class="status" id="status-subtraction">⭐</span><a href="subtraction.html">ひきざん</a></li>
-      <li><span class="status" id="status-multiplication">⭐</span><a href="multiplication.html">かけざん</a></li>
-      <li><span class="status" id="status-division">⭐</span><a href="division.html">わりざん</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('math')">🌱 さんすうのデータをクリア</button>
-  </div>
+  <div class="container">
+    <div class="category cat-math">
+      <h2>🍎 さんすう</h2>
+      <ul>
+        <li><a href="addition.html" class="menu-item"><span class="status" id="status-addition">⭐</span><span>たしざん</span></a></li>
+        <li><a href="subtraction.html" class="menu-item"><span class="status" id="status-subtraction">⭐</span><span>ひきざん</span></a></li>
+        <li><a href="multiplication.html" class="menu-item"><span class="status" id="status-multiplication">⭐</span><span>かけざん</span></a></li>
+        <li><a href="division.html" class="menu-item"><span class="status" id="status-division">⭐</span><span>わりざん</span></a></li>
+      </ul>
+      <button class="clear-button" onclick="clearByUnit('math')">データをリセット</button>
+    </div>
 
-  <div class="category">
-    <h2>＜こくご＞</h2>
-    <ul>
-      <li><span class="status" id="status-tanbun-quiz">⭐</span><a href="tanbun-quiz.html">たんぶん</a></li>
-      <li><span class="status" id="status-kanji-quiz">⭐</span><a href="kanji-quiz.html">漢字</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('japanese')">🌱 こくごのデータをクリア</button>
-  </div>
+    <div class="category cat-jp">
+      <h2>✏️ こくご</h2>
+      <ul>
+        <li><a href="tanbun-quiz.html" class="menu-item"><span class="status" id="status-tanbun-quiz">⭐</span><span>たんぶん</span></a></li>
+        <li><a href="kanji-quiz.html" class="menu-item"><span class="status" id="status-kanji-quiz">⭐</span><span>かんじ</span></a></li>
+      </ul>
+      <button class="clear-button" onclick="clearByUnit('japanese')">データをリセット</button>
+    </div>
 
-  <div class="category">
-    <h2>＜えいご＞</h2>
-    <ul>
-      <li><span class="status" id="status-pokemon-english">⭐</span><a href="pokemon-english.html">ポケモン英語</a></li>
-      <li><span class="status" id="status-pokemon-romaji">⭐</span><a href="pokemon-romaji.html">ポケモンローマ字</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('english')">🌱 えいごのデータをクリア</button>
-  </div>
+    <div class="category cat-en">
+      <h2>🔤 えいご</h2>
+      <ul>
+        <li><a href="pokemon-english.html" class="menu-item"><span class="status" id="status-pokemon-english">⭐</span><span>えいご</span></a></li>
+        <li><a href="pokemon-romaji.html" class="menu-item"><span class="status" id="status-pokemon-romaji">⭐</span><span>ローマ字</span></a></li>
+      </ul>
+      <button class="clear-button" onclick="clearByUnit('english')">データをリセット</button>
+    </div>
 
-  <div class="category">
-    <h2>＜しゃかい＞</h2>
-    <ul>
-      <li><span class="status" id="status-national-flag-quiz">⭐</span><a href="national-flag-quiz.html">こっきクイズ</a></li>
-      <li><span class="status" id="status-capital-quiz">⭐</span><a href="capital-quiz.html">しゅとクイズ</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('social')">🌱 しゃかいのデータをクリア</button>
-  </div>
+    <div class="category cat-social">
+      <h2>🗺️ しゃかい</h2>
+      <ul>
+        <li><a href="national-flag-quiz.html" class="menu-item"><span class="status" id="status-national-flag-quiz">⭐</span><span>こっき</span></a></li>
+        <li><a href="capital-quiz.html" class="menu-item"><span class="status" id="status-capital-quiz">⭐</span><span>しゅと</span></a></li>
+      </ul>
+      <button class="clear-button" onclick="clearByUnit('social')">データをリセット</button>
+    </div>
 
-   <div class="category">
-    <h2>＜スペシャル＞</h2>
-    <ul>
-      <li><span class="status" id="status-money-quiz">⭐</span><a href="money-quiz.html">おかねクイズ</a></li>
-    </ul>
-    <button class="clear-button" onclick="clearByUnit('social')">🌱 しゃかいのデータをクリア</button>
+    <div class="category cat-special">
+      <h2>💎 スペシャル</h2>
+      <ul>
+        <li><a href="money-quiz.html" class="menu-item"><span class="status" id="status-money-quiz">⭐</span><span>おかね</span></a></li>
+      </ul>
+      <button class="clear-button" onclick="clearByUnit('special')">データをリセット</button>
+    </div>
+
+    <div class="debug-area">
+      <h3>🛠 デバッグ</h3>
+      <pre id="debug-storage"></pre>
+      <button onclick="showLocalStorage()">📋 更新</button>
+    </div>
   </div>
 
   <script src="script.js"></script>
   <script>
-    const MAX_POKEMON_ID = 151; // 初代ポケモンまで
-    const POKEMON_COUNT = 20; // 表示する画像数
-  
-    function getRandomId() {
-      return Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
-    }
+    const MAX_POKEMON_ID = 151;
+    const POKEMON_COUNT = 15;
   
     function createBackgroundPokemon() {
       for (let i = 0; i < POKEMON_COUNT; i++) {
-        const id = getRandomId();
+        const id = Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
         const img = document.createElement("img");
         img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
-        img.style.position = "absolute";
-        img.style.opacity = "0.5";
-        img.style.width = "96px";
-        img.style.height = "96px";
-        img.style.zIndex = "-1";
-        img.style.top = `${Math.random() * 100}%`;
-        img.style.left = `${Math.random() * 100}%`;
-        img.style.transform = `rotate(${Math.random() * 360}deg)`;
+        img.className = "bg-poke";
+        img.style.width = "70px";
+        img.style.top = `${Math.random() * 90}%`;
+        img.style.left = `${Math.random() * 90}%`;
+        // アニメーションをバラバラにする
+        img.style.animationDelay = `${Math.random() * 5}s`;
+        img.style.animationDuration = `${5 + Math.random() * 5}s`;
   
         document.body.appendChild(img);
       }
@@ -168,15 +246,8 @@
   
     window.onload = function () {
       createBackgroundPokemon();
-      if (typeof updateStatusIcons === 'function') updateStatusIcons(); // 既存の初期処理も実行
+      if (typeof updateStatusIcons === 'function') updateStatusIcons();
     };
   </script>
-
-  <div style="margin-top: 40px; padding: 10px; border-top: 2px dashed #ccc;">
-  <h3>🛠 デバッグ用 localStorage の中身</h3>
-  <pre id="debug-storage" style="background:#eee; padding:10px; border-radius:5px;"></pre>
-  <button onclick="showLocalStorage()">📋 表示更新</button>
-</div>
-
 </body>
 </html>
