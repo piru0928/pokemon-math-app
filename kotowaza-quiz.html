@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ポケモン・ことばマスター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f3e5f5;
+      text-align: center;
+      padding: 10px;
+      transition: 0.3s;
+    }
+    ruby { ruby-align: center; }
+    rt { font-size: 0.5em; color: #7b1fa2; font-weight: normal; }
+
+    h1 { color: #7b1fa2; margin-bottom: 5px; font-size: 24px; }
+    #status { font-size: 16px; color: #4a148c; margin-bottom: 10px; font-weight: bold; }
+
+    #quiz-card {
+      background: white;
+      border-radius: 20px;
+      padding: 15px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      width: 95%;
+      max-width: 400px;
+    }
+    
+    #pokemon-img { width: 140px; height: 140px; background: #fdfbff; border-radius: 50%; border: 4px solid #ce93d8; margin-bottom: 10px; }
+    #question-text { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; line-height: 1.8; padding: 0 5px; }
+
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      margin: 10px auto;
+    }
+    .choice-btn {
+      padding: 15px 5px;
+      font-size: 15px;
+      font-weight: bold;
+      background-color: white;
+      border: 3px solid #ce93d8;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px #ba68c8;
+    }
+    .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #ba68c8; }
+    .choice-btn:disabled { opacity: 0.7; cursor: default; }
+
+    #result { font-size: 20px; margin-top: 10px; font-weight: bold; min-height: 30px; }
+    #next-button {
+      margin-top: 15px; padding: 12px 40px; font-size: 18px;
+      background-color: #9c27b0; color: white; border: none;
+      border-radius: 30px; cursor: pointer; display: none; font-weight: bold;
+    }
+    #version-info { position: fixed; bottom: 5px; right: 5px; font-size: 9px; color: #9e9e9e; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 1.0.0</div>
+  <h1>💬 <ruby>言葉<rt>ことば</rt></ruby>マスター</h1>
+  <div id="status">よみこみちゅう...</div>
+
+  <div id="quiz-card">
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div id="question-text">もんだい</div>
+  </div>
+  
+  <div class="choices-container" id="choices"></div>
+  <div id="result"></div>
+  
+  <button id="next-button" onclick="generateQuiz()"><ruby>次<rt>つぎ</rt></ruby>のもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    const wordQuestions = [
+      // --- 1. どうぶつが出てくる ことわざ ---
+      { q: "「ネコに <ruby>小判<rt>こばん</rt></ruby>」と<ruby>同<rt>おな</rt></ruby>じいみの <ruby>言葉<rt>ことば</rt></ruby>は、どっちかな？", a: ["ブタに <ruby>真珠<rt>しんじゅ</rt></ruby>", "イヌに おやつ", "ウサギに ぼうし", "カメに こうら"] },
+      { q: "「イヌも <ruby>歩<rt>ある</rt></ruby>けば ○に あたる」。○に <ruby>入<rt>はい</rt></ruby>るのは？", a: ["<ruby>棒<rt>ぼう</rt></ruby>", "<ruby>石<rt>いし</rt></ruby>", "パン", "<ruby>穴<rt>あな</rt></ruby>"] },
+      { q: "「サルも <ruby>木<rt>き</rt></ruby>から ○」。とくいなことでも <ruby>失敗<rt>しっぱい</rt></ruby>する、という意味（いみ）だよ。", a: ["<ruby>落<rt>お</rt></ruby>ちる", "<ruby>飛<rt>と</rt></ruby>ぶ", "<ruby>寝<rt>ね</rt></ruby>る", "<ruby>笑<rt>わら</rt></ruby>う"] },
+      { q: "「カエルの <ruby>子<rt>こ</rt></ruby>は ○」。子どもは 親（おや）に にるものだ、という意味だよ。", a: ["カエル", "おたまじゃくし", "ヘビ", "サカナ"] },
+      { q: "「スズメの ○」。とっても すくない、という意味の<ruby>言葉<rt>ことば</rt></ruby>だよ。", a: ["<ruby>涙<rt>なみだ</rt></ruby>", "<ruby>羽根<rt>はね</rt></ruby>", "<ruby>歌<rt>うた</rt></ruby>", "<ruby>巣<rt>す</rt></ruby>"] },
+      { q: "「○の <ruby>耳<rt>みみ</rt></ruby>に <ruby>念仏<rt>ねんぶつ</rt></ruby>」。いくら言っても きかないことだよ。", a: ["ウマ", "ウシ", "ヤギ", "ネズミ"] },
+      { q: "「タヌキの ○<ruby>算用<rt>ざんよう</rt></ruby>」。まだ手に入っていないのに、計算（けいさん）することだよ。", a: ["<ruby>皮<rt>かわ</rt></ruby>", "<ruby>尻尾<rt>しっぽ</rt></ruby>", "<ruby>化<rt>ば</rt></ruby>かし", "<ruby>昼寝<rt>ひるね</rt></ruby>"] },
+      { q: "「○を <ruby>呑<rt>の</rt></ruby>んだ ヘビ」。びっくりして 固（かた）まっている様子（ようす）だよ。", a: ["カエル", "ウサギ", "タマゴ", "ネズミ"] },
+
+      // --- 2. からだの 名前を使った 言葉 ---
+      { q: "「○が <ruby>高<rt>たか</rt></ruby>い」。じまんしたい、えっへん！という気持ちだよ。", a: ["<ruby>鼻<rt>はな</rt></ruby>", "<ruby>目<rt>め</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>頭<rt>あたま</rt></ruby>"] },
+      { q: "「○を <ruby>丸<rt>まる</rt></ruby>くする」。とっても びっくりしたときの 目（め）つきだよ。", a: ["<ruby>目<rt>め</rt></ruby>", "<ruby>口<rt>くち</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>顔<rt>かお</rt></ruby>"] },
+      { q: "「○を <ruby>長<rt>なが</rt></ruby>くして まつ」。とっても たのしみに まっていることだよ。", a: ["<ruby>首<rt>くび</rt></ruby>", "<ruby>足<rt>あし</rt></ruby>", "<ruby>手<rt>て</rt></ruby>", "<ruby>指<rt>ゆび</rt></ruby>"] },
+      { q: "「○を かす」。お<ruby>話<rt>はな</rt></ruby>しを しっかり きいてあげることだよ。", a: ["<ruby>耳<rt>みみ</rt></ruby>", "<ruby>口<rt>くち</rt></ruby>", "<ruby>目<rt>め</rt></ruby>", "<ruby>肩<rt>かた</rt></ruby>"] },
+      { q: "「○が <ruby>重<rt>おも</rt></ruby>い」。やりたくなくて、なかなか 動（うご）けないことだよ。", a: ["<ruby>腰<rt>こし</rt></ruby>", "<ruby>頭<rt>あたま</rt></ruby>", "<ruby>手<rt>て</rt></ruby>", "<ruby>足<rt>あし</rt></ruby>"] },
+      { q: "「○が <ruby>広<rt>ひろ</rt></ruby>い」。お<ruby>友<rt>とも</rt></ruby>だちが たくさん いることだよ。", a: ["<ruby>顔<rt>かお</rt></ruby>", "<ruby>背中<rt>せなか</rt></ruby>", "<ruby>胸<rt>むね</rt></ruby>", "<ruby>手<rt>て</rt></ruby>"] },
+      { q: "「○が おちる」。とっても <ruby>美味<rt>おい</rt></ruby>しいときのことだよ。", a: ["ほっぺた", "<ruby>目<rt>め</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>頭<rt>あたま</rt></ruby>"] },
+
+      // --- 3. はんたいの ことば ---
+      { q: "「<ruby>大<rt>おお</rt></ruby>きい」の はんたいは、なあに？", a: ["<ruby>小<rt>ちい</rt></ruby>さい", "<ruby>長<rt>なが</rt></ruby>い", "<ruby>重<rt>おも</rt></ruby>い", "<ruby>高<rt>たか</rt></ruby>い"] },
+      { q: "「<ruby>明<rt>あか</rt></ruby>るい」の はんたいは、なあに？", a: ["<ruby>暗<rt>くら</rt></ruby>い", "<ruby>寒<rt>さむ</rt></ruby>い", "<ruby>痛<rt>いた</rt></ruby>い", "<ruby>狭<rt>せま</rt></ruby>い"] },
+      { q: "「<ruby>暑<rt>あつ</rt></ruby>い」の はんたいは、なあに？", a: ["<ruby>寒<rt>さむ</rt></ruby>い", "<ruby>遠<rt>とお</rt></ruby>い", "<ruby>速<rt>はや</rt></ruby>い", "<ruby>低<rt>ひく</rt></ruby>い"] },
+      { q: "「<ruby>重<rt>おも</rt></ruby>い」の はんたいは、なあに？", a: ["<ruby>軽<rt>かる</rt></ruby>い", "<ruby>細<rt>ほそ</rt></ruby>い", "<ruby>弱<rt>よわ</rt></ruby>い", "<ruby>短<rt>みじか</rt></ruby>い"] },
+      { q: "「<ruby>強<rt>つよ</rt></ruby>い」の はんたいは、なあに？", a: ["<ruby>弱<rt>よわ</rt></ruby>い", "<ruby>恐<rt>おそ</rt></ruby>い", "<ruby>遅<rt>おそ</rt></ruby>い", "<ruby>悪<rt>わる</rt></ruby>い"] },
+      { q: "「<ruby>勝<rt>か</rt></ruby>つ」の はんたいは、なあに？", a: ["<ruby>負<rt>ま</rt></ruby>ける", "<ruby>走<rt>はし</rt></ruby>る", "<ruby>怒<rt>おこ</rt></ruby>る", "<ruby>泣<rt>な</rt></ruby>く"] },
+      { q: "「<ruby>始<rt>はじ</rt></ruby>まる」の はんたいは、なあに？", a: ["<ruby>終<rt>お</rt></ruby>わる", "<ruby>消<rt>き</rt></ruby>える", "<ruby>動<rt>うご</rt></ruby>く", "<ruby>休<rt>やす</rt></ruby>む"] }
+    ];
+
+    let correctStreak = 0;
+    let currentAnswer = "";
+
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(type) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (type === 'correct') {
+          this._note(880, now, 0.1); this._note(1100, now + 0.1, 0.2);
+        } else if (type === 'special') {
+          [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
+        } else {
+          this._note(200, now, 0.3);
+        }
+      }
+    };
+
+    async function generateQuiz() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("next-button").style.display = "none";
+      document.body.style.backgroundColor = "#f3e5f5";
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+
+      const qData = wordQuestions[Math.floor(Math.random() * wordQuestions.length)];
+      document.getElementById("question-text").innerHTML = qData.q;
+      currentAnswer = qData.a[0];
+
+      // エスパータイプや知的なポケモンの画像を表示
+      const smartPokemon = [63, 64, 65, 122, 133, 149, 151, 196]; 
+      const pokeId = smartPokemon[Math.floor(Math.random() * smartPokemon.length)];
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+
+      let options = [...qData.a].sort(() => Math.random() - 0.5);
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.innerHTML = opt;
+        btn.onclick = () => checkAnswer(opt);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+      const resArea = document.getElementById("result");
+
+      if (selected === currentAnswer) {
+        correctStreak++;
+        if (correctStreak % 5 === 0) Buzzer.play('special');
+        else Buzzer.play('correct');
+        resArea.textContent = "✨ せいかい！";
+        document.body.style.backgroundColor = "#f1f8e9";
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        resArea.innerHTML = `❌ こたえは「${currentAnswer}」だよ`;
+        document.body.style.backgroundColor = "#ffebee";
+      }
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+      document.getElementById("next-button").style.display = "inline-block";
+    }
+
+    window.onload = generateQuiz;
+  </script>
+</body>
+</html>
