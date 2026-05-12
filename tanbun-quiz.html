@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>たんぶんマスター Pro+</title>
+  <title>たんぶんマスター Ver 3.0.0</title>
   <style>
     body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; padding: 10px; margin: 0; padding-bottom: 50px; }
     #passage-box {
@@ -19,7 +19,7 @@
       display: block; font-weight: bold; transition: 0.2s;
     }
     .choice:hover { background-color: #fef9e7; border-color: #f1c40f; }
-    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 10px; display: none; text-align: left; }
+    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 10px; display: none; text-align: left; line-height: 1.8; }
     #pokemon-img { margin-top: 10px; width: 100px; height: 100px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
     #next-button { margin-top: 15px; padding: 12px 30px; font-size: 18px; background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
     #version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 11px; color: #7f8c8d; font-family: monospace; }
@@ -38,7 +38,7 @@
   <br><br>
   <a href="index.html">← <ruby>戻<rt>もど</rt></ruby>る</a>
 
-  <div id="version-tag">Version 2.9.0 (Updated: 2026-05-12)</div>
+  <div id="version-tag">Version 3.0.0 (Updated: 2026-05-12)</div>
 
   <script>
     const Buzzer = {
@@ -69,18 +69,18 @@
       item: ["<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>", "お<ruby>宝<rt>たから</rt></ruby>", "<ruby>風船<rt>ふうせん</rt></ruby>", "<ruby>帽子<rt>ぼうし</rt></ruby>", "お<ruby>花<rt>はな</rt></ruby>", "キラキラした <ruby>石<rt>いし</rt></ruby>"],
       actions: [
         { text: "に あげました", q: "に あげた" },
-        { text: "を きれいに <ruby>洗<rt>あら</rt></ruby>いました", q: "を <ruby>洗<rt>あら</rt></ruby>った" },
-        { text: "を <ruby>地面<rt>じめん</rt></ruby>に <ruby>隠<rt>かく</rt></ruby>しました", q: "を <ruby>隠<rt>かく</rt></ruby>した" },
-        { text: "を お<ruby>部屋<rt>へや</rt></ruby>に <ruby>飾<rt>かざ</rt></ruby>りました", q: "を <ruby>飾<rt>かざ</rt></ruby>った" },
+        { text: "を きれいに <ruby>洗<rt>あら</rt></ruby>いました", q: "きれいに <ruby>洗<rt>あら</rt></ruby>った" },
+        { text: "を <ruby>地面<rt>じめん</rt></ruby>に <ruby>隠<rt>かく</rt></ruby>しました", q: "きれいに <ruby>隠<rt>かく</rt></ruby>した" },
+        { text: "を お<ruby>部屋<rt>へや</rt></ruby>に <ruby>飾<rt>かざ</rt></ruby>りました", q: "お<ruby>部屋<rt>へや</rt></ruby>に <ruby>飾<rt>かざ</rt></ruby>った" },
         { text: "を ポッケに いれました", q: "ポッケに いれた" },
-        { text: "を ぎゅっと <ruby>抱<rt>だ</rt></ruby>きしめました", q: "<ruby>抱<rt>だ</rt></ruby>きしめた" }
+        { text: "を ぎゅっと <ruby>抱<rt>だ</rt></ruby>きしめました", q: "ぎゅっと <ruby>抱<rt>だ</rt></ruby>きしめた" }
       ],
       reasons: [
         { cause: "<ruby>見<rt>み</rt></ruby>つからないので", react: "<ruby>泣<rt>な</rt></ruby>きだしました", ans: "が <ruby>見<rt>み</rt></ruby>つからないから" },
         { cause: "おなかが すいたので", react: "おやつを <ruby>食<rt>た</rt></ruby>べました", ans: "おなかが すいたから" },
         { cause: "足が つかれたので", react: "おやすみなさいと <ruby>言<rt>い</rt></ruby>いました", ans: "足が つかれたから" },
         { cause: "とても うれしかったので", react: "ぴょんぴょん <ruby>跳<rt>は</rt></ruby>ねました", ans: "うれしかったから" },
-        { cause: "お外が くらいので", react: "おうちに かえりました", ans: "くらいから" },
+        { cause: "お外が くらいので", react: "おうちに かえりました", ans: "外が くらいから" },
         { cause: "のどが かわいたので", react: "お水を のみました", ans: "のどが かわいたから" }
       ]
     };
@@ -107,7 +107,7 @@
           question = `${w}は ${i}を <ruby>拾<rt>ひろ</rt></ruby>ったあと、どうしましたか？`;
           currentAns = act.text.includes('あげ') ? `${w2}に あげた` : act.q;
           options = [currentAns, "ポイっと すてた", "むしゃむしゃ <ruby>食<rt>た</rt></ruby>べた"];
-          explanation = "「そのあと」のあとに書いてあることを さがしましょう。";
+          explanation = `「そのあと」の <ruby>後<rt>あと</rt></ruby>に <ruby>書<rt>か</rt></ruby>いてあることを <ruby>探<rt>さが</rt></ruby>しましょう。`;
           break;
         case 1: // 理由
           const res = getR(vocab.reasons);
@@ -115,7 +115,7 @@
           question = `${w}が ${res.react.replace(/ました$/, '')}のは なぜですか？`;
           currentAns = res.ans.includes('見つからない') ? i + res.ans : res.ans;
           options = [currentAns, "おもちゃが ほしいから", "ねむたくなったから"];
-          explanation = "「〜ので」のまえにあるのが、りゆう です。";
+          explanation = `「〜ので」の <ruby>前<rt>まえ</rt></ruby>にある <ruby>言葉<rt>ことば</rt></ruby>が、その <ruby>理由<rt>りゆう</rt></ruby> です。`;
           break;
         case 2: // 否定
           const otherWho = vocab.who.filter(x => x !== w).slice(0, 2);
@@ -124,14 +124,14 @@
           question = `${l}に **いない** のは だれですか？`;
           currentAns = v;
           options = [v, w, otherWho[0]];
-          explanation = "お話の中に 名前が出てこなかった人を えらびましょう。";
+          explanation = `<ruby>話<rt>はなし</rt></ruby>の <ruby>中<rt>なか</rt></ruby>に <ruby>名前<rt>なまえ</rt></ruby>が <ruby>出<rt>で</rt></ruby>てこなかった <ruby>人<rt>ひと</rt></ruby>を <ruby>選<rt>えら</rt></ruby>びましょう。`;
           break;
-        case 3: // 指示語（あそこ・それ）
+        case 3: // 指示語
           passage = `${w}は ${l}に いきました。**あそこ**には ${i}が たくさん あるからです。`;
-          question = "ぶんの中の **「あそこ」** とは どこですか？";
+          question = "<ruby>文<rt>ぶん</rt></ruby>の <ruby>中<rt>なか</rt></ruby>の **「あそこ」** とは どこですか？";
           currentAns = l;
           options = [l, "おうち", "<ruby>学校<rt>がっこう</rt></ruby>"];
-          explanation = "「あそこ」は、まえに出てきた ばしょ（${l}）のことです。";
+          explanation = `「あそこ」は、すぐ <ruby>前<rt>まえ</rt></ruby>に <ruby>出<rt>で</rt></ruby>てきた <ruby>場所<rt>ばしょ</rt></ruby>（${l}）のことです。`;
           break;
       }
 
@@ -152,13 +152,13 @@
       expBox.style.display = "block";
       if (selected === currentAns) {
         Buzzer.play(true);
-        expBox.innerHTML = `<strong>✨ せいかい！</strong><br>${exp}`;
+        expBox.innerHTML = `<strong>✨ <ruby>正解<rt>せいかい</rt></ruby>！</strong><br>${exp}`;
         const pokeId = Math.floor(Math.random() * 151) + 1;
         document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
         document.getElementById("pokemon-img").style.display = "inline";
       } else {
         Buzzer.play(false);
-        expBox.innerHTML = `<strong>❌ ざんねん！ 正解は「${currentAns}」</strong><br>${exp}`;
+        expBox.innerHTML = `<strong>❌ <ruby>残念<rt>ざんねん</rt></ruby>！ <ruby>正解<rt>せいかい</rt></ruby>は「${currentAns}」</strong><br>${exp}`;
       }
       document.getElementById("next-button").style.display = "inline";
     }
