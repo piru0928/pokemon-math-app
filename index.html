@@ -114,10 +114,25 @@
       font-size: 9px;
       color: #ccc;
     }
+
+    .disclaimer {
+      font-size: 10px;
+      color: #888;
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px 10px;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 15px;
+    }
+    .disclaimer a {
+      color: #666;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 2.0.2 | Updated: 2026-05-12</div>
+  <div id="version-info">Ver 2.0.3 | Updated: 2026-05-12</div>
 
   <h1>ポケモンおべんきょう</h1>
 
@@ -166,6 +181,15 @@
       </ul>
     </div>
   </div>
+
+  <footer class="disclaimer">
+    <p>
+      このサイトは個人が制作したファンコンテンツであり、公式のものではありません。<br>
+      データおよび画像の一部は <a href="https://pokeapi.co/" target="_blank" rel="noopener">PokeAPI</a> を利用しています。<br>
+      ポケットモンスター・ポケモン・Pokémonは、任天堂・クリーチャーズ・ゲームフリークの登録商標です。<br>
+      © Nintendo / Creatures Inc. / GAME FREAK inc.
+    </p>
+  </footer>
 
   <script>
     const MAX_POKEMON_ID = 151;
