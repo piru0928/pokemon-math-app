@@ -10,25 +10,25 @@
     #passage-box {
       background: #fff; border: 4px solid #3498db; padding: 25px;
       margin: 15px auto; max-width: 600px; border-radius: 15px;
-      text-align: left; line-height: 2.2; font-size: 19px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: left; line-height: 2.5; font-size: 21px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     #question-text { font-size: 20px; margin: 15px; font-weight: bold; color: #e67e22; min-height: 3em; display: flex; align-items: center; justify-content: center; }
     .choice {
-      font-size: 17px; padding: 12px; margin: 8px auto;
+      font-size: 18px; padding: 12px; margin: 8px auto;
       border-radius: 12px; border: 2px solid #bdc3c7;
       cursor: pointer; background-color: #fff; width: 95%; max-width: 500px;
       display: block; transition: 0.2s; font-weight: bold;
     }
     .choice:hover { background-color: #fef9e7; border-color: #f1c40f; }
-    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 10px; display: none; text-align: left; font-size: 15px; }
+    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 10px; display: none; text-align: left; font-size: 16px; line-height: 1.8; }
     #pokemon-img { margin-top: 10px; width: 100px; height: 100px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
     #next-button { margin-top: 15px; padding: 12px 30px; font-size: 18px; background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
     #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; pointer-events: none; }
-    ruby rt { font-size: 0.55em; color: #34495e; }
+    ruby rt { font-size: 0.5em; color: #34495e; }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 2.5.0 | Updated: 2026-05-12</div>
+  <div id="version-info">Ver 2.6.0 | Updated: 2026-05-12</div>
   <h1>📖 たんぶんマスター</h1>
   <div id="level-display">レベル 1</div>
 
@@ -43,7 +43,7 @@
   
   <button id="next-button" onclick="generateQuestion()">つぎの問題へ</button>
   <br><br>
-  <a href="index.html">← TOPへもどる</a>
+  <a href="index.html">← <ruby>戻<rt>もど</rt></ruby>る</a>
 
   <script>
     const Buzzer = {
@@ -66,7 +66,6 @@
       }
     };
 
-    let level = 1;
     let currentAns = "";
 
     const vocab = {
@@ -91,38 +90,38 @@
       switch(pattern) {
         case 0: // 順序
           passage = `${w}は ${l}で ${i}を <ruby>拾<rt>ひろ</rt></ruby>いました。そのあと、それを ${w2}に あげました。`;
-          question = `${w}は ${i}を ひろったあと、どうしましたか？`;
+          question = `${w}は ${i}を <ruby>拾<rt>ひろ</rt></ruby>ったあと、どうしましたか？`;
           currentAns = `${w2}に あげた`;
-          options = [currentAns, "自分で食べた", "地面にうめた"];
-          explanation = "「そのあと」という言葉のあとに答えが書いてあります。";
+          options = [currentAns, "<ruby>自分<rt>じぶん</rt></ruby>で<ruby>食<rt>た</rt></ruby>べた", "<ruby>地面<rt>じめん</rt></ruby>にうめた"];
+          explanation = "「そのあと」という<ruby>言葉<rt>ことば</rt></ruby>のあとに<ruby>答<rt>こた</rt></ruby>えが<ruby>書<rt>か</rt></ruby>いてあります。";
           break;
         case 1: // 否定
           passage = `${l}には ${w}と ${w2}が います。ふたりは ${i}を <ruby>探<rt>さが</rt></ruby>しています。`;
           question = `${l}に **いない** のは だれですか？`;
-          currentAns = "迷子のライオン（文に出てこない）"; 
+          currentAns = "<ruby>迷子<rt>まいご</rt></ruby>のライオン（<ruby>文<rt>ぶん</rt></ruby>に<ruby>出<rt>で</rt></ruby>てこない）"; 
           options = [currentAns, w, w2];
-          explanation = "文章の中に名前が出てこない人を選びましょう。";
+          explanation = "<ruby>文章<rt>ぶんしょう</rt></ruby>のなかに<ruby>名前<rt>なまえ</rt></ruby>が<ruby>出<rt>で</rt></ruby>てこない<ruby>人<rt>ひと</rt></ruby>を<ruby>選<rt>えら</rt></ruby>びましょう。";
           break;
         case 2: // 指示語
-          passage = `${w}は ${l}へ <ruby>走<rt>はし</rt></ruby>っていきました。**あそこ**には 大切な ${i}が あるからです。`;
-          question = "文の中の **「あそこ」** とは どこを さしていますか？";
+          passage = `${w}は ${l}へ <ruby>走<rt>はし</rt></ruby>っていきました。**あそこ**には <ruby>大切<rt>たいせつ</rt></ruby>な ${i}が あるからです。`;
+          question = "<ruby>文<rt>ぶん</rt></ruby>のなかの **「あそこ」** とは どこを さしていますか？";
           currentAns = l;
-          options = [l, "自分の家", "ひみつの場所"];
-          explanation = "「あそこ」は、直前に出てきた場所（${l}）のことですね。";
+          options = [l, "<ruby>自分<rt>じぶん</rt></ruby>の<ruby>家<rt>いえ</rt></ruby>", "ひみつの<ruby>場所<rt>ばしょ</rt></ruby>"];
+          explanation = "「あそこ」は、<ruby>直前<rt>ちょくぜん</rt></ruby>に<ruby>出<rt>で</rt></ruby>てきた<ruby>場所<rt>ばしょ</rt></ruby>（${l}）のことですね。";
           break;
         case 3: // 理由
-          passage = `${w}は ${i}を なくしてしまいました。一生懸命さがしましたが 見つからないので、泣き出してしまいました。`;
-          question = `${w}が 泣き出してしまったのは なぜですか？`;
-          currentAns = `${i}が 見つからないから`;
-          options = [currentAns, "おなかが すいたから", "転んで痛かったから"];
-          explanation = "「〜ので」の前の部分が、泣いてしまった理由です。";
+          passage = `${w}は ${i}を なくしてしまいました。<ruby>一生懸命<rt>いっしょうけんめい</rt></ruby>さがしましたが <ruby>見<rt>み</rt></ruby>つからないので、<ruby>泣<rt>な</rt></ruby>き<ruby>出<rt>だ</rt></ruby>してしまいました。`;
+          question = `${w}が <ruby>泣<rt>な</rt></ruby>き<ruby>出<rt>だ</rt></ruby>してしまったのは なぜですか？`;
+          currentAns = `${i}が <ruby>見<rt>み</rt></ruby>つからないから`;
+          options = [currentAns, "おなかが すいたから", "<ruby>転<rt>ころ</rt></ruby>んで<ruby>痛<rt>いた</rt></ruby>かったから"];
+          explanation = "「〜ので」の<ruby>前<rt>まえ</rt></ruby>の<ruby>部分<rt>ぶぶん</rt></ruby>が、<ruby>泣<rt>な</rt></ruby>いてしまった<ruby>理由<rt>りゆう</rt></ruby>です。";
           break;
         case 4: // 内容一致
-          passage = `${w}は ${l}に ${i}を 忘れてきてしまいました。でも、${w}は「また明日取りに行けばいいや」と笑っています。`;
-          question = "お話の内容と **あっているもの** は どれですか？";
-          currentAns = `${w}は あまり 落ちこんでいない`;
-          options = [currentAns, `${w}は 泣いている`, `${i}は ぬすまれてしまった` ];
-          explanation = "「笑っています」という言葉から、今の様子を想像してみましょう。";
+          passage = `${w}は ${l}に ${i}を <ruby>忘<rt>わす</rt></ruby>れてきてしまいました。でも、${w}は「また<ruby>明日取<rt>あしたと</rt></ruby>りに<ruby>行<rt>い</rt></ruby>けばいいや」と<ruby>笑<rt>わら</rt></ruby>っています。`;
+          question = "お<ruby>話<rt>はなし</rt></ruby>の<ruby>内容<rt>ないよう</rt></ruby>と **あっているもの** は どれですか？";
+          currentAns = `${w}は あまり <ruby>落<rt>お</rt></ruby>ちこんでいない`;
+          options = [currentAns, `${w}は <ruby>泣<rt>な</rt></ruby>いている`, `${i}は ぬすまれてしまった` ];
+          explanation = "「<ruby>笑<rt>わら</rt></ruby>っています」という<ruby>言葉<rt>ことば</rt></ruby>から、いまの<ruby>様子<rt>ようす</rt></ruby>を<ruby>想像<rt>そうぞう</rt></ruby>してみましょう。";
           break;
       }
 
@@ -151,7 +150,7 @@
         document.getElementById("pokemon-img").style.display = "inline";
       } else {
         Buzzer.play(false);
-        expBox.innerHTML = `<strong>❌ ざんねん！ 正解は「${currentAns}」</strong><br>${exp}`;
+        expBox.innerHTML = `<strong>❌ ざんねん！ <ruby>正解<rt>せいかい</rt></ruby>は「${currentAns}」</strong><br>${exp}`;
       }
       document.getElementById("next-button").style.display = "inline";
     }
