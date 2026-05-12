@@ -105,4 +105,96 @@
       3: ["運", "悪", "安", "開", "館", "期", "業", "具", "君", "係"],
       4: ["愛", "案", "以", "衣", "位", "囲", "胃", "印", "英", "栄"],
       5: ["厚", "安", "移", "因", "永", "衛", "液", "演", "応", "往"],
-      6: ["遺", "域", "宇", "映
+      6: ["遺", "域", "宇", "映", "延", "沿", "我", "灰", "拡", "革"],
+      7: ["摩擦", "環境", "監視", "基礎", "緊張", "具体的", "貢献", "克服"]
+    };
+
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(type) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (type === 'normal') {
+          this._note(880, now, 0.1); // ピッ
+        } else if (type === 'special') {
+          // チャララ〜ン！
+          [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
+        } else {
+          this._note(200, now, 0.3); // ブー
+        }
+      }
+    };
+
+    async function generateQuiz() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("next-button").style.display = "none";
+      document.body.style.backgroundColor = "#f1f8e9";
+
+      const grade = document.getElementById("grade-selector").value;
+      const list = kanjiData[grade];
+      correctKanji = list[Math.floor(Math.random() * list.length)];
+
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+
+      // ポケモンを先に表示
+      const pokeId = Math.floor(Math.random() * 151) + 1;
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+
+      // 読みを表示（簡易的なマッピング）
+      document.getElementById("yomi-display").textContent = "正しい漢字を選ぼう！";
+      document.getElementById("example-sentence").textContent = `問題の漢字： 【？】 `;
+
+      // ダミー選択肢作成
+      let options = [correctKanji];
+      while (options.length < 4) {
+        let dummy = list[Math.floor(Math.random() * list.length)];
+        if (!options.includes(dummy)) options.push(dummy);
+      }
+      options.sort(() => Math.random() - 0.5);
+
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const btns = document.querySelectorAll(".choice-btn");
+      btns.forEach(b => b.disabled = true);
+
+      if (selected === correctKanji) {
+        correctStreak++;
+        if (correctStreak % 5 === 0) {
+          Buzzer.play('special'); // 5回ごとの音
+        } else {
+          Buzzer.play('normal'); // 通常の正解音
+        }
+        document.getElementById("result").textContent = "✨ 正解！ その調子！";
+        document.body.style.backgroundColor = "#fff9c4";
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        document.getElementById("result").textContent = `❌ ざんねん！ 正解は「${correctKanji}」`;
+      }
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+      document.getElementById("next-button").style.display = "inline-block";
+    }
+
+    window.onload = generateQuiz;
+  </script>
+</body>
+</html>
