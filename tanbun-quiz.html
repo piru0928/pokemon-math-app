@@ -28,7 +28,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 2.6.0 | Updated: 2026-05-12</div>
+  <div id="version-info">Ver 2.7.0 | Updated: 2026-05-12</div>
   <h1>📖 たんぶんマスター</h1>
   <div id="level-display">レベル 1</div>
 
@@ -71,7 +71,8 @@
     const vocab = {
       who: [{h:"うさぎ",k:"うさぎ"}, {h:"おとこのこ",k:"<ruby>男<rt>おとこ</rt></ruby>の<ruby>子<rt>こ</rt></ruby>"}, {h:"りす",k:"リス"}, {h:"おうじさま",k:"<ruby>王子<rt>おうじ</rt></ruby><ruby>様<rt>さま</rt></ruby>"}],
       where: [{h:"もり",k:"<ruby>森<rt>もり</rt></ruby>"}, {h:"こうえん",k:"<ruby>公園<rt>こうえん</rt></ruby>"}, {h:"うみ",k:"<ruby>海<rt>うみ</rt></ruby>"}, {h:"おしろ",k:"お<ruby>城<rt>しろ</rt></ruby>"}],
-      item: [{h:"きのみ",k:"<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>"}, {h:"ふうせん",k:"<ruby>風船<rt>ふうせん</rt></ruby>"}, {h:"てがみ",k:"<ruby>手紙<rt>てがみ</rt></ruby>"}, {h:"おたから",k:"お<ruby>宝<rt>たから</rt></ruby>"}]
+      item: [{h:"きのみ",k:"<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>"}, {h:"ふうせん",k:"<ruby>風船<rt>ふうせん</rt></ruby>"}, {h:"てがみ",k:"<ruby>手紙<rt>てがみ</rt></ruby>"}, {h:"おたから",k:"お<ruby>宝<rt>たから</rt></ruby>"}],
+      villain: ["ライオン", "きつね", "おおかみ", "かいじゅう"]
     };
 
     function generateQuestion() {
@@ -80,9 +81,10 @@
       document.getElementById("next-button").style.display = "none";
       document.getElementById("choices").innerHTML = "";
 
-      const getV = (key) => vocab[key][Math.floor(Math.random() * vocab[key].length)].k;
+      const getV = (key) => vocab[key][Math.floor(Math.random() * vocab[key].length)].k || vocab[key][Math.floor(Math.random() * vocab[key].length)];
       const w = getV("who"), l = getV("where"), i = getV("item");
       const w2 = vocab.who.map(x=>x.k).find(x=>x!==w);
+      const v = vocab.villain[Math.floor(Math.random() * vocab.villain.length)];
 
       let passage = "", question = "", explanation = "", options = [];
       const pattern = Math.floor(Math.random() * 5);
@@ -98,16 +100,16 @@
         case 1: // 否定
           passage = `${l}には ${w}と ${w2}が います。ふたりは ${i}を <ruby>探<rt>さが</rt></ruby>しています。`;
           question = `${l}に **いない** のは だれですか？`;
-          currentAns = "<ruby>迷子<rt>まいご</rt></ruby>のライオン（<ruby>文<rt>ぶん</rt></ruby>に<ruby>出<rt>で</rt></ruby>てこない）"; 
+          currentAns = v; 
           options = [currentAns, w, w2];
-          explanation = "<ruby>文章<rt>ぶんしょう</rt></ruby>のなかに<ruby>名前<rt>なまえ</rt></ruby>が<ruby>出<rt>で</rt></ruby>てこない<ruby>人<rt>ひと</rt></ruby>を<ruby>選<rt>えら</rt></ruby>びましょう。";
+          explanation = `<ruby>文章<rt>ぶんしょう</rt></ruby>のなかに<ruby>名前<rt>なまえ</rt></ruby>が<ruby>出<rt>で</rt></ruby>てこない「${v}」を<ruby>選<rt>えら</rt></ruby>びましょう。`;
           break;
         case 2: // 指示語
           passage = `${w}は ${l}へ <ruby>走<rt>はし</rt></ruby>っていきました。**あそこ**には <ruby>大切<rt>たいせつ</rt></ruby>な ${i}が あるからです。`;
           question = "<ruby>文<rt>ぶん</rt></ruby>のなかの **「あそこ」** とは どこを さしていますか？";
           currentAns = l;
           options = [l, "<ruby>自分<rt>じぶん</rt></ruby>の<ruby>家<rt>いえ</rt></ruby>", "ひみつの<ruby>場所<rt>ばしょ</rt></ruby>"];
-          explanation = "「あそこ」は、<ruby>直前<rt>ちょくぜん</rt></ruby>に<ruby>出<rt>で</rt></ruby>てきた<ruby>場所<rt>ばしょ</rt></ruby>（${l}）のことですね。";
+          explanation = `「あそこ」は、<ruby>直前<rt>ちょくぜん</rt></ruby>に<ruby>出<rt>で</rt></ruby>てきた<ruby>場所<rt>ばしょ</rt></ruby>（${l}）のことですね。`;
           break;
         case 3: // 理由
           passage = `${w}は ${i}を なくしてしまいました。<ruby>一生懸命<rt>いっしょうけんめい</rt></ruby>さがしましたが <ruby>見<rt>み</rt></ruby>つからないので、<ruby>泣<rt>な</rt></ruby>き<ruby>出<rt>だ</rt></ruby>してしまいました。`;
@@ -116,12 +118,21 @@
           options = [currentAns, "おなかが すいたから", "<ruby>転<rt>ころ</rt></ruby>んで<ruby>痛<rt>いた</rt></ruby>かったから"];
           explanation = "「〜ので」の<ruby>前<rt>まえ</rt></ruby>の<ruby>部分<rt>ぶぶん</rt></ruby>が、<ruby>泣<rt>な</rt></ruby>いてしまった<ruby>理由<rt>りゆう</rt></ruby>です。";
           break;
-        case 4: // 内容一致
-          passage = `${w}は ${l}に ${i}を <ruby>忘<rt>わす</rt></ruby>れてきてしまいました。でも、${w}は「また<ruby>明日取<rt>あしたと</rt></ruby>りに<ruby>行<rt>い</rt></ruby>けばいいや」と<ruby>笑<rt>わら</rt></ruby>っています。`;
-          question = "お<ruby>話<rt>はなし</rt></ruby>の<ruby>内容<rt>ないよう</rt></ruby>と **あっているもの** は どれですか？";
-          currentAns = `${w}は あまり <ruby>落<rt>お</rt></ruby>ちこんでいない`;
-          options = [currentAns, `${w}は <ruby>泣<rt>な</rt></ruby>いている`, `${i}は ぬすまれてしまった` ];
-          explanation = "「<ruby>笑<rt>わら</rt></ruby>っています」という<ruby>言葉<rt>ことば</rt></ruby>から、いまの<ruby>様子<rt>ようす</rt></ruby>を<ruby>想像<rt>そうぞう</rt></ruby>してみましょう。";
+        case 4: // 内容一致（バリエーション追加）
+          const scenario = Math.random() > 0.5;
+          if(scenario) {
+            passage = `${w}は ${l}に ${i}を <ruby>忘<rt>わす</rt></ruby>れてきてしまいました。でも、${w}は「また<ruby>明日取<rt>あしたと</rt></ruby>りに<ruby>行<rt>い</rt></ruby>けばいいや」と<ruby>笑<rt>わら</rt></ruby>っています。`;
+            question = "お<ruby>話<rt>はなし</rt></ruby>の<ruby>内容<rt>ないよう</rt></ruby>と **あっているもの** は どれですか？";
+            currentAns = `${w}は あまり <ruby>困<rt>こま</rt></ruby>っていない`;
+            options = [currentAns, `${w}は <ruby>泣<rt>な</rt></ruby>いている`, `${i}は <ruby>盗<rt>ぬす</rt></ruby>まれた` ];
+            explanation = "「<ruby>笑<rt>わら</rt></ruby>っています」という<ruby>言葉<rt>ことば</rt></ruby>から、いまの<ruby>様子<rt>ようす</rt></ruby>を<ruby>想像<rt>そうぞう</rt></ruby>してみましょう。";
+          } else {
+            passage = `${w}は ${l}で ${i}を <ruby>見<rt>み</rt></ruby>つけました。とても きれいだったので、${w}は <ruby>宝物<rt>たからもの</rt></ruby>にすることにしました。`;
+            question = "お<ruby>話<rt>はなし</rt></ruby>の<ruby>内容<rt>ないよう</rt></ruby>と **あっているもの** は どれですか？";
+            currentAns = `${w}は ${i}を <ruby>大切<rt>たいせつ</rt></ruby>にすることにした`;
+            options = [currentAns, `${w}は ${i}を すてた`, `${w}は ${i}が <ruby>嫌<rt>きら</rt></ruby>いだった` ];
+            explanation = "「<ruby>宝物<rt>たからもの</rt></ruby>にする」というのは、<ruby>大切<rt>たいせつ</rt></ruby>にするということですね。";
+          }
           break;
       }
 
