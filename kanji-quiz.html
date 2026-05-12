@@ -11,175 +11,98 @@
       background: #f1f8e9;
       text-align: center;
       padding: 20px;
+      transition: 0.3s;
     }
     h1 { color: #2e7d32; margin-bottom: 10px; }
-    
-    /* 学年選択 */
-    #grade-selector {
-      margin-bottom: 20px;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 2px solid #81c784;
-    }
+    #level-display { font-size: 18px; font-weight: bold; color: #1b5e20; }
+    #status { font-size: 16px; color: #666; margin-bottom: 15px; }
 
     #kanji-card {
       background: white;
       border-radius: 20px;
-      padding: 30px;
+      padding: 20px;
       display: inline-block;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       margin-bottom: 20px;
       min-width: 300px;
+      max-width: 90%;
     }
-    #yomi-display { font-size: 40px; font-weight: bold; color: #333; margin-bottom: 10px; }
-    #example-sentence { font-size: 18px; color: #666; margin-bottom: 20px; }
     
-    /* 正解表示エリア */
-    #answer-display {
-      font-size: 80px;
-      color: #e91e63;
-      display: none;
-      margin: 20px 0;
-      font-family: "Hiragino Mincho ProN", "MS Mincho", serif;
-    }
+    /* ポケモン常時表示 */
+    #pokemon-img { width: 150px; height: 150px; background: #f9f9f9; border-radius: 50%; border: 3px solid #81c784; }
+    
+    #yomi-display { font-size: 32px; font-weight: bold; color: #333; margin: 15px 0; }
+    #example-sentence { font-size: 18px; color: #555; background: #f9f9f9; padding: 10px; border-radius: 10px; }
 
-    .btn-group { margin-top: 20px; }
-    .btn {
-      padding: 12px 30px;
-      font-size: 18px;
+    /* 選択肢 */
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    .choice-btn {
+      padding: 20px 10px;
+      font-size: 28px;
       font-weight: bold;
-      border-radius: 30px;
+      background-color: white;
+      border: 2px solid #81c784;
+      border-radius: 12px;
       cursor: pointer;
-      border: none;
-      margin: 5px;
+      transition: 0.2s;
     }
-    #check-btn { background-color: #ff9800; color: white; }
-    #correct-btn { background-color: #4caf50; color: white; display: none; }
-    #next-btn { background-color: #2196f3; color: white; display: none; }
+    .choice-btn:hover { background-color: #e8f5e9; }
+    .choice-btn:disabled { opacity: 0.8; cursor: default; }
 
-    #pokemon-area { margin-top: 20px; display: none; }
-    #pokemon-img { width: 120px; height: 120px; }
-    #pokemon-msg { font-weight: bold; color: #ef5350; }
-    
+    #result { font-size: 22px; margin-top: 15px; font-weight: bold; min-height: 30px; }
+    #next-button {
+      margin-top: 10px; padding: 12px 40px; font-size: 18px;
+      background-color: #4caf50; color: white; border: none;
+      border-radius: 30px; cursor: pointer; display: none;
+    }
+    #grade-selector { margin-bottom: 15px; padding: 8px; border-radius: 5px; }
     #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.0.0 | Updated: 2026-05-12</div>
+  <div id="version-info">Ver 2.0.0 | Updated: 2026-05-12 13:00</div>
   <h1>📝 漢字マスター</h1>
 
-  <select id="grade-selector" onchange="resetQuiz()">
+  <select id="grade-selector" onchange="correctStreak = 0; generateQuiz();">
     <option value="1">小学1年生</option>
     <option value="2">小学2年生</option>
     <option value="3">小学3年生</option>
     <option value="4">小学4年生</option>
     <option value="5">小学5年生</option>
     <option value="6">小学6年生</option>
-    <option value="7">中学生（全学年）</option>
+    <option value="7">中学生</option>
   </select>
 
-  <div id="status">ノートにかいてみよう！</div>
+  <div id="status">ただいま 0もん れんぞくせいかい！</div>
 
   <div id="kanji-card">
-    <div id="yomi-display">よみこみ中</div>
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div id="yomi-display">読み込み中...</div>
     <div id="example-sentence"></div>
-    <div id="answer-display"></div>
-    
-    <div id="pokemon-area">
-      <img id="pokemon-img" src="" alt="pokemon">
-      <div id="pokemon-msg"></div>
-    </div>
-
-    <div class="btn-group">
-      <button id="check-btn" class="btn" onclick="showAnswer()">答えをみる</button>
-      <button id="correct-btn" class="btn" onclick="catchPokemon()">かけた！（ポケモンゲット）</button>
-      <button id="next-btn" class="btn" onclick="newQuestion()">つぎのもんだい</button>
-    </div>
   </div>
+  
+  <div class="choices-container" id="choices"></div>
+  <div id="result"></div>
+  <button id="next-button" onclick="generateQuiz()">つぎのもんだいへ！</button>
 
   <br><br>
   <a href="index.html">← トップページへ</a>
 
   <script>
-    // 学習指導要領に基づいた漢字データの一部（各学年の主要漢字）
+    let correctKanji = "";
+    let correctStreak = 0;
+
+    // 学年別漢字リスト（一部抜粋）
     const kanjiData = {
-      1: [
-        { kanji: "一", yomi: "いち", sentence: "りんごが 【いち】ごあります。" },
-        { kanji: "山", yomi: "やま", sentence: "高い 【やま】に のぼる。" },
-        { kanji: "木", yomi: "き", sentence: "庭（にわ）に 【き】を うえる。" },
-        { kanji: "水", yomi: "みず", sentence: "コップの 【みず】を のむ。" }
-      ],
-      2: [
-        { kanji: "強", yomi: "つよ（い）", sentence: "風が 【つよ】い 日。" },
-        { kanji: "読", yomi: "よ（む）", sentence: "本を 【よ】むのが すきです。" },
-        { kanji: "道", yomi: "みち", sentence: "ひろい 【みち】を あるく。" }
-      ],
-      3: [
-        { kanji: "悪", yomi: "あく", sentence: "【あく】を つよめる。" },
-        { kanji: "運", yomi: "うん", sentence: "荷物（にもつ）を 【うん】ぱんする。" },
-        { kanji: "練習", yomi: "れんしゅう", sentence: "ピアノの 【れんしゅう】をする。" }
-      ],
-      4: [
-        { kanji: "愛", yomi: "あい", sentence: "【あい】じょうを 注（そそ）ぐ。" },
-        { kanji: "希望", yomi: "きぼう", sentence: "【きぼう】を 胸（むね）にいだく。" }
-      ],
-      5: [
-        { kanji: "効率", yomi: "こうりつ", sentence: "【こうりつ】よく 作業（さぎょう）する。" },
-        { kanji: "複雑", yomi: "ふくざつ", sentence: "【ふくざつ】な 計算（けいさん）をとく。" }
-      ],
-      6: [
-        { kanji: "憲法", yomi: "けんぽう", sentence: "日本の 【けんぽう】について 学ぶ。" },
-        { kanji: "推測", yomi: "すいそく", sentence: "犯人を 【すいそく】する。" }
-      ],
-      7: [ // 中学生
-        { kanji: "摩擦", yomi: "まさつ", sentence: "タイヤの 【まさつ】を 考（かんが）える。" },
-        { kanji: "環境", yomi: "かんきょう", sentence: "【かんきょう】問題（もんだい）を 考える。" }
-      ]
-    };
-
-    let currentQ;
-
-    function resetQuiz() {
-      newQuestion();
-    }
-
-    function newQuestion() {
-      const grade = document.getElementById("grade-selector").value;
-      const list = kanjiData[grade];
-      currentQ = list[Math.floor(Math.random() * list.length)];
-
-      document.getElementById("yomi-display").textContent = currentQ.yomi;
-      document.getElementById("example-sentence").textContent = currentQ.sentence;
-      document.getElementById("answer-display").style.display = "none";
-      document.getElementById("answer-display").textContent = currentQ.kanji;
-      
-      document.getElementById("check-btn").style.display = "inline-block";
-      document.getElementById("correct-btn").style.display = "none";
-      document.getElementById("next-btn").style.display = "none";
-      document.getElementById("pokemon-area").style.display = "none";
-    }
-
-    function showAnswer() {
-      document.getElementById("answer-display").style.display = "block";
-      document.getElementById("check-btn").style.display = "none";
-      document.getElementById("correct-btn").style.display = "inline-block";
-      document.getElementById("next-btn").style.display = "inline-block";
-    }
-
-    async function catchPokemon() {
-      const pokeId = Math.floor(Math.random() * 151) + 1;
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokeId}/`);
-      const data = await res.json();
-      const jpName = data.names.find(n => n.language.name === "ja").name;
-
-      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
-      document.getElementById("pokemon-msg").textContent = `${jpName} を つかまえた！`;
-      document.getElementById("pokemon-area").style.display = "block";
-      document.getElementById("correct-btn").style.display = "none";
-    }
-
-    window.onload = newQuestion;
-  </script>
-</body>
-</html>
+      1: ["一", "山", "木", "水", "人", "子", "日", "月", "火", "円"],
+      2: ["強", "読", "道", "新", "春", "夏", "秋", "冬", "朝", "昼"],
+      3: ["運", "悪", "安", "開", "館", "期", "業", "具", "君", "係"],
+      4: ["愛", "案", "以", "衣", "位", "囲", "胃", "印", "英", "栄"],
+      5: ["厚", "安", "移", "因", "永", "衛", "液", "演", "応", "往"],
+      6: ["遺", "域", "宇", "映
