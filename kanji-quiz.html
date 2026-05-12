@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ポケモン・漢字マスター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f1f8e9;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #2e7d32; margin-bottom: 10px; }
+    
+    /* 学年選択 */
+    #grade-selector {
+      margin-bottom: 20px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 2px solid #81c784;
+    }
+
+    #kanji-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      min-width: 300px;
+    }
+    #yomi-display { font-size: 40px; font-weight: bold; color: #333; margin-bottom: 10px; }
+    #example-sentence { font-size: 18px; color: #666; margin-bottom: 20px; }
+    
+    /* 正解表示エリア */
+    #answer-display {
+      font-size: 80px;
+      color: #e91e63;
+      display: none;
+      margin: 20px 0;
+      font-family: "Hiragino Mincho ProN", "MS Mincho", serif;
+    }
+
+    .btn-group { margin-top: 20px; }
+    .btn {
+      padding: 12px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      border: none;
+      margin: 5px;
+    }
+    #check-btn { background-color: #ff9800; color: white; }
+    #correct-btn { background-color: #4caf50; color: white; display: none; }
+    #next-btn { background-color: #2196f3; color: white; display: none; }
+
+    #pokemon-area { margin-top: 20px; display: none; }
+    #pokemon-img { width: 120px; height: 120px; }
+    #pokemon-msg { font-weight: bold; color: #ef5350; }
+    
+    #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 1.0.0 | Updated: 2026-05-12</div>
+  <h1>📝 漢字マスター</h1>
+
+  <select id="grade-selector" onchange="resetQuiz()">
+    <option value="1">小学1年生</option>
+    <option value="2">小学2年生</option>
+    <option value="3">小学3年生</option>
+    <option value="4">小学4年生</option>
+    <option value="5">小学5年生</option>
+    <option value="6">小学6年生</option>
+    <option value="7">中学生（全学年）</option>
+  </select>
+
+  <div id="status">ノートにかいてみよう！</div>
+
+  <div id="kanji-card">
+    <div id="yomi-display">よみこみ中</div>
+    <div id="example-sentence"></div>
+    <div id="answer-display"></div>
+    
+    <div id="pokemon-area">
+      <img id="pokemon-img" src="" alt="pokemon">
+      <div id="pokemon-msg"></div>
+    </div>
+
+    <div class="btn-group">
+      <button id="check-btn" class="btn" onclick="showAnswer()">答えをみる</button>
+      <button id="correct-btn" class="btn" onclick="catchPokemon()">かけた！（ポケモンゲット）</button>
+      <button id="next-btn" class="btn" onclick="newQuestion()">つぎのもんだい</button>
+    </div>
+  </div>
+
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    // 学習指導要領に基づいた漢字データの一部（各学年の主要漢字）
+    const kanjiData = {
+      1: [
+        { kanji: "一", yomi: "いち", sentence: "りんごが 【いち】ごあります。" },
+        { kanji: "山", yomi: "やま", sentence: "高い 【やま】に のぼる。" },
+        { kanji: "木", yomi: "き", sentence: "庭（にわ）に 【き】を うえる。" },
+        { kanji: "水", yomi: "みず", sentence: "コップの 【みず】を のむ。" }
+      ],
+      2: [
+        { kanji: "強", yomi: "つよ（い）", sentence: "風が 【つよ】い 日。" },
+        { kanji: "読", yomi: "よ（む）", sentence: "本を 【よ】むのが すきです。" },
+        { kanji: "道", yomi: "みち", sentence: "ひろい 【みち】を あるく。" }
+      ],
+      3: [
+        { kanji: "悪", yomi: "あく", sentence: "【あく】を つよめる。" },
+        { kanji: "運", yomi: "うん", sentence: "荷物（にもつ）を 【うん】ぱんする。" },
+        { kanji: "練習", yomi: "れんしゅう", sentence: "ピアノの 【れんしゅう】をする。" }
+      ],
+      4: [
+        { kanji: "愛", yomi: "あい", sentence: "【あい】じょうを 注（そそ）ぐ。" },
+        { kanji: "希望", yomi: "きぼう", sentence: "【きぼう】を 胸（むね）にいだく。" }
+      ],
+      5: [
+        { kanji: "効率", yomi: "こうりつ", sentence: "【こうりつ】よく 作業（さぎょう）する。" },
+        { kanji: "複雑", yomi: "ふくざつ", sentence: "【ふくざつ】な 計算（けいさん）をとく。" }
+      ],
+      6: [
+        { kanji: "憲法", yomi: "けんぽう", sentence: "日本の 【けんぽう】について 学ぶ。" },
+        { kanji: "推測", yomi: "すいそく", sentence: "犯人を 【すいそく】する。" }
+      ],
+      7: [ // 中学生
+        { kanji: "摩擦", yomi: "まさつ", sentence: "タイヤの 【まさつ】を 考（かんが）える。" },
+        { kanji: "環境", yomi: "かんきょう", sentence: "【かんきょう】問題（もんだい）を 考える。" }
+      ]
+    };
+
+    let currentQ;
+
+    function resetQuiz() {
+      newQuestion();
+    }
+
+    function newQuestion() {
+      const grade = document.getElementById("grade-selector").value;
+      const list = kanjiData[grade];
+      currentQ = list[Math.floor(Math.random() * list.length)];
+
+      document.getElementById("yomi-display").textContent = currentQ.yomi;
+      document.getElementById("example-sentence").textContent = currentQ.sentence;
+      document.getElementById("answer-display").style.display = "none";
+      document.getElementById("answer-display").textContent = currentQ.kanji;
+      
+      document.getElementById("check-btn").style.display = "inline-block";
+      document.getElementById("correct-btn").style.display = "none";
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("pokemon-area").style.display = "none";
+    }
+
+    function showAnswer() {
+      document.getElementById("answer-display").style.display = "block";
+      document.getElementById("check-btn").style.display = "none";
+      document.getElementById("correct-btn").style.display = "inline-block";
+      document.getElementById("next-btn").style.display = "inline-block";
+    }
+
+    async function catchPokemon() {
+      const pokeId = Math.floor(Math.random() * 151) + 1;
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokeId}/`);
+      const data = await res.json();
+      const jpName = data.names.find(n => n.language.name === "ja").name;
+
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+      document.getElementById("pokemon-msg").textContent = `${jpName} を つかまえた！`;
+      document.getElementById("pokemon-area").style.display = "block";
+      document.getElementById("correct-btn").style.display = "none";
+    }
+
+    window.onload = newQuestion;
+  </script>
+</body>
+</html>
