@@ -117,7 +117,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.7.0 | Updated: 2026-05-12</div>
+  <div id="version-info">Ver 2.0.0 | Updated: 2026-05-12</div>
 
   <h1>ポケモンおべんきょう</h1>
 
@@ -185,6 +185,118 @@
     window.onload = function () {
       createBackgroundPokemon();
     };
+  </script>
+
+  <!-- 隠しゲーム用の画面（初期は非表示） -->
+  <div id="game-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; touch-action:none;">
+      <canvas id="gameCanvas"></canvas>
+      <div id="game-ui" style="position:absolute; top:10px; left:10px; color:white; font-family:sans-serif;">
+          Score: <span id="score">0</span>
+      </div>
+      <button onclick="closeGame()" style="position:absolute; top:10px; right:10px; padding:10px; background:#ff5e5e; color:white; border:none; border-radius:5px;">とじる</button>
+  </div>
+  
+  <script>
+  // --- 隠しコマンドの設定 ---
+  let titleClickCount = 0;
+  document.querySelector('h1').addEventListener('click', () => {
+      titleClickCount++;
+      if (titleClickCount >= 5) {
+          openGame();
+          titleClickCount = 0;
+      }
+      setTimeout(() => { titleClickCount = 0; }, 3000); // 3秒以内に5回押さないとリセット
+  });
+  
+  // --- ゲーム本体 ---
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let animationId;
+  let score = 0;
+  let gameActive = false;
+  
+  // ゲームオブジェクト
+  const player = { x: 50, y: 0, size: 40, emoji: "🔵" }; // ドラえもん風
+  const items = []; // どら焼き 🍵
+  const enemies = []; // ネズミ 🐭
+  
+  function openGame() {
+      document.getElementById('game-overlay').style.display = 'block';
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      player.y = canvas.height / 2;
+      score = 0;
+      items.length = 0;
+      enemies.length = 0;
+      gameActive = true;
+      loop();
+  }
+  
+  function closeGame() {
+      gameActive = false;
+      cancelAnimationFrame(animationId);
+      document.getElementById('game-overlay').style.display = 'none';
+  }
+  
+  // 操作（タッチ・マウス）
+  window.addEventListener('mousemove', e => { if(gameActive) player.y = e.clientY; });
+  window.addEventListener('touchmove', e => {
+      if(gameActive) {
+          player.y = e.touches[0].clientY;
+          e.preventDefault();
+      }
+  }, {passive: false});
+  
+  function loop() {
+      if (!gameActive) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+      // プレイヤー（ドラえもん風）の描画
+      ctx.font = "40px serif";
+      ctx.fillText(player.emoji, player.x, player.y);
+  
+      // アイテム（どら焼き）の生成
+      if (Math.random() < 0.05) {
+          items.push({ x: canvas.width, y: Math.random() * canvas.height, size: 30, emoji: "🥞" });
+      }
+  
+      // 敵（ネズミ）の生成
+      if (Math.random() < 0.03) {
+          enemies.push({ x: canvas.width, y: Math.random() * canvas.height, size: 30, emoji: "🐭", speed: 5 + Math.random() * 5 });
+      }
+  
+      // どら焼きの移動と判定
+      for (let i = items.length - 1; i >= 0; i--) {
+          items[i].x -= 5;
+          ctx.fillText(items[i].emoji, items[i].x, items[i].y);
+          
+          // 当たり判定
+          if (Math.hypot(player.x - items[i].x, player.y - items[i].y) < 40) {
+              score += 10;
+              document.getElementById('score').textContent = score;
+              items.splice(i, 1);
+          } else if (items[i].x < -50) {
+              items.splice(i, 1);
+          }
+      }
+  
+      // 敵の移動と判定
+      for (let i = enemies.length - 1; i >= 0; i--) {
+          enemies[i].x -= enemies[i].speed;
+          ctx.fillText(enemies[i].emoji, enemies[i].x, enemies[i].y);
+          
+          // 衝突判定
+          if (Math.hypot(player.x - enemies[i].x, player.y - enemies[i].y) < 30) {
+              alert("ネズミだー！にげろー！\nスコア: " + score);
+              closeGame();
+              return;
+          } else if (enemies[i].x < -50) {
+              enemies.splice(i, 1);
+          }
+      }
+  
+      animationId = requestAnimationFrame(loop);
+  }
   </script>
 </body>
 </html>
