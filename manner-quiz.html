@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ポケモン・マナーマスター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #e1f5fe;
+      text-align: center;
+      padding: 10px;
+      transition: 0.3s;
+    }
+    /* ルビの調整 */
+    ruby { ruby-align: center; }
+    rt { font-size: 0.5em; color: #0277bd; font-weight: normal; }
+
+    h1 { color: #0288d1; margin-bottom: 5px; font-size: 24px; }
+    #status { font-size: 16px; color: #455a64; margin-bottom: 10px; font-weight: bold; }
+
+    #quiz-card {
+      background: white;
+      border-radius: 20px;
+      padding: 15px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      width: 95%;
+      max-width: 400px;
+    }
+    
+    #pokemon-img { width: 140px; height: 140px; background: #f1f8ff; border-radius: 50%; border: 4px solid #81d4fa; margin-bottom: 10px; }
+    #question-text { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; line-height: 1.8; padding: 0 5px; }
+
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      margin: 10px auto;
+    }
+    .choice-btn {
+      padding: 15px 5px;
+      font-size: 15px;
+      font-weight: bold;
+      background-color: white;
+      border: 3px solid #81d4fa;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px #4fc3f7;
+    }
+    .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #4fc3f7; }
+    .choice-btn:disabled { opacity: 0.7; cursor: default; }
+
+    #result { font-size: 20px; margin-top: 10px; font-weight: bold; min-height: 30px; }
+    #next-button {
+      margin-top: 15px; padding: 12px 40px; font-size: 18px;
+      background-color: #03a9f4; color: white; border: none;
+      border-radius: 30px; cursor: pointer; display: none; font-weight: bold;
+    }
+    #version-info { position: fixed; bottom: 5px; right: 5px; font-size: 9px; color: #9e9e9e; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 1.1.0</div>
+  <h1>🤝 <ruby>名法<rt>マナー</rt></ruby>マスター</h1>
+  <div id="status">よみこみちゅう...</div>
+
+  <div id="quiz-card">
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div id="question-text">もんだい</div>
+  </div>
+  
+  <div class="choices-container" id="choices"></div>
+  <div id="result"></div>
+  
+  <button id="next-button" onclick="generateQuiz()"><ruby>次<rt>つぎ</rt></ruby>のもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    const mannerQuestions = [
+      { q: "お<ruby>友<rt>とも</rt></ruby>だちの<ruby>家<rt>いえ</rt></ruby>であそんで、<ruby>帰<rt>かえ</rt></ruby>る<ruby>時<rt>とき</rt></ruby>、なんて<ruby>言<rt>い</rt></ruby>う？", a: ["おじゃましました", "バイバイ", "またね", "おやすみ"] },
+      { q: "ごはんを<ruby>食<rt>た</rt></ruby>べる<ruby>時<rt>とき</rt></ruby>、お<ruby>茶<rt>ちゃ</rt></ruby>わんはどうする？", a: ["<ruby>手<rt>て</rt></ruby>でもつ", "テーブルにおく", "もたない", "なげる"] },
+      { q: "お<ruby>店<rt>みせ</rt></ruby>の<ruby>人<rt>ひと</rt></ruby>に何かしてもらった<ruby>時<rt>とき</rt></ruby>、なんて<ruby>言<rt>い</rt></ruby>う？", a: ["ありがとう", "いいよ", "おい！", "べつに"] },
+      { q: "<ruby>口<rt>くち</rt></ruby>の中に食べものが入っている<ruby>時<rt>とき</rt></ruby>、おしゃべりしてもいい？", a: ["だめだよ", "いいよ", "ちょっとだけ", "大きいこえならいい"] },
+      { q: "<ruby>廊下<rt>ろうか</rt></ruby>や<ruby>階段<rt>かいだん</rt></ruby>は、どうやってすすむ？", a: ["しずかに<ruby>歩<rt>ある</rt></ruby>く", "<ruby>走<rt>はし</rt></ruby>る", "ジャンプする", "ねころがる"] },
+      { q: "<ruby>夜<rt>よる</rt></ruby>、ねる<ruby>前<rt>まえ</rt></ruby>に、おうちに<ruby>人<rt>ひと</rt></ruby>になんて<ruby>言<rt>い</rt></ruby>う？", a: ["おやすみなさい", "おはよう", "さようなら", "いただきます"] },
+      { q: "お<ruby>外<rt>そと</rt></ruby>から<ruby>帰<rt>かえ</rt></ruby>ったら、まずはじめに何をすべき？", a: ["てあらい・うがい", "テレビをみる", "おかしをたべる", "ねる"] },
+      { q: "ブランコをしたいけど、お<ruby>友<rt>とも</rt></ruby>だちがつかっているよ。どうする？", a: ["「かして」という", "<ruby>横<rt>よこ</rt></ruby>からおす", "むりやりとる", "<ruby>怒<rt>おこ</rt></ruby>る"] },
+      { q: "おもちゃを<ruby>使<rt>つか</rt></ruby>ってあそんだあと、どうする？", a: ["おかたづけする", "そのままにする", "こわす", "<ruby>隠<rt>かく</rt></ruby>す"] },
+      { q: "<ruby>朝<rt>あさ</rt></ruby>、おきたら、なんてあいさつする？", a: ["おはようございます", "こんばんわ", "さようなら", "おやすみ"] },
+      { q: "トイレにだれか入っているか、たしかめる<ruby>時<rt>とき</rt></ruby>はどうする？", a: ["コンコン（ノック）", "ドアをける", "さけぶ", "あける"] },
+      { q: "お<ruby>靴<rt>くつ</rt></ruby>をぬぐ<ruby>時<rt>とき</rt></ruby>は、どうする？", a: ["きれいにそろえる", "とばす", "そのままにする", "なげる"] },
+      { q: "お<ruby>話<rt>はなし</rt></ruby>している<ruby>人<rt>ひと</rt></ruby>がいたら、どうする？", a: ["しずかにきく", "<ruby>横<rt>よこ</rt></ruby>からしゃべる", "どっかへいく", "ねる"] },
+      { q: "エレベーターのなかでは、どうすればいい？", a: ["しずかにまつ", "ジャンプする", "ボタンをぜんぶおす", "おどる"] },
+      { q: "お<ruby>友<rt>とも</rt></ruby>だちの足をふんじゃった！なんて<ruby>言<rt>い</rt></ruby>う？", a: ["ごめんなさい", "えへへ", "ぼくじゃない", "痛（いた）い？"] },
+      { q: "<ruby>鼻<rt>はな</rt></ruby>みずがでたら、どうする？", a: ["ティッシュでふく", "おそででふく", "そのままにする", "おててでふく"] },
+      { q: "あついスープをのむ<ruby>時<rt>とき</rt></ruby>、どうする？", a: ["ふーふーする", "いっきにのむ", "てをいれる", "こぼす"] },
+      { q: "すべりだいで遊（あそ）ぶ<ruby>時<rt>とき</rt></ruby>のルールは？", a: ["じゅんばんをまつ", "<ruby>逆<rt>ぎゃく</rt></ruby>からのぼる", "まえのひとをおす", "ねる"] },
+      { q: "<ruby>公園<rt>こうえん</rt></ruby>にゴミがあったら、どうする？", a: ["ゴミばこにすてる", "もっとちらかす", "みないふり", "たべる"] },
+      { q: "お<ruby>返事<rt>へんじ</rt></ruby>をするときは、なんて<ruby>言<rt>い</rt></ruby>う？", a: ["はい！", "やだ", "なに？", "（だまっている）"] }
+    ];
+
+    let correctStreak = 0;
+    let currentAnswer = "";
+
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(type) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (type === 'correct') {
+          this._note(880, now, 0.1); this._note(1100, now + 0.1, 0.2);
+        } else if (type === 'special') {
+          [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
+        } else {
+          this._note(200, now, 0.3);
+        }
+      }
+    };
+
+    function generateQuiz() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("next-button").style.display = "none";
+      document.body.style.backgroundColor = "#e1f5fe";
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+
+      // ランダムに選ぶ
+      const qData = mannerQuestions[Math.floor(Math.random() * mannerQuestions.length)];
+      document.getElementById("question-text").innerHTML = qData.q;
+      currentAnswer = qData.a[0];
+
+      // かわいいポケモン
+      const cutePokemon = [1, 4, 7, 25, 35, 39, 133, 151, 175]; 
+      const pokeId = cutePokemon[Math.floor(Math.random() * cutePokemon.length)];
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+
+      // 選択肢（シャッフル）
+      let options = [...qData.a].sort(() => Math.random() - 0.5);
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+      const resArea = document.getElementById("result");
+
+      if (selected === currentAnswer) {
+        correctStreak++;
+        if (correctStreak % 5 === 0) Buzzer.play('special');
+        else Buzzer.play('correct');
+        resArea.textContent = "✨ せいかい！";
+        document.body.style.backgroundColor = "#e8f5e9";
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        resArea.textContent = `❌ こたえは「${currentAnswer}」だよ`;
+        document.body.style.backgroundColor = "#ffebee";
+      }
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+      document.getElementById("next-button").style.display = "inline-block";
+    }
+
+    window.onload = generateQuiz;
+  </script>
+</body>
+</html>
