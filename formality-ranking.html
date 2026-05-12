@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Formality Ranking</title>
+  <style>
+    body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif; background-color: #f4f7f6; text-align: center; margin: 0; padding: 20px; color: #333; }
+    #main-card { max-width: 650px; margin: 20px auto; background: #ffffff; padding: 30px; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.08); border-top: 8px solid #2c3e50; position: relative; }
+    h1 { font-size: 28px; color: #2c3e50; margin-bottom: 5px; }
+    .sub-title { font-size: 14px; color: #7f8c8d; margin-bottom: 25px; }
+    #status-row { display: flex; justify-content: space-around; background: #f8f9fa; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; }
+    #scene-box { background: #eef2f3; border-left: 5px solid #3498db; padding: 20px; margin: 15px 0; border-radius: 8px; text-align: left; line-height: 1.8; }
+    #question-area { font-size: 19px; margin: 20px 0; font-weight: bold; color: #e67e22; }
+    .choice-btn { width: 100%; padding: 16px; margin: 10px 0; border-radius: 14px; border: 2px solid #dfe6e9; background: #fff; cursor: pointer; font-size: 17px; font-weight: 600; transition: all 0.2s; text-align: left; display: block; position: relative; }
+    .choice-btn:hover { border-color: #3498db; background-color: #f0f7ff; transform: translateY(-2px); }
+    .choice-tag { font-size: 12px; color: #95a5a6; display: block; margin-top: 4px; }
+    #explanation-box { display: none; background: #fff3e0; border: 2px solid #ffcc80; padding: 20px; border-radius: 15px; margin-top: 20px; text-align: left; }
+    #poke-display { width: 110px; height: 110px; margin: 15px auto; display: none; background: #fff; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .nav-btn { padding: 12px 35px; font-size: 16px; border-radius: 30px; cursor: pointer; border: none; margin: 10px 5px; transition: 0.3s; }
+    #next-btn { background: #2ecc71; color: white; display: none; }
+    #save-btn { background: #95a5a6; color: white; }
+    #ranking-section { max-width: 650px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    #ver-info { position: fixed; bottom: 10px; right: 15px; font-size: 11px; color: #bdc3c7; font-family: monospace; }
+    ruby rt { font-size: 0.5em; color: #7f8c8d; }
+    .lv-mark { background: #2c3e50; color: white; padding: 3px 10px; border-radius: 6px; font-size: 13px; vertical-align: middle; margin-right: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="main-card">
+    <h1>Formality Ranking</h1>
+    <div class="sub-title">〜<ruby>大人<rt>おとな</rt></ruby>の<ruby>英会話<rt>えいかいわ</rt></ruby>マスター〜</div>
+
+    <div id="status-row">
+      <span>Lv: <span id="lv-val">1</span></span>
+      <span>Combo: <span id="combo-val">0</span></span>
+      <span>Best: <span id="best-val">0</span></span>
+    </div>
+
+    <div id="scene-box"></div>
+    <div id="question-area">もっとも<ruby>適切<rt>てきせつ</rt></ruby>なフレーズはどれ？</div>
+    <div id="choices-container"></div>
+
+    <div id="explanation-box"></div>
+    <img id="poke-display" src="" alt="pokemon">
+
+    <div style="margin-top: 20px;">
+      <button id="next-btn" class="nav-btn" onclick="generateQ()">つぎの<ruby>問題<rt>もんだい</rt></ruby>へ</button>
+      <button id="save-btn" class="nav-btn" onclick="saveGame()"><ruby>中断<rt>ちゅうだん</rt></ruby>セーブ</button>
+    </div>
+  </div>
+
+  <div id="ranking-section">
+    <h3 style="margin-top:0">🏆 <ruby>連続正解<rt>れんぞくせいかい</rt></ruby>ランキング</h3>
+    <div id="ranking-display">まだ<ruby>記録<rt>きろく</rt></ruby>がありません</div>
+  </div>
+
+  <div id="ver-info">Version 1.0.0</div>
+
+  <script>
+    const SFX = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      play(isCorrect) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.connect(g); g.connect(this.ctx.destination);
+        if (isCorrect) {
+          osc.frequency.setValueAtTime(660, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+          g.gain.setValueAtTime(0.1, now);
+          osc.start(); osc.stop(now + 0.2);
+        } else {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(150, now);
+          g.gain.setValueAtTime(0.1, now);
+          osc.start(); osc.stop(now + 0.3);
+        }
+      }
+    };
+
+    const database = [
+      { lv: 1, scene: "【ホテル】<ruby>荷物<rt>にもつ</rt></ruby>を<ruby>預<rt>あず</rt></ruby>かってほしいとき。", target: "受付の人", options: [
+        { t: "Could you keep my luggage, please?", r: "丁寧・標準", ok: true },
+        { t: "Hold my bags.", r: "命令っぽい", ok: false },
+        { t: "Keep this.", r: "ぶっきらぼう", ok: false }
+      ], hint: "「Could you...」は<ruby>旅先<rt>たびさき</rt></ruby>で最も<ruby>便利<rt>べんり</rt></ruby>な<ruby>丁寧<rt>ていねい</rt></ruby>フレーズです。" },
+      { lv: 2, scene: "【カフェ】おすすめを<ruby>聞<rt>き</rt></ruby>きたいとき。", target: "店員さん", options: [
+        { t: "What do you recommend?", r: "自然な聞き方", ok: true },
+        { t: "What is good?", r: "少し子供っぽい", ok: false },
+        { t: "Tell me the best one.", r: "強気な感じ", ok: false }
+      ], hint: "「Recommend（おすすめ）」を<ruby>使<rt>つか</rt></ruby>えると、スマートな<ruby>大人<rt>おとな</rt></ruby>の<ruby>会話<rt>かいわ</rt></ruby>になります。" },
+      { lv: 3, scene: "【ビジネス】メールの<ruby>返信<rt>へんしん</rt></ruby>がほしいとき。", target: "仕事の相手", options: [
+        { t: "I look forward to hearing from you soon.", r: "ビジネス定番", ok: true },
+        { t: "Please reply me.", r: "少しカジュアル", ok: false },
+        { t: "Write back quickly.", r: "催促が強い", ok: false }
+      ], hint: "「Look forward to...」は「楽しみに待つ」＝「お返事お待ちしております」の<ruby>定番<rt>ていばん</rt></ruby>です。" },
+      { lv: 4, scene: "【機内】ペンを<ruby>借<rt>か</rt></ruby>りたいとき。", target: "隣の人", options: [
+        { t: "Do you happen to have a pen I could borrow?", r: "非常に謙虚", ok: true },
+        { t: "Can I use your pen?", r: "かなり近い", ok: false },
+        { t: "Give me your pen.", r: "失礼", ok: false }
+      ], hint: "「Do you happen to...?」は「ひょっとして〜持ってますか？」という、<ruby>角<rt>かど</rt></ruby>が立たない聞き方です。" },
+      { lv: 5, scene: "【オフィス】<ruby>予定<rt>よてい</rt></ruby>を<ruby>変更<rt>へんこう</rt></ruby>してほしいとき。", target: "取引先", options: [
+        { t: "Would it be possible to reschedule our meeting?", r: "超フォーマル", ok: true },
+        { t: "Can we change the time?", r: "カジュアル", ok: false },
+        { t: "I want to change the meeting.", r: "自分勝手な印象", ok: false }
+      ], hint: "「Would it be possible to...?」は、<ruby>無理<rt>むり</rt></ruby>を<ruby>承知<rt>しょうち</rt></ruby>でお願いする最高クラスの<ruby>敬語<rt>けいご</rt></ruby>です。" }
+    ];
+
+    let state = { combo: 0, best: 0, step: 0 };
+    let ranks = JSON.parse(localStorage.getItem('formality_ranks') || '[]');
+
+    function init() {
+      const saved = localStorage.getItem('formality_save');
+      if (saved) state = JSON.parse(saved);
+      refreshRanking();
+      generateQ();
+    }
+
+    function generateQ() {
+      document.getElementById("explanation-box").style.display = "none";
+      document.getElementById("poke-display").style.display = "none";
+      document.getElementById("next-btn").style.display = "none";
+      document.getElementById("choices-container").innerHTML = "";
+
+      let q = (state.step < 5) ? database[state.step] : database[Math.floor(Math.random() * database.length)];
+      
+      document.getElementById("lv-val").innerText = q.lv;
+      document.getElementById("combo-val").innerText = state.combo;
+      document.getElementById("best-val").innerText = state.best;
+      document.getElementById("scene-box").innerHTML = `<span class="lv-mark">Lv.${q.lv}</span><br>${q.scene}<br><strong><ruby>相手<rt>あいて</rt></ruby>：${q.target}</strong>`;
+
+      q.options.sort(() => Math.random() - 0.5).forEach(o => {
+        const b = document.createElement("button");
+        b.className = "choice-btn";
+        b.innerHTML = `${o.t} <span class="choice-tag">― ${o.r}</span>`;
+        b.onclick = () => judge(o.ok, q.hint);
+        document.getElementById("choices-container").appendChild(b);
+      });
+    }
+
+    function judge(isOk, hint) {
+      document.getElementById("choices-container").innerHTML = "";
+      const box = document.getElementById("explanation-box");
+      box.style.display = "block";
+      SFX.play(isOk);
+
+      if (isOk) {
+        state.combo++;
+        state.step++;
+        if (state.combo > state.best) state.best = state.combo;
+        box.innerHTML = `<strong>✨ Correct!（<ruby>正解<rt>せいかい</rt></ruby>）</strong><br>${hint}`;
+        const pId = Math.floor(Math.random() * 151) + 1;
+        document.getElementById("poke-display").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pId}.png`;
+        document.getElementById("poke-display").style.display = "block";
+      } else {
+        updateRanking(state.combo);
+        state.combo = 0;
+        box.innerHTML = `<strong>❌ Oops!（<ruby>残念<rt>ざんねん</rt></ruby>）</strong><br><ruby>解説<rt>かいせつ</rt></ruby>：${hint}`;
+      }
+      document.getElementById("next-btn").style.display = "inline-block";
+      document.getElementById("combo-val").innerText = state.combo;
+      document.getElementById("best-val").innerText = state.best;
+    }
+
+    function updateRanking(s) {
+      if (s === 0) return;
+      const isTop = ranks.length < 3 || s > ranks[ranks.length-1].score;
+      if (isTop) {
+        const name = prompt(`🏆 TOP3入りしました！\n${s}回連続正解！\nお名前を入力してください:`, "Player");
+        if (name) {
+          ranks.push({ name, score: s });
+          ranks.sort((a, b) => b.score - a.score);
+          ranks = ranks.slice(0, 3);
+          localStorage.setItem('formality_ranks', JSON.stringify(ranks));
+          refreshRanking();
+        }
+      }
+    }
+
+    function refreshRanking() {
+      const d = document.getElementById("ranking-display");
+      if (ranks.length === 0) return;
+      d.innerHTML = ranks.map((r, i) => `<strong>${i+1}位:</strong> ${r.name} (${r.score}回)`).join("<br>");
+    }
+
+    function saveGame() {
+      localStorage.setItem('formality_save', JSON.stringify(state));
+      alert("進行状況をセーブしました。");
+    }
+
+    init();
+  </script>
+</body>
+</html>
