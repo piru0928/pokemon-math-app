@@ -576,7 +576,7 @@
       const ctn = document.getElementById("choices");
       ctn.innerHTML = "";
 
-      const currentLv = Math.min(5, Math.floor((st.stp - 1) / 20) + 1); // 20問ごとにLvアップ
+      const currentLv = Math.min(5, Math.floor((st.stp - 1) / 1) + 1); // 1問ごとにLvアップ
       const pool = quizData[`lv${currentLv}`] || quizData.lv1;
       let q = pool[Math.floor(Math.random() * pool.length)];
       
@@ -626,12 +626,12 @@
       const name = document.getElementById("player-name-input").value || "ななしさん";
       const now = new Date();
       const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
-      db.ref('rankings/formality').push({ name, score: currentScore, date: dateStr });
+      db.ref('formality').push({ name, score: currentScore, date: dateStr });
       closeModal();
     }
 
     function loadOnlineRank() {
-      db.ref('rankings/formality').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
+      db.ref('formality').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
         const list = document.getElementById("rank-list");
         const items = [];
         snapshot.forEach((child) => items.push(child.val()));
