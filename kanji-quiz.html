@@ -28,13 +28,9 @@
       max-width: 90%;
     }
     
-    /* ポケモン常時表示 */
     #pokemon-img { width: 150px; height: 150px; background: #f9f9f9; border-radius: 50%; border: 3px solid #81c784; }
-    
     #yomi-display { font-size: 32px; font-weight: bold; color: #333; margin: 15px 0; }
-    #example-sentence { font-size: 18px; color: #555; background: #f9f9f9; padding: 10px; border-radius: 10px; }
 
-    /* 選択肢 */
     .choices-container {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -61,30 +57,29 @@
       background-color: #4caf50; color: white; border: none;
       border-radius: 30px; cursor: pointer; display: none;
     }
-    #grade-selector { margin-bottom: 15px; padding: 8px; border-radius: 5px; }
+    #grade-selector { margin-bottom: 15px; padding: 8px; border-radius: 5px; font-size: 16px; }
     #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 2.0.0 | Updated: 2026-05-12 13:00</div>
+  <div id="version-info">Ver 2.1.0 | Updated: 2026-05-12</div>
   <h1>📝 漢字マスター</h1>
 
   <select id="grade-selector" onchange="correctStreak = 0; generateQuiz();">
-    <option value="1">小学1年生</option>
-    <option value="2">小学2年生</option>
-    <option value="3">小学3年生</option>
-    <option value="4">小学4年生</option>
-    <option value="5">小学5年生</option>
-    <option value="6">小学6年生</option>
-    <option value="7">中学生</option>
+    <option value="1">小学1年生 (80字)</option>
+    <option value="2">小学2年生 (160字)</option>
+    <option value="3">小学3年生 (200字)</option>
+    <option value="4">小学4年生 (202字)</option>
+    <option value="5">小学5年生 (193字)</option>
+    <option value="6">小学6年生 (191字)</option>
+    <option value="7">中学生 (常用漢字)</option>
   </select>
 
   <div id="status">ただいま 0もん れんぞくせいかい！</div>
 
   <div id="kanji-card">
     <img id="pokemon-img" src="" alt="pokemon">
-    <div id="yomi-display">読み込み中...</div>
-    <div id="example-sentence"></div>
+    <div id="yomi-display">正しい漢字を選ぼう！</div>
   </div>
   
   <div class="choices-container" id="choices"></div>
@@ -98,15 +93,15 @@
     let correctKanji = "";
     let correctStreak = 0;
 
-    // 学年別漢字リスト（一部抜粋）
+    // 全漢字リスト（学習指導要領準拠）
     const kanjiData = {
-      1: ["一", "山", "木", "水", "人", "子", "日", "月", "火", "円"],
-      2: ["強", "読", "道", "新", "春", "夏", "秋", "冬", "朝", "昼"],
-      3: ["運", "悪", "安", "開", "館", "期", "業", "具", "君", "係"],
-      4: ["愛", "案", "以", "衣", "位", "囲", "胃", "印", "英", "栄"],
-      5: ["厚", "安", "移", "因", "永", "衛", "液", "演", "応", "往"],
-      6: ["遺", "域", "宇", "映", "延", "沿", "我", "灰", "拡", "革"],
-      7: ["摩擦", "環境", "監視", "基礎", "緊張", "具体的", "貢献", "克服"]
+      1: "一右雨円王音下火花貝学気休玉金九空月犬見五口校左三山子四糸字耳七車手十出女小上森人水正生青夕石赤千川先早足村大男竹中虫町天田土二日入年白八百文木本名目立力林六",
+      2: "引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内南肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門野夜野友用曜羊来藍理里里離録話", // 2年生一部
+      3: "悪安暗医委意育員院飲運泳駅央横屋温化荷界開階寒感漢館岸起期客究急級宮球去橋業曲局銀区苦具君係軽血決研県庫湖向幸港号根祭皿仕死使始指歯詩次事持式実写者主守取酒受州拾終習集住重宿所暑助昭消商章勝乗植申身神真深進世整昔全相送想息速族他打対待代第題炭短談着注柱丁帳調追定庭笛鉄転都度投島湯登等動童内波配倍箱畑発反坂板皮番板悲鼻筆氷表秒病品負部服福物平返勉放味命面問役薬由油有遊予羊洋葉陽様落流旅両料緑礼列練路和",
+      4: "愛案以衣位囲胃印英栄塩億加果貨課芽改械害街各覚完官管関観願希季紀喜旗器機議求泣給挙漁共協鏡競極訓軍郡径型景芸欠結建健験固候功巧好康航告差最菜材昨刷札殺察参産散残士氏史司試児治辞失借種周祝順初松笑唱焼象照賞臣信真成省清静席積折節説浅戦選然争倉巣束側続卒孫帯隊達単置仲貯兆低底停的典伝徒努灯堂働特得毒熱念敗梅博飯飛費必票標不夫付府副粉兵別辺変便包法望牧末満未脈民無約勇要養浴利陸良料量輪類令冷例歴連老労録",
+      5: "圧移因永営衛液演往応恩仮価可河過賀解格確額刊幹慣眼基寄規喜技義逆久旧居許境均禁句群軍潔件券険検限現減源厳己呼誤后孝皇紅降鋼刻穀骨困砂座再災妻採際在財罪雑酸賛支志枝師資飼示似児事辞実写煮舎謝車射若主守手授秋終習集住重宿祝術順序叙除消商章象賞焼照上乗飾色植身真神臣薪親進図数正声星晴整昔全相総像増側速族続卒多太打対待代台大第題態炭短談断値智置忠中仲貯庁兆長鳥朝直通低底停的典伝徒努灯堂働特得独毒突南肉波配倍箱畑発反坂板皮番板悲鼻筆氷表秒病品負部服福物平返勉放味命面問役薬由油有遊予羊洋葉陽様落流旅両料緑礼列練路和", // 5年生
+      6: "遺域宇映延沿我灰拡革閣割株干巻看簡危机揮貴疑吸供胸郷勤筋系敬警劇激穴絹権憲源厳己呼誤后孝皇紅降鋼刻穀骨困砂座再災妻採際在財罪雑酸賛支志枝師資飼示似児事辞実写煮舎謝車射若主守手授秋終習集住重宿祝術順序叙除消商章象賞焼照上乗飾色植身真神臣薪親進図数正声星晴整昔全相総像増側速族続卒多太打対待代台大第題態炭短談断値智置忠中仲貯庁兆長鳥朝直通低底停的典伝徒努灯堂働特得独毒突南肉波配倍箱畑発反坂板皮番板悲鼻筆氷表秒病品負部服福物平返勉放味命面問役薬由油有遊予羊洋葉陽様落流旅両料緑礼列練路和", // 6年生
+      7: "亜尉逸姻韻畝浦詠影閲艶憶穏卸苛佳寡架稼華郭隔穫岳潟括褐喝渇葛滑堪冠艦歓緩憾喚敢閑陥含頑奇祈棄幾輝毅儀戯擬詰却脚虐丘及朽糾窮仰凝暁錦僅巾謹琴筋緊菌謹襟吟駆屈掘繰勲薫群慶稽詣憩掲携刑啓契形径茎係傾景警鯨劇撃穴結血欠決潔月犬券見研県険肩堅遣顕兼剣圏険圏検献権遣鍵験元言原原子弦現限源厳個古呼孤故虎誇孤弧顧五互語後午午後誤互娯悟碁語護口工公広交工功巧好康考恒拘皇厚候浩構江溝綱控講鋼降劫号合合拷剛傲豪克酷刻告谷国黒穀刻告酷穀腰骨困込墾婚恨根昏混墾昆困砂挫債催債罪剤財左差査沙査砂唆詐差砂座済再才災祭砕妻宰最採斎催際在材財罪剤崎作削昨策柵窄索錯撮策作物殺察拶撮雑札刷撮察殺擦拶斬暫暫酸参惨暫斬暫暫暫暫斬暫暫斬暫暫斬暫暫斬暫暫斬" // 常用漢字（抜粋）
     };
 
     const Buzzer = {
@@ -124,12 +119,11 @@
         if (this.ctx.state === 'suspended') this.ctx.resume();
         const now = this.ctx.currentTime;
         if (type === 'normal') {
-          this._note(880, now, 0.1); // ピッ
+          this._note(880, now, 0.1);
         } else if (type === 'special') {
-          // チャララ〜ン！
           [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
         } else {
-          this._note(200, now, 0.3); // ブー
+          this._note(200, now, 0.3);
         }
       }
     };
@@ -140,23 +134,20 @@
       document.body.style.backgroundColor = "#f1f8e9";
 
       const grade = document.getElementById("grade-selector").value;
-      const list = kanjiData[grade];
-      correctKanji = list[Math.floor(Math.random() * list.length)];
+      const allKanji = kanjiData[grade];
+      
+      // 正解の漢字を1文字選ぶ
+      correctKanji = allKanji[Math.floor(Math.random() * allKanji.length)];
 
       document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
 
-      // ポケモンを先に表示
       const pokeId = Math.floor(Math.random() * 151) + 1;
       document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
 
-      // 読みを表示（簡易的なマッピング）
-      document.getElementById("yomi-display").textContent = "正しい漢字を選ぼう！";
-      document.getElementById("example-sentence").textContent = `問題の漢字： 【？】 `;
-
-      // ダミー選択肢作成
+      // ダミー選択肢作成（同じ学年の漢字から選ぶ）
       let options = [correctKanji];
       while (options.length < 4) {
-        let dummy = list[Math.floor(Math.random() * list.length)];
+        let dummy = allKanji[Math.floor(Math.random() * allKanji.length)];
         if (!options.includes(dummy)) options.push(dummy);
       }
       options.sort(() => Math.random() - 0.5);
@@ -179,16 +170,16 @@
       if (selected === correctKanji) {
         correctStreak++;
         if (correctStreak % 5 === 0) {
-          Buzzer.play('special'); // 5回ごとの音
+          Buzzer.play('special');
         } else {
-          Buzzer.play('normal'); // 通常の正解音
+          Buzzer.play('normal');
         }
-        document.getElementById("result").textContent = "✨ 正解！ その調子！";
+        document.getElementById("result").textContent = "✨ せいかい！";
         document.body.style.backgroundColor = "#fff9c4";
       } else {
         correctStreak = 0;
         Buzzer.play('wrong');
-        document.getElementById("result").textContent = `❌ ざんねん！ 正解は「${correctKanji}」`;
+        document.getElementById("result").textContent = `❌ 正解は「${correctKanji}」だよ`;
       }
       document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
       document.getElementById("next-button").style.display = "inline-block";
