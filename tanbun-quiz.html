@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>たんぶんマスター Ver 3.0.0</title>
+  <title>たんぶんマスター Ver 3.1.0</title>
   <style>
     body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; padding: 10px; margin: 0; padding-bottom: 50px; }
     #passage-box {
@@ -34,11 +34,11 @@
   <div id="explanation"></div>
   <div id="result-area"><img id="pokemon-img" src="" alt="" style="display:none;"></div>
   
-  <button id="next-button" onclick="generateQuestion()">つぎの問題へ</button>
+  <button id="next-button" onclick="generateQuestion()">つぎの<ruby>問題<rt>もんだい</rt></ruby>へ</button>
   <br><br>
   <a href="index.html">← <ruby>戻<rt>もど</rt></ruby>る</a>
 
-  <div id="version-tag">Version 3.0.0 (Updated: 2026-05-12)</div>
+  <div id="version-tag">Version 3.1.0 (Logic & Grammar Fix)</div>
 
   <script>
     const Buzzer = {
@@ -72,16 +72,15 @@
         { text: "を きれいに <ruby>洗<rt>あら</rt></ruby>いました", q: "きれいに <ruby>洗<rt>あら</rt></ruby>った" },
         { text: "を <ruby>地面<rt>じめん</rt></ruby>に <ruby>隠<rt>かく</rt></ruby>しました", q: "きれいに <ruby>隠<rt>かく</rt></ruby>した" },
         { text: "を お<ruby>部屋<rt>へや</rt></ruby>に <ruby>飾<rt>かざ</rt></ruby>りました", q: "お<ruby>部屋<rt>へや</rt></ruby>に <ruby>飾<rt>かざ</rt></ruby>った" },
-        { text: "を ポッケに いれました", q: "ポッケに いれた" },
-        { text: "を ぎゅっと <ruby>抱<rt>だ</rt></ruby>きしめました", q: "ぎゅっと <ruby>抱<rt>だ</rt></ruby>きしめた" }
+        { text: "を ポッケに いれました", q: "ポッケに いれた" }
       ],
       reasons: [
-        { cause: "<ruby>見<rt>み</rt></ruby>つからないので", react: "<ruby>泣<rt>な</rt></ruby>きだしました", ans: "が <ruby>見<rt>み</rt></ruby>つからないから" },
-        { cause: "おなかが すいたので", react: "おやつを <ruby>食<rt>た</rt></ruby>べました", ans: "おなかが すいたから" },
-        { cause: "足が つかれたので", react: "おやすみなさいと <ruby>言<rt>い</rt></ruby>いました", ans: "足が つかれたから" },
-        { cause: "とても うれしかったので", react: "ぴょんぴょん <ruby>跳<rt>は</rt></ruby>ねました", ans: "うれしかったから" },
-        { cause: "お外が くらいので", react: "おうちに かえりました", ans: "外が くらいから" },
-        { cause: "のどが かわいたので", react: "お水を のみました", ans: "のどが かわいたから" }
+        { cause: "<ruby>見<rt>み</rt></ruby>つからないので", react: "<ruby>泣<rt>な</rt></ruby>きだしました", q_react: "<ruby>泣<rt>な</rt></ruby>きだした", ans: "が <ruby>見<rt>み</rt></ruby>つからないから" },
+        { cause: "おなかが すいたので", react: "おやつを <ruby>食<rt>た</rt></ruby>べました", q_react: "おやつを <ruby>食<rt>た</rt></ruby>べた", ans: "おなかが すいたから" },
+        { cause: "足が つかれたので", react: "おやすみなさいと <ruby>言<rt>い</rt></ruby>いました", q_react: "おやすみなさいと <ruby>言<rt>い</rt></ruby>った", ans: "足が つかれたから" },
+        { cause: "とても うれしかったので", react: "ぴょんぴょん <ruby>跳<rt>は</rt></ruby>ねました", q_react: "ぴょんぴょん <ruby>跳<rt>は</rt></ruby>ねた", ans: "うれしかったから" },
+        { cause: "お外が くらいので", react: "おうちに かえりました", q_react: "おうちに かえった", ans: "外が くらいから" },
+        { cause: "のどが かわいたので", react: "お水を のみました", q_react: "お水を のんだ", ans: "のどが かわいたから" }
       ]
     };
 
@@ -103,16 +102,23 @@
         case 0: // 行動順序
           const w2 = vocab.who.filter(x => x !== w)[0];
           const act = getR(vocab.actions);
-          passage = `${w}は ${l}で ${i}を <ruby>拾<rt>ひろ</rt></ruby>いました。そのあと、それ${act.text.includes('あげ') ? w2 + act.text : act.text}。`;
+          let actionText = act.text;
+          // 文法的修正：「それ」のあとに助詞が重ならないように
+          let sentenceEnd = actionText.startsWith("に") ? `それ${w2}${actionText}` : `それ${actionText}`;
+          passage = `${w}は ${l}で ${i}を <ruby>拾<rt>ひろ</rt></ruby>いました。そのあと、${sentenceEnd}。`;
           question = `${w}は ${i}を <ruby>拾<rt>ひろ</rt></ruby>ったあと、どうしましたか？`;
-          currentAns = act.text.includes('あげ') ? `${w2}に あげた` : act.q;
+          currentAns = actionText.startsWith("に") ? `${w2}に あげた` : act.q;
           options = [currentAns, "ポイっと すてた", "むしゃむしゃ <ruby>食<rt>た</rt></ruby>べた"];
           explanation = `「そのあと」の <ruby>後<rt>あと</rt></ruby>に <ruby>書<rt>か</rt></ruby>いてあることを <ruby>探<rt>さが</rt></ruby>しましょう。`;
           break;
         case 1: // 理由
-          const res = getR(vocab.reasons);
-          passage = res.ans.includes('見つからない') ? `${w}は ${i}を なくしてしまいました。${res.cause}、${res.react}。` : `${w}は ${l}で たくさん <ruby>遊<rt>あそ</rt></ruby>びました。${res.cause}、${res.react}。`;
-          question = `${w}が ${res.react.replace(/ました$/, '')}のは なぜですか？`;
+          let res = getR(vocab.reasons);
+          // 論理的修正：お城にいるときは「おうちに帰る」を「お部屋に戻る」に置換
+          let reactText = (l === "お<ruby>城<rt>しろ</rt></ruby>" && res.q_react === "おうちに かえった") ? "お<ruby>部屋<rt>へや</rt></ruby>に もどりました" : res.react;
+          let qReactText = (l === "お<ruby>城<rt>しろ</rt></ruby>" && res.q_react === "おうちに かえった") ? "お<ruby>部屋<rt>へや</rt></ruby>に もどった" : res.q_react;
+          
+          passage = res.ans.includes('見つからない') ? `${w}は ${i}を なくしてしまいました。${res.cause}、${reactText}。` : `${w}は ${l}で たくさん <ruby>遊<rt>あそ</rt></ruby>びました。${res.cause}、${reactText}。`;
+          question = `${w}が ${qReactText}のは なぜですか？`;
           currentAns = res.ans.includes('見つからない') ? i + res.ans : res.ans;
           options = [currentAns, "おもちゃが ほしいから", "ねむたくなったから"];
           explanation = `「〜ので」の <ruby>前<rt>まえ</rt></ruby>にある <ruby>言葉<rt>ことば</rt></ruby>が、その <ruby>理由<rt>りゆう</rt></ruby> です。`;
