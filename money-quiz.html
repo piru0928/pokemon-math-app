@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ポケモン・おかねマスター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #fff9c4;
+      text-align: center;
+      padding: 20px;
+      transition: 0.3s;
+    }
+    h1 { color: #fbc02d; margin-bottom: 5px; text-shadow: 1px 1px 2px #f57f17; }
+    #status { font-size: 16px; color: #5d4037; margin-bottom: 15px; font-weight: bold; }
+
+    #quiz-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      min-width: 320px;
+      max-width: 90%;
+    }
+    
+    #pokemon-img { width: 150px; height: 150px; background: #fffde7; border-radius: 50%; border: 4px solid #fff176; margin-bottom: 10px; }
+    #question-text { font-size: 20px; font-weight: bold; color: #333; margin: 15px 0; line-height: 1.5; padding: 0 10px; }
+
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+    .choice-btn {
+      padding: 15px 10px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: white;
+      border: 3px solid #fff176;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px #fdd835;
+    }
+    .choice-btn:hover { background-color: #fffde7; }
+    .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #fdd835; }
+    .choice-btn:disabled { opacity: 0.7; cursor: default; }
+
+    #result { font-size: 22px; margin-top: 15px; font-weight: bold; min-height: 30px; }
+    #next-button {
+      margin-top: 15px; padding: 12px 40px; font-size: 18px;
+      background-color: #fbc02d; color: white; border: none;
+      border-radius: 30px; cursor: pointer; display: none; font-weight: bold;
+    }
+    #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #9e9e9e; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 1.0.0 | Updated: 2026-05-12</div>
+  <h1>💰 おかねマスター</h1>
+  <div id="status">よみこみちゅう...</div>
+
+  <div id="quiz-card">
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div id="question-text">もんだい</div>
+  </div>
+  
+  <div class="choices-container" id="choices"></div>
+  <div id="result"></div>
+  
+  <button id="next-button" onclick="generateQuiz()">つぎのもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    const moneyQuestions = [
+      { q: "100円の消しゴムに10円の消費税（ぜいきん）がつくと、ぜんぶでいくら？", a: ["110円", "100円", "90円", "101円"] },
+      { q: "500円もっていて、120円のジュースをかいました。おつりはいくら？", a: ["380円", "480円", "300円", "400円"] },
+      { q: "100円玉が5まい、10円玉が3まいあります。ぜんぶでいくら？", a: ["530円", "503円", "80円", "150円"] },
+      { q: "1000円で300円のノートを3さつ、買うことはできるかな？", a: ["できる", "できない", "ちょうど", "足りない"] },
+      { q: "お店で「半額（はんがく）」と書いてあったら、ねだんはどうなる？", a: ["半分（はんぶん）になる", "タダになる", "10円安くなる", "2倍になる"] },
+      { q: "銀行（ぎんこう）にお金をあずけると増えることがある「お礼のお金」を何という？", a: ["利息（りそく）", "おこづかい", "お年玉", "ぜいきん"] },
+      { q: "日本のお金「1万円札（さつ）」に描かれている人はだれ？", a: ["渋沢栄一", "福沢諭吉", "野口英世", "聖徳太子"] },
+      { q: "お店でもらう、何を買ったか記録（きろく）してある紙の名前は？", a: ["レシート", "切手", "ハガキ", "名刺"] },
+      { q: "アメリカなど、外国で使われているお金の単位は？", a: ["ドル", "円", "ウォン", "ルピー"] },
+      { q: "お金を大切にするために、使った金額をメモするノートは？", a: ["おこづかい帳", "連絡帳", "日記帳", "自由帳"] }
+    ];
+
+    let correctStreak = 0;
+    let currentAnswer = "";
+
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(type) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (type === 'correct') {
+          this._note(880, now, 0.1); this._note(1100, now + 0.1, 0.2);
+        } else if (type === 'special') {
+          [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
+        } else {
+          this._note(200, now, 0.3);
+        }
+      }
+    };
+
+    function generateQuiz() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("next-button").style.display = "none";
+      document.body.style.backgroundColor = "#fff9c4";
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+
+      const qData = moneyQuestions[Math.floor(Math.random() * moneyQuestions.length)];
+      document.getElementById("question-text").textContent = qData.q;
+      currentAnswer = qData.a[0];
+
+      // 可愛いポケモンを表示（ピカチュウ、イーブイ、プリンなど）
+      const cutePokemon = [1, 4, 7, 25, 35, 37, 39, 133, 151];
+      const pokeId = cutePokemon[Math.floor(Math.random() * cutePokemon.length)];
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+
+      // 選択肢のシャッフル
+      let options = [...qData.a].sort(() => Math.random() - 0.5);
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(opt);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+      const resArea = document.getElementById("result");
+
+      if (selected === currentAnswer) {
+        correctStreak++;
+        if (correctStreak % 5 === 0) Buzzer.play('special');
+        else Buzzer.play('correct');
+        resArea.textContent = "✨ 正解！ おかねマスターだね！";
+        document.body.style.backgroundColor = "#fffde7";
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        resArea.textContent = `❌ 残念！ 正解は「${currentAnswer}」だよ`;
+      }
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+      document.getElementById("next-button").style.display = "inline-block";
+    }
+
+    window.onload = generateQuiz;
+  </script>
+</body>
+</html>
