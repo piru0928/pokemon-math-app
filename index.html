@@ -54,11 +54,10 @@
       color: #333;
     }
 
-    /* アイコンを大きく修正 */
     .cat-icon {
       width: 60px;
       height: 60px;
-      margin-left: -10px; /* 少し左に出してバランス調整 */
+      margin-left: -10px;
       margin-top: -5px;
     }
 
@@ -74,10 +73,10 @@
     .menu-item {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center; /* 中央揃えに変更 */
       text-decoration: none;
       background: #fdfdfd;
-      padding: 10px 12px;
+      padding: 12px 10px;
       border-radius: 12px;
       border: 1px solid #eee;
       transition: all 0.2s;
@@ -88,13 +87,8 @@
       background: #f0f0f0;
     }
 
-    .status {
-      font-size: 16px;
-      margin-right: 8px;
-    }
-
-    .menu-item span:last-child {
-      font-size: 13px;
+    .menu-item span {
+      font-size: 14px;
       color: #444;
       font-weight: bold;
       white-space: nowrap;
@@ -123,7 +117,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.6.1</div>
+  <div id="version-info">Ver 1.7.0 | Updated: 2026-05-12</div>
 
   <h1>ポケモンおべんきょう</h1>
 
@@ -131,47 +125,47 @@
     <div class="category">
       <h2><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" class="cat-icon" alt=""> さんすう</h2>
       <ul>
-        <li><a href="addition.html" class="menu-item"><span class="status" id="status-addition">⭐</span><span>たしざん</span></a></li>
-        <li><a href="subtraction.html" class="menu-item"><span class="status" id="status-subtraction">⭐</span><span>ひきざん</span></a></li>
-        <li><a href="multiplication.html" class="menu-item"><span class="status" id="status-multiplication">⭐</span><span>かけざん</span></a></li>
-        <li><a href="division.html" class="menu-item"><span class="status" id="status-division">⭐</span><span>わりざん</span></a></li>
+        <li><a href="addition.html" class="menu-item"><span>たしざん</span></a></li>
+        <li><a href="subtraction.html" class="menu-item"><span>ひきざん</span></a></li>
+        <li><a href="multiplication.html" class="menu-item"><span>かけざん</span></a></li>
+        <li><a href="division.html" class="menu-item"><span>わりざん</span></a></li>
       </ul>
     </div>
 
     <div class="category">
       <h2><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" class="cat-icon" alt=""> こくご</h2>
       <ul>
-        <li><a href="tanbun-quiz.html" class="menu-item"><span class="status" id="status-tanbun-quiz">⭐</span><span>たんぶん</span></a></li>
-        <li><a href="kanji-quiz.html" class="menu-item"><span class="status" id="status-kanji-quiz">⭐</span><span>かんじ</span></a></li>
+        <li><a href="tanbun-quiz.html" class="menu-item"><span>たんぶん</span></a></li>
+        <li><a href="kanji-quiz.html" class="menu-item"><span>かんじ</span></a></li>
       </ul>
     </div>
 
     <div class="category">
       <h2><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" class="cat-icon" alt=""> えいご</h2>
       <ul>
-        <li><a href="pokemon-english.html" class="menu-item"><span class="status" id="status-pokemon-english">⭐</span><span>えいご</span></a></li>
-        <li><a href="pokemon-romaji.html" class="menu-item"><span class="status" id="status-pokemon-romaji">⭐</span><span>ローマ字</span></a></li>
+        <li><a href="pokemon-english.html" class="menu-item"><span>えいご</span></a></li>
+        <li><a href="pokemon-romaji.html" class="menu-item"><span>ローマ字</span></a></li>
       </ul>
     </div>
 
     <div class="category">
       <h2><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" class="cat-icon" alt=""> しゃかい</h2>
       <ul>
-        <li><a href="national-flag-quiz.html" class="menu-item"><span class="status" id="status-national-flag-quiz">⭐</span><span>こっき</span></a></li>
-        <li><a href="capital-quiz.html" class="menu-item"><span class="status" id="status-capital-quiz">⭐</span><span>しゅと</span></a></li>
+        <li><a href="national-flag-quiz.html" class="menu-item"><span>こっき</span></a></li>
+        <li><a href="capital-quiz.html" class="menu-item"><span>しゅと</span></a></li>
       </ul>
     </div>
 
     <div class="category">
       <h2><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/52.png" class="cat-icon" alt=""> スペシャル</h2>
       <ul>
-        <li><a href="money-quiz.html" class="menu-item"><span class="status" id="status-money-quiz">⭐</span><span>おかね</span></a></li>
-        <li><a href="manner-quiz.html" class="menu-item"><span class="status" id="status-manner-quiz.html">⭐</span><span>マナー</span></a></li>
+        <li><a href="money-quiz.html" class="menu-item"><span>おかね</span></a></li>
+        <li><a href="manner-quiz.html" class="menu-item"><span>マナー</span></a></li>
+        <li><a href="nature-quiz.html" class="menu-item"><span>しぜん</span></a></li>
       </ul>
     </div>
   </div>
 
-  <script src="script.js"></script>
   <script>
     const MAX_POKEMON_ID = 151;
     function createBackgroundPokemon() {
@@ -189,7 +183,6 @@
     }
     window.onload = function () {
       createBackgroundPokemon();
-      if (typeof updateStatusIcons === 'function') updateStatusIcons();
     };
   </script>
 </body>
