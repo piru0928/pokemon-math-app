@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ポケモン・しぜんマスター</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #e8f5e9;
+      text-align: center;
+      padding: 10px;
+      transition: 0.3s;
+    }
+    ruby { ruby-align: center; }
+    rt { font-size: 0.5em; color: #2e7d32; font-weight: normal; }
+
+    h1 { color: #2e7d32; margin-bottom: 5px; font-size: 24px; }
+    #status { font-size: 16px; color: #388e3c; margin-bottom: 10px; font-weight: bold; }
+
+    #quiz-card {
+      background: white;
+      border-radius: 20px;
+      padding: 15px;
+      display: inline-block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      width: 95%;
+      max-width: 400px;
+    }
+    
+    #pokemon-img { width: 140px; height: 140px; background: #f1f8e9; border-radius: 50%; border: 4px solid #a5d6a7; margin-bottom: 10px; }
+    #question-text { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; line-height: 1.8; padding: 0 5px; }
+
+    .choices-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      max-width: 500px;
+      margin: 10px auto;
+    }
+    .choice-btn {
+      padding: 15px 5px;
+      font-size: 15px;
+      font-weight: bold;
+      background-color: white;
+      border: 3px solid #a5d6a7;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px #81c784;
+    }
+    .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #81c784; }
+    .choice-btn:disabled { opacity: 0.7; cursor: default; }
+
+    #result { font-size: 20px; margin-top: 10px; font-weight: bold; min-height: 30px; }
+    #next-button {
+      margin-top: 15px; padding: 12px 40px; font-size: 18px;
+      background-color: #4caf50; color: white; border: none;
+      border-radius: 30px; cursor: pointer; display: none; font-weight: bold;
+    }
+    #version-info { position: fixed; bottom: 5px; right: 5px; font-size: 9px; color: #9e9e9e; }
+  </style>
+</head>
+<body>
+  <div id="version-info">Ver 1.0.0</div>
+  <h1>🌿 <ruby>自然<rt>しぜん</rt></ruby>マスター</h1>
+  <div id="status">よみこみちゅう...</div>
+
+  <div id="quiz-card">
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div id="question-text">もんだい</div>
+  </div>
+  
+  <div class="choices-container" id="choices"></div>
+  <div id="result"></div>
+  
+  <button id="next-button" onclick="generateQuiz()"><ruby>次<rt>つぎ</rt></ruby>のもんだいへ！</button>
+  <br><br>
+  <a href="index.html">← トップページへ</a>
+
+  <script>
+    const natureQuestions = [
+      // --- 1. どうぶつの ふしぎ（30問） ---
+      { q: "ゾウさんの ながい おはなは、なにを するために <ruby>使<rt>つか</rt></ruby>う？", a: ["ごはんを <ruby>食<rt>た</rt></ruby>べる", "ピアノを <ruby>弾<rt>ひ</rt></ruby>く", "ジャンプする", "<ruby>空<rt>そら</rt></ruby>を <ruby>飛<rt>と</rt></ruby>ぶ"] },
+      { q: "ペンギンさんは <ruby>鳥<rt>とり</rt></ruby>だけど、おそらを <ruby>飛<rt>と</rt></ruby>べるかな？", a: ["<ruby>飛<rt>と</rt></ruby>べない", "どこまでも <ruby>飛<rt>と</rt></ruby>べる", "ちょっとだけ <ruby>飛<rt>と</rt></ruby>べる", "ロケットみたいに <ruby>飛<rt>と</rt></ruby>ぶ"] },
+      { q: "カンガルーの おなかの ポケットには、だれが <ruby>入<rt>はい</rt></ruby>っている？", a: ["<ruby>赤<rt>あか</rt></ruby>ちゃん", "おかし", "ポケモン", "まくら"] },
+      { q: "キリンさんの くびが ながいのは、どうして？", a: ["<ruby>高<rt>たか</rt></ruby>い<ruby>所<rt>ところ</rt></ruby>の はっぱを <ruby>食<rt>た</rt></ruby>べるため", "おしゃれをするため", "<ruby>歌<rt>うた</rt></ruby>をうたうため", "ねるため"] },
+      { q: "ライオンさんは、なんと呼ば（よ）ばれているかな？", a: ["<ruby>百獣<rt>ひゃくじゅう</rt></ruby>の<ruby>王<rt>おう</rt></ruby>", "<ruby>森<rt>もり</rt></ruby>の<ruby>音楽家<rt>おんがくか</rt></ruby>", "お<ruby>空<rt>そら</rt></ruby>の<ruby>王様<rt>おうさま</rt></ruby>", "<ruby>海<rt>うみ</rt></ruby>の<ruby>王子<rt>おうじ</rt></ruby>"] },
+      { q: "シマウマの からだの もようは、どんな いろ？", a: ["<ruby>白<rt>しろ</rt></ruby>と<ruby>黒<rt>くろ</rt></ruby>", "<ruby>赤<rt>あか</rt></ruby>と<ruby>青<rt>あお</rt></ruby>", "<ruby>金<rt>きん</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>", "みどり<ruby>色<rt>いろ</rt></ruby>"] },
+      { q: "パンダさんは なにを <ruby>食<rt>た</rt></ruby>べるのが だいすきかな？", a: ["<ruby>竹<rt>たけ</rt></ruby>", "ハンバーグ", "ラーメン", "ケーキ"] },
+      { q: "ウサギさんの おみみが ながいのは、どうして？", a: ["<ruby>遠<rt>とお</rt></ruby>くの<ruby>音<rt>おと</rt></ruby>をきくため", "<ruby>空<rt>そら</rt></ruby>を <ruby>飛<rt>と</rt></ruby>ぶため", "お<ruby>話<rt>はな</rt></ruby>しするため", "おもいから"] },
+      { q: "おサルさんが <ruby>木<rt>き</rt></ruby>の<ruby>上<rt>うえ</rt></ruby>で <ruby>使<rt>つか</rt></ruby>う、ながいものは なに？", a: ["しっぽ", "ネクタイ", "つえ", "リボン"] },
+      { q: "リスさんが <ruby>冬<rt>ふゆ</rt></ruby>のまえに、お<ruby>口<rt>くち</rt></ruby>に いっぱい いれるものは？", a: ["<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>", "ガム", "おもちゃ", "お<ruby>水<rt>みず</rt></ruby>"] },
+      { q: "コアラさんが ずっと くっついている <ruby>木<rt>き</rt></ruby>のなまえは？", a: ["ユーカリ", "リンゴのき", "さくらのき", "バナナのき"] },
+      { q: "ラクダさんの せなかの「コブ」には、なにが <ruby>入<rt>はい</rt></ruby>っている？", a: ["<ruby>脂肪<rt>しぼう</rt></ruby>", "お<ruby>水<rt>みず</rt></ruby>", "おもちゃ", "たまご"] },
+      { q: "カメレオンさんは、からだの「いろ」を どうできる？", a: ["かえることができる", "きえることができる", "ひかることができる", "かたくなる"] },
+      { q: "ゴリラさんが むねを「ポコポコ」たたくのを、なんていう？", a: ["ドラミング", "ダンス", "たいこ", "パンチ"] },
+      { q: "ナマケモノさんは、1<ruby>日<rt>にち</rt></ruby>の ほとんどを どうしてすごす？", a: ["ねてすごす", "<ruby>走<rt>はし</rt></ruby>ってすごす", "およいですごす", "おどってすごす"] },
+      { q: "クジラさんは おさかな？ それとも <ruby>人間<rt>にんげん</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ なかま？", a: ["<ruby>哺乳類<rt>ほにゅうるい</rt></ruby>", "おさかな", "むし", "<ruby>植物<rt>しょくぶつ</rt></ruby>"] },
+      { q: "イルカさんは どうやって お<ruby>話<rt>はな</rt></ruby>しするのかな？", a: ["<ruby>音<rt>おと</rt></ruby>やこえ", "<ruby>手<rt>て</rt></ruby>をふる", "<ruby>文字<rt>もじ</rt></ruby>をかく", "にらみあう"] },
+      { q: "フラミンゴさんが ピンク<ruby>色<rt>いろ</rt></ruby>なのは、どうして？", a: ["たべるものの いろ", "ペンキをぬった", "おこっているから", "もともと"] },
+      { q: "カバさんは お<ruby>水<rt>みず</rt></ruby>のなかで どうしている？", a: ["ねたり あるいたりする", "ずっとおよいでいる", "おぼれている", "ダンスしている"] },
+      { q: "チーターさんは、どうして<ruby>有名<rt>ゆうめい</rt></ruby>かな？", a: ["<ruby>走<rt>はし</rt></ruby>るのが <ruby>速<rt>はや</rt></ruby>い", "<ruby>歌<rt>うた</rt></ruby>が<ruby>上手<rt>じょうず</rt></ruby>", "<ruby>体<rt>からだ</rt></ruby>が<ruby>大<rt>おお</rt></ruby>きい", "ずっとねている"] },
+      { q: "ペンギンさんの <ruby>赤<rt>あか</rt></ruby>ちゃんは、だれが <ruby>温<rt>あたた</rt></ruby>める？", a: ["パパやママ", "お<ruby>日<rt>ひ</rt></ruby>さま", "お<ruby>友<rt>とも</rt></ruby>だち", "こおり"] },
+      { q: "ダチョウさんは とりだけど、なにが <ruby>得意<rt>とくい</rt></ruby>かな？", a: ["<ruby>走<rt>はし</rt></ruby>ること", "およぐこと", "<ruby>木<rt>き</rt></ruby>にのぼること", "<ruby>穴<rt>あな</rt></ruby>をほること"] },
+      { q: "モグラさんは どこに すんでいるかな？", a: ["<ruby>土<rt>つち</rt></ruby>の<ruby>中<rt>なか</rt></ruby>", "<ruby>雲<rt>くも</rt></ruby>の<ruby>上<rt>うえ</rt></ruby>", "<ruby>海<rt>うみ</rt></ruby>の<ruby>中<rt>なか</rt></ruby>", "おうちのなか"] },
+      { q: "ウシさんの おなかは いくつに わかれているかな？", a: ["4つ", "1つ", "10つ", "なし"] },
+      { q: "ヒツジさんの からだに はえているのは、なに？", a: ["<ruby>毛<rt>け</rt></ruby>", "はっぱ", "うろこ", "はね"] },
+      { q: "ニワトリさんは、<ruby>朝<rt>あさ</rt></ruby>になんと なく？", a: ["コケコッコー", "ワンワン", "ニャーニャー", "メーメー"] },
+      { q: "ブタさんの おはなは、どんな かたち？", a: ["まるくて <ruby>穴<rt>あな</rt></ruby>が2つ", "しかくい", "とっても ながい", "とがっている"] },
+      { q: "スカンクさんは ピンチになると、おしりから なにをだす？", a: ["くさい <ruby>臭<rt>にお</rt></ruby>い", "お<ruby>花<rt>はな</rt></ruby>", "お<ruby>水<rt>みず</rt></ruby>", "きらきら"] },
+      { q: "フクロウさんは、いつ おきていることが<ruby>多<rt>おお</rt></ruby>い？", a: ["<ruby>夜<rt>よる</rt></ruby>", "<ruby>昼<rt>ひる</rt></ruby>", "<ruby>朝<rt>あさ</rt></ruby>だけ", "ずっとねてる"] },
+      { q: "コウモリさんは、どうやって ねるかな？", a: ["<ruby>逆<rt>さか</rt></ruby>さまにつるさがる", "おふとんでねる", "<ruby>立<rt>た</rt></ruby>ちながらねる", "およぎながらねる"] },
+    
+      // --- 2. むし・さかな・ちいさい いきもの（30問） ---
+      { q: "カブトムシの あたまにある、かっこいいものは なに？", a: ["つの", "みみ", "しっぽ", "はね"] },
+      { q: "セミさんは、どこで なくのが だいすき？", a: ["<ruby>木<rt>き</rt></ruby>の<ruby>上<rt>うえ</rt></ruby>", "お<ruby>水<rt>みず</rt></ruby>のなか", "つちのなか", "おうちのなか"] },
+      { q: "チョウチョさんに なるまえは、なんという <ruby>名前<rt>なまえ</rt></ruby>かな？", a: ["あおむし", "おたまじゃくし", "ミミズ", "さかな"] },
+      { q: "ハチさんが はたらいて つくる、あまいものは なに？", a: ["はちみつ", "チョコ", "あめ", "ジュース"] },
+      { q: "アリさんは、どうして いつも ならんで<ruby>歩<rt>ある</rt></ruby>いているの？", a: ["においの<ruby>道<rt>みち</rt></ruby>をたどる", "ダンスしている", "けんかしている", "まよっている"] },
+      { q: "クモさんは、なにを つくって むしを つかまえる？", a: ["あみ", "おとしあな", "かご", "おうち"] },
+      { q: "ダンゴムシを つっつくと、どうなるかな？", a: ["まるくなる", "わらう", "にげる", "ひかる"] },
+      { q: "ホタルさんは、おしりが どうなるかな？", a: ["ひかる", "<ruby>音<rt>おと</rt></ruby>がなる", "ふくらむ", "きえる"] },
+      { q: "カマキリさんの おてては、なにに <ruby>似<rt>に</rt></ruby>ている？", a: ["カマ", "ハサミ", "ナイフ", "スプーン"] },
+      { q: "テントウムシの せなかには、なにがある？", a: ["てんてん", "<ruby>文字<rt>もじ</rt></ruby>", "とげとげ", "はっぱ"] },
+      { q: "おたまじゃくしが <ruby>大<rt>おお</rt></ruby>きくなると、なにに なる？", a: ["カエル", "カメ", "サカナ", "ヘビ"] },
+      { q: "カタツムリさんの せなかにあるのは、なに？", a: ["から", "おうち", "ぼうし", "リュック"] },
+      { q: "ザリガニさんの おてては、なにになっている？", a: ["ハサミ", "<ruby>手<rt>て</rt></ruby>", "<ruby>足<rt>あし</rt></ruby>", "つの"] },
+      { q: "タコさんの <ruby>足<rt>あし</rt></ruby>は、ぜんぶで いくつ？", a: ["8<ruby>本<rt>ほん</rt></ruby>", "10<ruby>本<rt>ほん</rt></ruby>", "5<ruby>本<rt>ほん</rt></ruby>", "2<ruby>本<rt>ほん</rt></ruby>"] },
+      { q: "イカさんの <ruby>足<rt>あし</rt></ruby>は、ぜんぶで いくつ？", a: ["10<ruby>本<rt>ほん</rt></ruby>", "8<ruby>本<rt>ほん</rt></ruby>", "2<ruby>本<rt>ほん</rt></ruby>", "なし"] },
+      { q: "サメさんの おくちには、なにがいっぱい はえている？", a: ["するどい <ruby>歯<rt>は</rt></ruby>", "ひげ", "はっぱ", "おかし"] },
+      { q: "カニさんは、どっちに あるくのが <ruby>得意<rt>とくい</rt></ruby>？", a: ["よこ", "まえ", "うしろ", "うえ"] },
+      { q: "クラゲさんの からだは、ほとんど なにで できている？", a: ["お<ruby>水<rt>みず</rt></ruby>", "おにく", "ほね", "いし"] },
+      { q: "ヒトデさんは、どんな かたちに <ruby>似<rt>に</rt></ruby>ている？", a: ["お<ruby>星<rt>ほし</rt></ruby>さま", "お<ruby>月<rt>つき</rt></ruby>さま", "ハート", "しかく"] },
+      { q: "タツノオトシゴは、どこに すんでいる？", a: ["<ruby>海<rt>うみ</rt></ruby>のなか", "お<ruby>山<rt>やま</rt></ruby>のうえ", "<ruby>空<rt>そら</rt></ruby>のなか", "つちのなか"] },
+      { q: "サカナさんは、どこで いきを する？", a: ["えら", "はな", "みみ", "おしり"] },
+      { q: "トビウオさんは、なにができる サカナかな？", a: ["<ruby>空<rt>そら</rt></ruby>を <ruby>飛<rt>と</rt></ruby>ぶ", "<ruby>歌<rt>うた</rt></ruby>をうたう", "<ruby>穴<rt>あな</rt></ruby>をほる", "ねる"] },
+      { q: "ヤドカリさんは、なにを おうちにする？", a: ["かいがら", "いし", "はっぱ", "あな"] },
+      { q: "ミミズさんは、どこに すんでいる？", a: ["つちのなか", "<ruby>木<rt>き</rt></ruby>のうえ", "<ruby>海<rt>うみ</rt></ruby>のなか", "<ruby>雲<rt>くも</rt></ruby>のうえ"] },
+      { q: "アメンボさんは、どこを あるくことができる？", a: ["<ruby>水<rt>みず</rt></ruby>のうえ", "<ruby>空<rt>そら</rt></ruby>のうえ", "<ruby>壁<rt>かべ</rt></ruby>のうえ", "<ruby>火<rt>ひ</rt></ruby>のうえ"] },
+      { q: "トンボさんの めだまは、どんな なまえ？", a: ["<ruby>複眼<rt>ふくがん</rt></ruby>", "<ruby>単眼<rt>たんがん</rt></ruby>", "めがね", "<ruby>望遠鏡<rt>ぼうえんきょう</rt></ruby>"] },
+      { q: "クワガタの <ruby>大<rt>おお</rt></ruby>きな アゴは、なにに <ruby>使<rt>つか</rt></ruby>う？", a: ["たたかうため", "たべるため", "うたうため", "ねるため"] },
+      { q: "ハエさんは、どこで あじを <ruby>感<rt>かん</rt></ruby>じる？", a: ["あし", "おしり", "はね", "せなか"] },
+      { q: "ミノムシは、なにで お<ruby>洋服<rt>ようふく</rt></ruby>を つくる？", a: ["はっぱや <ruby>小枝<rt>こえだ</rt></ruby>", "<ruby>紙<rt>かみ</rt></ruby>", "ぬの", "<ruby>糸<rt>いと</rt></ruby>"] },
+      { q: "カイコさんは、なにを <ruby>出<rt>だ</rt></ruby>して まゆを つくる？", a: ["<ruby>糸<rt>いと</rt></ruby>", "お<ruby>水<rt>みず</rt></ruby>", "お<ruby>砂糖<rt>さとう</rt></ruby>", "あわ"] },
+    
+      // --- 3. しょくぶつ・はな・やさい（20問） ---
+      { q: "ヒマワリは、どっちの ほうを むいて さくかな？", a: ["お<ruby>日<rt>ひ</rt></ruby>さま", "お<ruby>月<rt>つき</rt></ruby>さま", "した", "うしろ"] },
+      { q: "タンポポの わたげは、どうやって とんでいく？", a: ["<ruby>風<rt>かぜ</rt></ruby>にのって", "およいで", "<ruby>歩<rt>ある</rt></ruby>いて", "<ruby>走<rt>はし</rt></ruby>って"] },
+      { q: "サクラは、いつの きせつに さく お<ruby>花<rt>はな</rt></ruby>かな？", a: ["<ruby>春<rt>はる</rt></ruby>", "<ruby>夏<rt>なつ</rt></ruby>", "<ruby>秋<rt>あき</rt></ruby>", "<ruby>冬<rt>ふゆ</rt></ruby>"] },
+      { q: "リンゴは、どこに なるかな？", a: ["<ruby>木<rt>き</rt></ruby>の<ruby>上<rt>うえ</rt></ruby>", "つちのなか", "お<ruby>水<rt>みず</rt></ruby>のなか", "<ruby>空<rt>そら</rt></ruby>のうえ"] },
+      { q: "サツマイモは、どこに できているかな？", a: ["つちのなか", "<ruby>木<rt>き</rt></ruby>のうえ", "はっぱのうえ", "<ruby>海<rt>うみ</rt></ruby>のなか"] },
+      { q: "アサガオは、いつの じかんに さくかな？", a: ["<ruby>朝<rt>あさ</rt></ruby>", "<ruby>夜<rt>よる</rt></ruby>", "お<ruby>昼<rt>ひる</rt></ruby>", "ねるまえ"] },
+      { q: "サボテンには、なにが いっぱい はえている？", a: ["とげ", "はっぱ", "はな", "リボン"] },
+      { q: "スイカは、どんな もようが あるかな？", a: ["しましま", "みずたま", "ハート", "なし"] },
+      { q: "どんぐりは、なんの <ruby>木<rt>き</rt></ruby>の <ruby>実<rt>み</rt></ruby>かな？", a: ["クヌギ", "リンゴ", "みかん", "バナナ"] },
+      { q: "イチゴの つぶつぶは、なにかな？", a: ["<ruby>種<rt>たね</rt></ruby>", "ゴミ", "おかし", "かざり"] },
+      { q: "お<ruby>花<rt>はな</rt></ruby>が <ruby>元気<rt>げんき</rt></ruby>に そだつのに、ひつようなものは？", a: ["お<ruby>水<rt>みず</rt></ruby>とお<ruby>日<rt>ひ</rt></ruby>さま", "おかし", "テレビ", "おもちゃ"] },
+      { q: "<ruby>秋<rt>あき</rt></ruby>になると、<ruby>木<rt>き</rt></ruby>のはっぱは どうなる？", a: ["<ruby>色<rt>いろ</rt></ruby>がかわる", "<ruby>青<rt>あお</rt></ruby>くなる", "きえる", "ひかる"] },
+      { q: "タケノコが <ruby>大<rt>おお</rt></ruby>きくなると、なにになる？", a: ["<ruby>竹<rt>たけ</rt></ruby>", "バラ", "リンゴの<ruby>木<rt>き</rt></ruby>", "<ruby>草<rt>くさ</rt></ruby>"] },
+      { q: "クリの まわりには、なにが ついている？", a: ["イガイガ", "ぬの", "<ruby>紙<rt>かみ</rt></ruby>", "お<ruby>水<rt>みず</rt></ruby>"] },
+      { q: "チューリップは、なにから さくかな？", a: ["<ruby>球根<rt>きゅうこん</rt></ruby>", "たまご", "いし", "はっぱ"] },
+      { q: "モモの <ruby>中<rt>なか</rt></ruby>には、なにが <ruby>入<rt>はい</rt></ruby>っている？", a: ["<ruby>大<rt>おお</rt></ruby>きな <ruby>種<rt>たね</rt></ruby>", "おかし", "お<ruby>水<rt>みず</rt></ruby>", "なにもない"] },
+      { q: "<ruby>松<rt>まつ</rt></ruby>ぼっくりは、なんの <ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>？", a: ["<ruby>松<rt>まつ</rt></ruby>の<ruby>木<rt>き</rt></ruby>", "<ruby>杉<rt>すぎ</rt></ruby>の<ruby>木<rt>き</rt></ruby>", "<ruby>桜<rt>さくら</rt></ruby>の<ruby>木<rt>き</rt></ruby>", "<ruby>梅<rt>うめ</rt></ruby>の<ruby>木<rt>き</rt></ruby>"] },
+      { q: "バナナは、どこに できるかな？", a: ["あたたかい<ruby>所<rt>ところ</rt></ruby>", "さむい<ruby>所<rt>ところ</rt></ruby>", "<ruby>海<rt>うみ</rt></ruby>のなか", "<ruby>空<rt>そら</rt></ruby>のうえ"] },
+      { q: "お<ruby>米<rt>こめ</rt></ruby>は、なんという <ruby>植物<rt>しょくぶつ</rt></ruby>から できる？", a: ["イネ", "ムギ", "ハナ", "キ"] },
+      { q: "<ruby>四<rt>よ</rt></ruby>つ<ruby>葉<rt>ば</rt></ruby>を みつけると <ruby>幸<rt>しあわ</rt></ruby>せになるといわれるのは？", a: ["クローバー", "タンポポ", "ペンペン<ruby>草<rt>ぐさ</rt></ruby>", "ひまわり"] },
+    
+      // --- 4. おそら・てんき・ちきゅう（20問） ---
+      { q: "<ruby>雨<rt>あめ</rt></ruby>が あがったあと、お<ruby>空<rt>そら</rt></ruby>に でる 7<ruby>色<rt>いろ</rt></ruby>のものは？", a: ["にじ", "くも", "お<ruby>月<rt>つき</rt></ruby>さま", "かみなり"] },
+      { q: "<ruby>夜<rt>よる</rt></ruby>のお<ruby>空<rt>そら</rt></ruby>で、<ruby>形<rt>かたち</rt></ruby>が かわって <ruby>見<rt>み</rt></ruby>えるものは？", a: ["お<ruby>月<rt>つき</rt></ruby>さま", "お<ruby>日<rt>ひ</rt></ruby>さま", "にじ", "ひこうき"] },
+      { q: "とっても <ruby>冷<rt>つめ</rt></ruby>たい<ruby>日<rt>ひ</rt></ruby>に、お<ruby>空<rt>そら</rt></ruby>から ふってくる <ruby>白<rt>しろ</rt></ruby>いものは？", a: ["ゆき", "あめ", "おかし", "はっぱ"] },
+      { q: "お<ruby>空<rt>そら</rt></ruby>で ピカッと ひかって、ゴロゴロと <ruby>音<rt>おと</rt></ruby>が するのは？", a: ["かみなり", "はなび", "たいこ", "あめ"] },
+      { q: "わたしたちが <ruby>住<rt>す</rt></ruby>んでいる、この <ruby>星<rt>ほし</rt></ruby>のなまえは？", a: ["<ruby>地球<rt>ちきゅう</rt></ruby>", "<ruby>火星<rt>かせい</rt></ruby>", "お<ruby>月<rt>つき</rt></ruby>さま", "お<ruby>日<rt>ひ</rt></ruby>さま"] },
+      { q: "お<ruby>日<rt>ひ</rt></ruby>さまは、どっちから のぼるかな？", a: ["<ruby>東<rt>ひがし</rt></ruby>", "<ruby>西<rt>にし</rt></ruby>", "<ruby>南<rt>みなみ</rt></ruby>", "<ruby>北<rt>きた</rt></ruby>"] },
+      { q: "お<ruby>日<rt>ひ</rt></ruby>さまは、どっちに しずむかな？", a: ["<ruby>西<rt>にし</rt></ruby>", "<ruby>東<rt>ひがし</rt></ruby>", "<ruby>南<rt>みなみ</rt></ruby>", "<ruby>北<rt>きた</rt></ruby>"] },
+      { q: "<ruby>雲<rt>くも</rt></ruby>は、なにで できているかな？", a: ["お<ruby>水<rt>みず</rt></ruby>のつぶ", "わたあめ", "けむり", "<ruby>紙<rt>かみ</rt></ruby>"] },
+      { q: "お<ruby>空<rt>そら</rt></ruby>が <ruby>青<rt>あお</rt></ruby>いのは、いつの じかん？", a: ["お<ruby>昼<rt>ひる</rt></ruby>", "<ruby>夜<rt>よる</rt></ruby>", "ねるまえ", "<ruby>夜中<rt>よなか</rt></ruby>"] },
+      { q: "<ruby>流<rt>なが</rt></ruby>れ<ruby>星<rt>ぼし</rt></ruby>に、なにをすると <ruby>叶<rt>かな</rt></ruby>うといわれている？", a: ["おねがいごと", "ダンス", "おひるね", "おかし"] },
+      { q: "<ruby>冬<rt>ふゆ</rt></ruby>になると、お<ruby>外<rt>そと</rt></ruby>の <ruby>空気<rt>くうき</rt></ruby>はどうなる？", a: ["<ruby>冷<rt>つめ</rt></ruby>たくなる", "あつくなる", "きえる", "ひかる"] },
+      { q: "<ruby>夏<rt>なつ</rt></ruby>になると、お<ruby>外<rt>そと</rt></ruby>の <ruby>空気<rt>くうき</rt></ruby>はどうなる？", a: ["<ruby>暑<rt>あつ</rt></ruby>くなる", "さむくなる", "かたくなる", "なくなる"] },
+      { q: "<ruby>海<rt>うみ</rt></ruby>の<ruby>水<rt>みず</rt></ruby>が、<ruby>上<rt>あ</rt></ruby>がったり <ruby>下<rt>さ</rt></ruby>がったりするのは なぜ？", a: ["お<ruby>月<rt>つき</rt></ruby>さまの ちから", "クジラが およいでいるから", "サカナの せい", "<ruby>風<rt>かぜ</rt></ruby>のせい"] },
+      { q: "<ruby>水<rt>みず</rt></ruby>を とっても <ruby>冷<rt>ひ</rt></ruby>やすと、なにになる？", a: ["こおり", "おゆ", "<ruby>蒸気<rt>じょうき</rt></ruby>", "ジュース"] },
+      { q: "<ruby>水<rt>みず</rt></ruby>を とっても わかすと、なにが<ruby>出<rt>で</rt></ruby>る？", a: ["<ruby>湯気<rt>ゆげ</rt></ruby>", "こおり", "<ruby>石<rt>いし</rt></ruby>", "さかな"] },
+      { q: "<ruby>地球<rt>ちきゅう</rt></ruby>に いちばん <ruby>近<rt>ちか</rt></ruby>い お<ruby>星<rt>ほし</rt></ruby>さまは？", a: ["<ruby>太陽<rt>たいよう</rt></ruby>", "<ruby>月<rt>つき</rt></ruby>", "<ruby>金星<rt>きんせい</rt></ruby>", "<ruby>火星<rt>かせい</rt></ruby>"] },
+      { q: "お<ruby>月<rt>つき</rt></ruby>さまが まんまるのとき、なんていう？", a: ["<ruby>満月<rt>まんげつ</rt></ruby>", "<ruby>三日月<rt>みかづき</rt></ruby>", "<ruby>半月<rt>はんげつ</rt></ruby>", "お<ruby>盆<rt>ぼん</rt></ruby>"] },
+      { q: "お<ruby>月<rt>つき</rt></ruby>さまが <ruby>細<rt>ほそ</rt></ruby>いとき、なんていう？", a: ["<ruby>三日月<rt>みかづき</rt></ruby>", "<ruby>満月<rt>まんげつ</rt></ruby>", "<ruby>新月<rt>しんげつ</rt></ruby>", "バナナ"] },
+      { q: "お<ruby>空<rt>そら</rt></ruby>に うかぶ <ruby>雲<rt>くも</rt></ruby>が、<ruby>黒<rt>くろ</rt></ruby>くなってきたら？", a: ["<ruby>雨<rt>あめ</rt></ruby>がふるかも", "<ruby>夜<rt>よる</rt></ruby>になる", "<ruby>晴<rt>は</rt></ruby>れる", "<ruby>雪<rt>ゆき</rt></ruby>になる"] },
+      { q: "わたしたちが いきをするのに、ひつようなのは？", a: ["<ruby>空気<rt>くうき</rt></ruby>", "お<ruby>菓子<rt>かし</rt></ruby>", "ジュース", "おもちゃ"] }
+    ];
+
+    let correctStreak = 0;
+    let currentAnswer = "";
+
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(type) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (type === 'correct') {
+          this._note(880, now, 0.1); this._note(1100, now + 0.1, 0.2);
+        } else if (type === 'special') {
+          [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
+        } else {
+          this._note(200, now, 0.3);
+        }
+      }
+    };
+
+    function generateQuiz() {
+      document.getElementById("result").textContent = "";
+      document.getElementById("next-button").style.display = "none";
+      document.body.style.backgroundColor = "#e8f5e9";
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+
+      const qData = natureQuestions[Math.floor(Math.random() * natureQuestions.length)];
+      document.getElementById("question-text").innerHTML = qData.q;
+      currentAnswer = qData.a[0];
+
+      // いきもの系のポケモンを表示
+      const naturePoke = [1, 4, 7, 10, 16, 25, 43, 50, 60, 129, 131]; 
+      const pokeId = naturePoke[Math.floor(Math.random() * naturePoke.length)];
+      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
+
+      let options = [...qData.a].sort(() => Math.random() - 0.5);
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.innerHTML = opt;
+        btn.onclick = () => checkAnswer(opt);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
+      const resArea = document.getElementById("result");
+
+      if (selected === currentAnswer) {
+        correctStreak++;
+        if (correctStreak % 5 === 0) Buzzer.play('special');
+        else Buzzer.play('correct');
+        resArea.textContent = "✨ せいかい！ しぜん博士だね！";
+        document.body.style.backgroundColor = "#f1f8e9";
+      } else {
+        correctStreak = 0;
+        Buzzer.play('wrong');
+        resArea.textContent = `❌ こたえは「${currentAnswer}」だよ`;
+        document.body.style.backgroundColor = "#ffebee";
+      }
+      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+      document.getElementById("next-button").style.display = "inline-block";
+    }
+
+    window.onload = generateQuiz;
+  </script>
+</body>
+</html>
