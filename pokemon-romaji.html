@@ -26,7 +26,7 @@
       margin-bottom: 20px;
       min-width: 280px;
     }
-    #pokemon-img { width: 180px; height: 180px; }
+    #pokemon-img { width: 180px; height: 180px; min-height: 180px; }
     #jp-name { font-size: 28px; font-weight: bold; color: #333; margin-top: 10px; }
     #ruby-name { font-size: 16px; color: #ff9800; font-weight: bold; }
 
@@ -64,7 +64,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.1.1 | Updated: 2026-05-11 07:55</div>
+  <div id="version-info">Ver 1.1.2 | Updated: 2026-05-12 12:30</div>
   
   <h1>⌨️ ローマ字マスター</h1>
   <div id="level-display">レベル 1</div>
@@ -90,6 +90,14 @@
     let correctStreak = 0;
     let currentLevel = 1;
 
+    // ダミー選択肢用のローマ字リスト（APIを叩かずに済むように用意）
+    const dummyRomajiList = [
+      "PIKACHU", "FUSHIGIDANE", "HITOKAGE", "ZENIGAME", "NYARTH", "KODUCK", "GANGAR", "EIEVUI", "KABIGON", "MEWTWO",
+      "CHIKORITA", "HINOARASHI", "WANINOKO", "MARILL", "LUGIA", "HO-OH", "KIMORI", "ACHAMO", "MIZUGOROU", "RAYQUAZA",
+      "NAETLE", "HIKOZARU", "POCHAMA", "LUCARIO", "DIALGA", "PALKIA", "TSUTARA", "POKABU", "MIJUMARU", "ZOROARK",
+      "CHESPIN", "FOKKO", "KEROMATSU", "SYLVEON", "XERNEAS", "YVELTAL", "MOKUROH", "NYABBY", "ASHIMARI", "MIMIKYU"
+    ];
+
     const Buzzer = {
       ctx: new (window.AudioContext || window.webkitAudioContext)(),
       _note(freq, type, start, duration) {
@@ -114,7 +122,6 @@
     };
 
     async function generateQuiz() {
-      // 部品(wanakana)が届いていなければ待機
       if (typeof wanakana === 'undefined') {
         setTimeout(generateQuiz, 100);
         return;
@@ -136,39 +143,31 @@
       const targetId = Math.floor(Math.random() * maxId) + 1;
 
       try {
-        // API取得（5秒でタイムアウトするように設定）
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${targetId}`, { signal: controller.signal });
+        // 正解のポケモン1匹分だけAPIを取得
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${targetId}`);
         const data = await res.json();
         const jpName = data.names.find(n => n.language.name === "ja").name;
-        
         const hiraName = jpName.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
-        // wanakanaで変換
-        correctRomaji = wanakana.toRomaji(hiraName).toLowerCase().replace(/[^a-z]/g, "");
+        
+        // ローマ字変換
+        correctRomaji = wanakana.toRomaji(hiraName).toUpperCase().replace(/[^A-Z]/g, "");
 
-        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${targetId}`, { signal: controller.signal });
+        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${targetId}`);
         const pokeData = await pokeRes.json();
-        clearTimeout(timeoutId);
 
         document.getElementById("pokemon-img").src = pokeData.sprites.other['official-artwork'].front_default;
         document.getElementById("jp-name").textContent = jpName;
         document.getElementById("ruby-name").textContent = hiraName;
 
+        // 選択肢の作成（ダミーは用意したリストから選ぶので爆速！）
         let options = [correctRomaji];
-        while (options.length < 4) {
-          let dummyId = Math.floor(Math.random() * maxId) + 1;
-          if (dummyId === targetId) continue;
-          
-          // ダミーは速度重視で簡単な名前から生成
-          let dRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${dummyId}`);
-          let dData = await dRes.json();
-          let dJpName = dData.names.find(n => n.language.name === "ja").name;
-          let dHiraName = dJpName.replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
-          let dRomaji = wanakana.toRomaji(dHiraName).toLowerCase().replace(/[^a-z]/g, "");
-          
-          if (!options.includes(dRomaji)) options.push(dRomaji);
+        let shuffledDummies = dummyRomajiList.sort(() => Math.random() - 0.5);
+        
+        for (let dummy of shuffledDummies) {
+          if (options.length >= 4) break;
+          if (dummy !== correctRomaji) {
+            options.push(dummy);
+          }
         }
 
         options.sort(() => Math.random() - 0.5);
@@ -178,14 +177,13 @@
         options.forEach(opt => {
           const btn = document.createElement("button");
           btn.className = "choice-btn";
-          btn.textContent = opt.toUpperCase();
+          btn.textContent = opt;
           btn.onclick = () => checkAnswer(opt);
           choicesDiv.appendChild(btn);
         });
 
       } catch (e) {
         console.error(e);
-        // 失敗したら一瞬待って再試行
         setTimeout(generateQuiz, 500);
       }
     }
@@ -199,20 +197,19 @@
         correctStreak++;
         Buzzer.play(true);
         resultArea.style.color = "#2e7d32";
-        resultArea.textContent = `✨ せいかい！\n「${correctRomaji.toUpperCase()}」`;
+        resultArea.textContent = `✨ せいかい！\n「${correctRomaji}」`;
         document.body.classList.add("correct-flash");
         setTimeout(() => document.body.classList.remove("correct-flash"), 1000);
       } else {
         correctStreak = 0;
         Buzzer.play(false);
         resultArea.style.color = "#d32f2f";
-        resultArea.textContent = `❌ ざんねん！\nせいかいは 「${correctRomaji.toUpperCase()}」 だよ。`;
+        resultArea.textContent = `❌ ざんねん！\nせいかいは 「${correctRomaji}」 だよ。`;
       }
 
       document.getElementById("next-button").style.display = "inline-block";
     }
 
-    // 起動処理
     window.onload = function() {
       generateQuiz();
     };
