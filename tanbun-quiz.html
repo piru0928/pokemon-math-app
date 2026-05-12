@@ -3,43 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>たんぶんマスター Pro</title>
+  <title>たんぶんマスター Pro+</title>
   <style>
-    /* 既存のスタイルを継承しつつ、デザインを少しブラッシュアップ */
-    body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; padding: 20px; transition: 0.3s; }
+    body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; padding: 10px; transition: 0.3s; }
     #level-display { font-size: 20px; color: #3498db; font-weight: bold; margin-bottom: 5px; }
-    #status { font-size: 14px; color: #7f8c8d; margin-bottom: 15px; }
     #passage-box {
       background: #fff; border: 4px solid #3498db; padding: 25px;
-      margin: 15px auto; max-width: 650px; border-radius: 15px;
-      text-align: left; line-height: 2.2; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      min-height: 120px; position: relative;
+      margin: 15px auto; max-width: 600px; border-radius: 15px;
+      text-align: left; line-height: 2.2; font-size: 19px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    #question-text { font-size: 22px; margin: 20px; font-weight: bold; color: #e67e22; }
+    #question-text { font-size: 20px; margin: 15px; font-weight: bold; color: #e67e22; min-height: 3em; display: flex; align-items: center; justify-content: center; }
     .choice {
-      font-size: 18px; padding: 15px; margin: 10px auto;
+      font-size: 17px; padding: 12px; margin: 8px auto;
       border-radius: 12px; border: 2px solid #bdc3c7;
-      cursor: pointer; background-color: #fff; width: 90%; max-width: 500px;
+      cursor: pointer; background-color: #fff; width: 95%; max-width: 500px;
       display: block; transition: 0.2s; font-weight: bold;
     }
     .choice:hover { background-color: #fef9e7; border-color: #f1c40f; }
-    #explanation {
-      background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px;
-      margin: 15px auto; max-width: 600px; border-radius: 10px;
-      display: none; text-align: left; font-size: 16px; line-height: 1.6;
-    }
-    #pokemon-img { margin-top: 10px; width: 110px; height: 110px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
-    #next-button {
-      margin-top: 20px; padding: 15px 40px; font-size: 18px;
-      background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none;
-    }
+    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 10px; display: none; text-align: left; font-size: 15px; }
+    #pokemon-img { margin-top: 10px; width: 100px; height: 100px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
+    #next-button { margin-top: 15px; padding: 12px 30px; font-size: 18px; background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
+    #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #90a4ae; pointer-events: none; }
     ruby rt { font-size: 0.55em; color: #34495e; }
   </style>
 </head>
 <body>
+  <div id="version-info">Ver 2.5.0 | Updated: 2026-05-12</div>
   <h1>📖 たんぶんマスター</h1>
   <div id="level-display">レベル 1</div>
-  <div id="status">あと 5問正解でレベルアップ！</div>
 
   <div id="passage-box"></div>
   <div id="question-text"></div>
@@ -48,7 +39,6 @@
   
   <div id="result-area">
     <img id="pokemon-img" src="" alt="" style="display:none;">
-    <div id="pokemon-info"></div>
   </div>
   
   <button id="next-button" onclick="generateQuestion()">つぎの問題へ</button>
@@ -56,7 +46,6 @@
   <a href="index.html">← TOPへもどる</a>
 
   <script>
-    // 音声・状態管理は以前のものを維持
     const Buzzer = {
       ctx: new (window.AudioContext || window.webkitAudioContext)(),
       _note(freq, type, start, duration) {
@@ -78,82 +67,68 @@
     };
 
     let level = 1;
-    let correctStreak = 0;
     let currentAns = "";
 
     const vocab = {
-      who: [
-        { h: "うさぎ", k: "うさぎ" }, 
-        { h: "おとこのこ", k: "<ruby>男<rt>おとこ</rt></ruby>の<ruby>子<rt>こ</rt></ruby>" },
-        { h: "おんなのこ", k: "<ruby>女<rt>おんな</rt></ruby>の<ruby>子<rt>こ</rt></ruby>" },
-        { h: "りす", k: "リス" }, 
-        { h: "おうじさま", k: "<ruby>王子<rt>おうじ</rt></ruby><ruby>様<rt>さま</rt></ruby>" }
-      ],
-      where: [
-        { h: "くさむら", k: "<ruby>草<rt>くさ</rt></ruby>むら" }, { h: "もり", k: "<ruby>森<rt>もり</rt></ruby>" },
-        { h: "うみ", k: "<ruby>海<rt>うみ</rt></ruby>" }, { h: "おしろ", k: "お<ruby>城<rt>しろ</rt></ruby>" },
-        { h: "こうえん", k: "<ruby>公園<rt>こうえん</rt></ruby>" }
-      ],
-      item: [
-        { h: "きのみ", k: "<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>" }, { h: "てがみ", k: "<ruby>手紙<rt>てがみ</rt></ruby>" },
-        { h: "おたから", k: "お<ruby>宝<rt>たから</rt></ruby>" }, { h: "ふうせん", k: "<ruby>風船<rt>ふうせん</rt></ruby>" }
-      ]
+      who: [{h:"うさぎ",k:"うさぎ"}, {h:"おとこのこ",k:"<ruby>男<rt>おとこ</rt></ruby>の<ruby>子<rt>こ</rt></ruby>"}, {h:"りす",k:"リス"}, {h:"おうじさま",k:"<ruby>王子<rt>おうじ</rt></ruby><ruby>様<rt>さま</rt></ruby>"}],
+      where: [{h:"もり",k:"<ruby>森<rt>もり</rt></ruby>"}, {h:"こうえん",k:"<ruby>公園<rt>こうえん</rt></ruby>"}, {h:"うみ",k:"<ruby>海<rt>うみ</rt></ruby>"}, {h:"おしろ",k:"お<ruby>城<rt>しろ</rt></ruby>"}],
+      item: [{h:"きのみ",k:"<ruby>木<rt>き</rt></ruby>の<ruby>実<rt>み</rt></ruby>"}, {h:"ふうせん",k:"<ruby>風船<rt>ふうせん</rt></ruby>"}, {h:"てがみ",k:"<ruby>手紙<rt>てがみ</rt></ruby>"}, {h:"おたから",k:"お<ruby>宝<rt>たから</rt></ruby>"}]
     };
 
     function generateQuestion() {
-      // 初期化処理
       document.getElementById("explanation").style.display = "none";
       document.getElementById("pokemon-img").style.display = "none";
       document.getElementById("next-button").style.display = "none";
       document.getElementById("choices").innerHTML = "";
 
-      let curLv = (correctStreak >= 5) ? Math.floor(Math.random() * 10) + 1 : level;
-      const mode = (curLv <= 3) ? "h" : "k";
-      const getV = (key) => vocab[key][Math.floor(Math.random() * vocab[key].length)][mode];
-
+      const getV = (key) => vocab[key][Math.floor(Math.random() * vocab[key].length)].k;
       const w = getV("who"), l = getV("where"), i = getV("item");
+      const w2 = vocab.who.map(x=>x.k).find(x=>x!==w);
+
       let passage = "", question = "", explanation = "", options = [];
+      const pattern = Math.floor(Math.random() * 5);
 
-      // 出題パターン（構成自体をランダムに）
-      const patternType = Math.floor(Math.random() * 3);
-
-      if (patternType === 0) {
-        // パターン1：物語・出来事
-        passage = `${w}は ${l}で ${i}を <ruby>見<rt>み</rt></ruby>つけましたが、<ruby>急<rt>いそ</rt></ruby>いでいたので そのまま<ruby>通<rt>とお</rt></ruby>り<ruby>過<rt>す</rt></ruby>ぎました。`;
-        question = `${w}は どうして ${i}を ひろわなかったのですか？`;
-        currentAns = "<ruby>急<rt>いそ</rt></ruby>いでいたから";
-        options = [currentAns, "ほしくなかったから", `${l}が<ruby>嫌<rt>きら</rt></ruby>いだったから` ];
-        explanation = "「〜ので」の前の言葉を見ると、理由がわかりますね。";
-      } 
-      else if (patternType === 1) {
-        // パターン2：説明・観察
-        passage = `${l}には ${i}が たくさんあります。${w}は それを<ruby>集<rt>あつ</rt></ruby>めるのが <ruby>大好<rt>だいす</rt></ruby>きです。`;
-        question = `この文章の<ruby>筆者<rt>ひっしゃ</rt></ruby>が<ruby>一番<rt>いちばん</rt></ruby><ruby>伝<rt>つた</rt></ruby>えたかったことは 何ですか？`;
-        currentAns = `${w}は ${i}<ruby>集<rt>あつ</rt></ruby>めが好きだということ`;
-        options = [currentAns, `${l}がきれいだということ`, `${i}は食べられるということ` ];
-        explanation = "最後の「大好きです」という言葉から、気持ちを読み取りましょう。";
+      switch(pattern) {
+        case 0: // 順序
+          passage = `${w}は ${l}で ${i}を <ruby>拾<rt>ひろ</rt></ruby>いました。そのあと、それを ${w2}に あげました。`;
+          question = `${w}は ${i}を ひろったあと、どうしましたか？`;
+          currentAns = `${w2}に あげた`;
+          options = [currentAns, "自分で食べた", "地面にうめた"];
+          explanation = "「そのあと」という言葉のあとに答えが書いてあります。";
+          break;
+        case 1: // 否定
+          passage = `${l}には ${w}と ${w2}が います。ふたりは ${i}を <ruby>探<rt>さが</rt></ruby>しています。`;
+          question = `${l}に **いない** のは だれですか？`;
+          currentAns = "迷子のライオン（文に出てこない）"; 
+          options = [currentAns, w, w2];
+          explanation = "文章の中に名前が出てこない人を選びましょう。";
+          break;
+        case 2: // 指示語
+          passage = `${w}は ${l}へ <ruby>走<rt>はし</rt></ruby>っていきました。**あそこ**には 大切な ${i}が あるからです。`;
+          question = "文の中の **「あそこ」** とは どこを さしていますか？";
+          currentAns = l;
+          options = [l, "自分の家", "ひみつの場所"];
+          explanation = "「あそこ」は、直前に出てきた場所（${l}）のことですね。";
+          break;
+        case 3: // 理由
+          passage = `${w}は ${i}を なくしてしまいました。一生懸命さがしましたが 見つからないので、泣き出してしまいました。`;
+          question = `${w}が 泣き出してしまったのは なぜですか？`;
+          currentAns = `${i}が 見つからないから`;
+          options = [currentAns, "おなかが すいたから", "転んで痛かったから"];
+          explanation = "「〜ので」の前の部分が、泣いてしまった理由です。";
+          break;
+        case 4: // 内容一致
+          passage = `${w}は ${l}に ${i}を 忘れてきてしまいました。でも、${w}は「また明日取りに行けばいいや」と笑っています。`;
+          question = "お話の内容と **あっているもの** は どれですか？";
+          currentAns = `${w}は あまり 落ちこんでいない`;
+          options = [currentAns, `${w}は 泣いている`, `${i}は ぬすまれてしまった` ];
+          explanation = "「笑っています」という言葉から、今の様子を想像してみましょう。";
+          break;
       }
-      else {
-        // パターン3：手紙・筆者の意図
-        passage = `「${w}さんへ。${l}で まっています。${i}を わすれずに もってきてくださいね。」`;
-        question = `この手紙を書いた人は、${w}さんに 何をしてほしいと<ruby>思<rt>おも</rt></ruby>っていますか？`;
-        currentAns = `${i}を持ってきてほしい`;
-        options = [currentAns, `${l}を<ruby>掃除<rt>そうじ</rt></ruby>してほしい`, "お城に住んでほしい"];
-        explanation = "「〜してください」というお願いの言葉に注目しましょう。";
-      }
 
-      // 難読漢字の追加（レベルに応じて）
-      if (curLv >= 8) {
-        passage = passage.replace("います", "<ruby>滞在<rt>たいざい</rt></ruby>しています");
-        explanation += " レベルが高いので難しい言葉になっていますよ！";
-      }
-
-      // 描画
       document.getElementById("passage-box").innerHTML = passage;
-      document.getElementById("question-text").innerHTML = question;
-      document.getElementById("level-display").textContent = `レベル ${curLv}`;
-      document.getElementById("status").textContent = (correctStreak >= 5) ? "マスターモード！" : `あと ${5 - correctStreak}問正解でレベルアップ！`;
-
+      document.getElementById("question-text").innerHTML = `<ruby>問題<rt>もんだい</rt></ruby>：${question}`;
+      
       options.sort(() => Math.random() - 0.5).forEach(opt => {
         const btn = document.createElement("button");
         btn.className = "choice";
@@ -163,22 +138,18 @@
       });
     }
 
-    // 正誤判定処理（以前のものを維持）
     function checkAnswer(selected, exp) {
       document.getElementById("choices").innerHTML = "";
       const expBox = document.getElementById("explanation");
       expBox.style.display = "block";
 
       if (selected === currentAns) {
-        correctStreak++;
         Buzzer.play(true);
-        expBox.innerHTML = `<strong>✨ せいかい！ 正解のヒント：</strong><br>${exp}`;
+        expBox.innerHTML = `<strong>✨ せいかい！</strong><br>${exp}`;
         const pokeId = Math.floor(Math.random() * 151) + 1;
         document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
         document.getElementById("pokemon-img").style.display = "inline";
       } else {
-        correctStreak = 0;
-        level = 1;
         Buzzer.play(false);
         expBox.innerHTML = `<strong>❌ ざんねん！ 正解は「${currentAns}」</strong><br>${exp}`;
       }
