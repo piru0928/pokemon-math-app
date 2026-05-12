@@ -39,23 +39,27 @@
       background: var(--card-bg);
       border-radius: 18px;
       padding: 15px;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       border: 2px solid #f0f0f0;
+      position: relative;
     }
 
     .category h2 {
       margin: 0 0 12px 0;
-      font-size: 16px;
+      font-size: 18px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 5px;
       color: #333;
     }
 
+    /* アイコンを大きく修正 */
     .cat-icon {
-      width: 32px;
-      height: 32px;
+      width: 60px;
+      height: 60px;
+      margin-left: -10px; /* 少し左に出してバランス調整 */
+      margin-top: -5px;
     }
 
     ul {
@@ -96,7 +100,6 @@
       white-space: nowrap;
     }
 
-    /* ふわふわ浮かぶ背景ポケモン */
     .bg-poke {
       position: fixed;
       z-index: -1;
@@ -120,7 +123,7 @@
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.6.0</div>
+  <div id="version-info">Ver 1.6.1</div>
 
   <h1>ポケモンおべんきょう</h1>
 
@@ -185,7 +188,6 @@
     }
     window.onload = function () {
       createBackgroundPokemon();
-      // アイコン更新用の関数があれば実行
       if (typeof updateStatusIcons === 'function') updateStatusIcons();
     };
   </script>
