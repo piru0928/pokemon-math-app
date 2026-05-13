@@ -5,133 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>しょうぎクイズ</title>
   <style>
-    :root { --shogi-wood: #f3d494; --shogi-dark: #5d4037; --accent-red: #e74c3c; --correct-green: #2ecc71; }
-    body { font-family: sans-serif; background-color: #fdf5e6; color: var(--shogi-dark); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+    :root { --shogi-wood: #f3d494; --shogi-dark: #5d4037; --accent-red: #e74c3c; --correct-green: #2ecc71; --pokemon-pink: #ffafcc; }
+    body { font-family: 'Courier New', Courier, monospace; background-color: #fdf5e6; color: var(--shogi-dark); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
     header { background-color: var(--shogi-dark); color: var(--shogi-wood); width: 100%; padding: 15px 0; text-align: center; }
     .container { width: 92%; max-width: 500px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
-    .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; }
-    .level-badge { background: var(--accent-red); color: white; padding: 2px 10px; border-radius: 10px; font-size: 14px; }
-    .combo-badge { background: #ffcb05; color: #333; padding: 2px 10px; border-radius: 10px; font-size: 14px; font-weight: bold; }
-    .question-text { font-size: 18px; font-weight: bold; line-height: 1.6; margin-bottom: 20px; }
-    .shogi-board-img { width: 100%; border-radius: 8px; margin-bottom: 15px; border: 2px solid var(--shogi-dark); }
-    .options { display: grid; gap: 10px; }
-    .option-btn { padding: 15px; font-size: 16px; background: var(--shogi-wood); border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: left; }
-    .explanation-card { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; border-left: 5px solid; }
+    .status-bar { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .combo-badge { background: var(--pokemon-pink); color: white; padding: 2px 10px; border-radius: 10px; font-weight: bold; }
+    .board-aa { background: #eee; padding: 10px; border-radius: 5px; font-family: monospace; white-space: pre; line-height: 1.2; margin: 10px 0; font-size: 14px; border: 1px solid #ccc; text-align: center; }
+    .options { display: grid; gap: 10px; margin-top: 20px; }
+    .option-btn { padding: 15px; font-size: 16px; background: var(--shogi-wood); border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .explanation { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; }
     .next-btn { margin: 20px auto 0; padding: 12px 40px; background: var(--shogi-dark); color: white; border: none; border-radius: 25px; cursor: pointer; display: block; }
-    .pokemon-icon { width: 60px; float: right; margin-top: -30px; }
-    footer { font-size: 10px; color: #aaa; margin-top: 20px; }
-    ruby rt { font-size: 0.6em; }
+    .pokemon-img { width: 70px; float: right; }
+    footer { margin-top: 20px; font-size: 11px; color: #999; }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>しょうぎクイズ</h1>
-</header>
+<header><h1>しょうぎクイズ</h1></header>
 
 <div class="container">
-  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png" class="pokemon-icon" alt="ミュウ">
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" class="pokemon-img" alt="ピッピ">
   
-  <div id="quiz-area">
-    <div class="status-bar">
-      <div id="level-display" class="level-badge">LEVEL 1</div>
-      <div id="combo-display" class="combo-badge">COMBO: 0</div>
-    </div>
-    
-    <div id="q-content">
-      <div class="question-text" id="q-text"></div>
-      <!-- ここに盤面画像が動的に挿入されます -->
-      <div id="board-container"></div>
-    </div>
-
-    <div class="options" id="options-container"></div>
-    <div id="explanation" class="explanation-card"></div>
-    <button id="next-button" class="next-btn" onclick="nextQuestion()" style="display:none;">つぎへ！</button>
+  <div class="status-bar">
+    <div id="lv-disp" style="font-weight:bold;">LEVEL 1</div>
+    <div id="combo-disp" class="combo-badge">COMBO: 0</div>
   </div>
 
-  <div id="result-area" style="display:none; text-align:center;">
-    <h2><ruby>修行完了<rt>しゅぎょうかんりょう</rt></ruby>！</h2>
-    <p id="final-stats"></p>
-    <button class="next-btn" onclick="location.reload()">もう一度あそぶ</button>
-  </div>
+  <div id="q-text" style="font-size:18px; font-weight:bold; margin-bottom:10px;"></div>
+  <div id="board-aa" class="board-aa"></div>
+
+  <div class="options" id="options"></div>
+  <div id="explanation" class="explanation"></div>
+  <button id="next-btn" class="next-btn" style="display:none;" onclick="loadNext()">次の問題へ</button>
 </div>
 
-<footer>Ver. 1.3.0 | しょうぎクイズ</footer>
+<footer>Ver. 1.4.0 | しょうぎクイズ</footer>
 
 <script>
-  const quizPool = {
-    1: [{ q: "「<ruby>歩<rt>ふ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と同じ動きになる？", a: ["<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>金<rt>きん</rt></ruby>", "<ruby>桂馬<rt>けいま</rt></ruby>"], c: 1, e: "歩が成ると「と金」になり、金と同じ最強の守り駒になります！" }],
-    2: [{ q: "「<ruby>角行<rt>かくぎょう</rt></ruby>」が<ruby>成<rt>な</rt></ruby>った「<ruby>龍馬<rt>りょうま</rt></ruby>」の正しい動きは？", a: ["ななめ全部 ＋ 上下左右1マス", "上下左右全部 ＋ ななめ1マス", "どこでも行ける"], c: 0, e: "龍馬（りょうま）は、角の動きに王様の動きが加わった強力な駒です！" }],
-    3: [{ q: "図の囲いの名前は何？<br><small>（金2枚と銀1枚で王様を横から守る形）</small>", img: "image_dbd3fc.png", a: ["<ruby>穴熊<rt>あなぐま</rt></ruby>", "<ruby>矢倉<rt>やぐら</rt></ruby>", "<ruby>美濃囲<rt>みのがこ</rt></ruby>い"], c: 2, e: "これが美濃囲い（みのがこい）です。振り飛車でよく使われます！" }],
-    4: [{ q: "【1手詰】図の状態で、王様を詰ませるにはどこに「金」を打つ？", img: "image_dbd33e.png", a: ["王様のとなり", "王様の目の前（頭）", "王様のななめ後ろ"], c: 1, e: "王様の頭に金を打つ「頭金（あたまきん）」で詰みです！" }],
-    5: [{ q: "【1手詰】持ち駒の「銀」を使って、王様を逃げられなくしてください。", a: ["<ruby>腹銀<rt>はらぎん</rt></ruby>で詰める", "<ruby>頭銀<rt>あたまぎん</rt></ruby>で詰める", "銀を捨てる"], c: 0, e: "王様の横から銀を打つ「腹銀」も有名な詰みの形です。" }]
-  };
+  const questions = [
+    { q: "「<ruby>角<rt>かく</rt></ruby>」が<ruby>成<rt>な</rt></ruby>って「<ruby>龍馬<rt>りょうま</rt></ruby>」になりました。どこに動ける？", aa: "　＼　┃　／\n　　＼前／\n　左━馬━右\n　　／後＼\n　／　┃　＼", a: ["ななめ全部＋前後左右1マス", "前後左右全部", "ななめだけ"], c: 0, e: "龍馬（りょうま）は斜めの動きに加えて、上下左右に1マス動けるようになります。" },
+    { q: "この囲いの名前は何？", aa: "【盤面：右下】\n ・ ・ ・ \n ・ 玉 ・ \n ・ 銀 ・ \n 金 金 ・ ", a: ["穴熊", "美濃囲い", "矢倉"], c: 1, e: "金2枚と銀1枚で王様を横から守る「美濃囲い」です。" },
+    { q: "【1手詰】王様の目の前に「金」を打つ詰みの名前は？", aa: " ・ ・ ・ \n ・ 王 ・ \n ・ 金 ・ \n ・ ・ ・ ", a: ["腹銀", "尻金", "頭金"], c: 2, e: "王様の頭に打つので「頭金（あたまきん）」と言います。" },
+    { q: "「<ruby>歩<rt>ふ</rt></ruby>」が成ったあとの名前は？", aa: "歩 ➡ (？)", a: ["と金", "成歩", "金将"], c: 0, e: "「と金」になります。動きは金と同じになります。" }
+  ];
 
-  let level = 1;
+  let currentIdx = 0;
   let combo = 0;
-  let totalCount = 0;
-  let isMaster = false;
 
-  function loadQuestion() {
-    const lv = isMaster ? Math.floor(Math.random() * 5) + 1 : level;
-    const list = quizPool[lv] || quizPool[1];
-    const q = list[Math.floor(Math.random() * list.length)];
-    
-    document.getElementById("level-display").innerText = isMaster ? "MASTER" : `LEVEL ${level}`;
-    document.getElementById("combo-display").innerText = `COMBO: ${combo}`;
+  function loadNext() {
+    if (currentIdx >= questions.length) {
+        currentIdx = 0; // ループ
+    }
+    const q = questions[currentIdx];
+    document.getElementById("lv-disp").innerText = `LEVEL ${currentIdx + 1}`;
+    document.getElementById("combo-disp").innerText = `COMBO: ${combo}`;
     document.getElementById("q-text").innerHTML = q.q;
+    document.getElementById("board-aa").innerText = q.aa;
     
-    const board = document.getElementById("board-container");
-    board.innerHTML = q.img ? `<img src="${q.img}" class="shogi-board-img">` : "";
-
-    const container = document.getElementById("options-container");
-    container.innerHTML = "";
-    q.a.forEach((opt, i) => {
-      const btn = document.createElement("button");
-      btn.className = "option-btn";
-      btn.innerHTML = opt;
-      btn.onclick = () => checkAnswer(i, q);
-      container.appendChild(btn);
+    const optCont = document.getElementById("options");
+    optCont.innerHTML = "";
+    q.a.forEach((txt, i) => {
+      const b = document.createElement("button");
+      b.className = "option-btn";
+      b.innerHTML = txt;
+      b.onclick = () => check(i);
+      optCont.appendChild(b);
     });
-    
     document.getElementById("explanation").style.display = "none";
-    document.getElementById("next-button").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
   }
 
-  function checkAnswer(idx, q) {
+  function check(i) {
+    const q = questions[currentIdx];
     const exp = document.getElementById("explanation");
-    const btns = document.querySelectorAll(".option-btn");
-    btns.forEach(b => b.disabled = true);
-
-    if (idx === q.c) {
+    if (i === q.c) {
       combo++;
-      if (!isMaster) level++;
-      if (level > 5) isMaster = true;
-      exp.innerHTML = "<strong>★せいかい！★</strong><br>" + q.e;
-      exp.style.borderColor = "var(--correct-green)";
+      exp.innerHTML = "🎉 正解！<br>" + q.e;
       exp.style.backgroundColor = "#d4edda";
     } else {
       combo = 0;
-      exp.innerHTML = "<strong>ざんねん！</strong><br>正解は「" + q.a[q.c] + "」でした。<br>" + q.e;
-      exp.style.borderColor = "var(--accent-red)";
+      exp.innerHTML = "❌ 残念...<br>正解は「" + q.a[q.c] + "」でした。";
       exp.style.backgroundColor = "#f8d7da";
     }
     exp.style.display = "block";
-    document.getElementById("next-button").style.display = "block";
-    totalCount++;
+    document.getElementById("next-btn").style.display = "block";
+    currentIdx++;
   }
 
-  function nextQuestion() {
-    if (totalCount >= 10) {
-      document.getElementById("quiz-area").style.display = "none";
-      document.getElementById("result-area").style.display = "block";
-      document.getElementById("final-stats").innerText = `10問中、たくさん正解できたかな？`;
-    } else {
-      loadQuestion();
-    }
-  }
-
-  window.onload = loadQuestion;
+  loadNext();
 </script>
 </body>
 </html>
