@@ -9,10 +9,10 @@
     body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; touch-action: manipulation; }
     
     #status-row { font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px 0; }
-    #clock-box { background: #fff; border: 4px solid var(--main-blue); padding: 15px; margin: 0 auto; max-width: 280px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    canvas { width: 100%; height: auto; }
+    #clock-box { background: #fff; border: 4px solid var(--main-blue); padding: 15px; margin: 0 auto; max-width: 280px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; }
+    canvas { width: 100%; height: auto; display: block; }
 
-    /* ドラムロール（ピッカー）のスタイル */
+    /* ドラムロールのスタイル */
     .picker-container {
       display: flex; justify-content: center; align-items: center;
       margin: 20px auto; gap: 10px; background: #fff; padding: 10px;
@@ -47,7 +47,6 @@
     #pokemon-img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
     #next-button { margin-top: 10px; padding: 12px 35px; font-size: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
     
-    /* 演出用 */
     @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); background-color: #fff9c4; } }
     .special-mode { animation: celebrate 0.5s ease 3; }
     .confetti { position: fixed; width: 10px; height: 10px; z-index: 999; pointer-events: none; }
@@ -117,6 +116,7 @@
     // ドラムロールの生成
     function createRoll(id, min, max, step) {
       const list = document.getElementById(id);
+      list.innerHTML = ""; // 初期化
       for (let i = min; i <= max; i += step) {
         const item = document.createElement("div");
         item.className = "picker-item";
@@ -129,32 +129,45 @@
           el.classList.toggle("selected", i === index);
         });
       };
-      // 初期状態をセット
-      setTimeout(() => { list.scrollTop = 0; list.onscroll(); }, 100);
+      // 初期位置をセット（少し遅らせて反映）
+      setTimeout(() => { 
+        list.scrollTop = 0; 
+        list.dispatchEvent(new Event('scroll')); 
+      }, 50);
     }
-
-    createRoll("roll-h", 1, 12, 1);
-    createRoll("roll-m", 0, 55, 5); // 5分刻み
 
     function drawClock(h, m) {
       const canvas = document.getElementById("clockCanvas");
       const ctx = canvas.getContext("2d");
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.beginPath(); ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
-      ctx.fillStyle = "white"; ctx.fill();
-      ctx.lineWidth = 5; ctx.strokeStyle = "#333"; ctx.stroke();
-      ctx.font = "bold 22px Arial"; ctx.fillStyle = "#2c3e50";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      
+      ctx.beginPath(); 
+      ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
+      ctx.fillStyle = "white"; 
+      ctx.fill();
+      ctx.lineWidth = 5; 
+      ctx.strokeStyle = "#333"; 
+      ctx.stroke();
+
+      ctx.font = "bold 22px Arial"; 
+      ctx.fillStyle = "#2c3e50";
+      ctx.textAlign = "center"; 
+      ctx.textBaseline = "middle";
       for (let n = 1; n <= 12; n++) {
         let ang = n * Math.PI / 6;
         ctx.fillText(n, radius + Math.sin(ang)*(radius-38), radius - Math.cos(ang)*(radius-38));
       }
+
+      // 短針
       drawHand(ctx, radius, (h % 12 + m / 60) * Math.PI / 6, radius * 0.5, 9, "#2c3e50");
-      drawHand(ctx, radius, m * Math.PI / 30, radius * 0.85, 5, var(--accent-orange));
+      // 長針 (修正点: var(--accent-orange) を文字列にするかCSS変数から取得)
+      drawHand(ctx, radius, m * Math.PI / 30, radius * 0.85, 5, "#e67e22");
+
       ctx.beginPath(); ctx.arc(radius, radius, 8, 0, 2 * Math.PI);
       ctx.fillStyle = "#333"; ctx.fill();
     }
+
     function drawHand(ctx, center, pos, length, width, color) {
       ctx.beginPath(); ctx.lineWidth = width; ctx.lineCap = "round"; ctx.strokeStyle = color;
       ctx.moveTo(center, center);
@@ -171,7 +184,7 @@
       document.getElementById("game-area").style.display = "block";
       
       targetH = Math.floor(Math.random() * 12) + 1;
-      targetM = Math.floor(Math.random() * 12) * 5; // 0, 5, 10...55分
+      targetM = Math.floor(Math.random() * 12) * 5; 
 
       drawClock(targetH, targetM);
     }
@@ -179,8 +192,12 @@
     function checkAnswer() {
       const hList = document.getElementById("roll-h");
       const mList = document.getElementById("roll-m");
-      const userH = parseInt(hList.children[Math.round(hList.scrollTop / 40)].innerText);
-      const userM = parseInt(mList.children[Math.round(mList.scrollTop / 40)].innerText);
+      
+      const hIndex = Math.round(hList.scrollTop / 40);
+      const mIndex = Math.round(mList.scrollTop / 40);
+      
+      const userH = parseInt(hList.children[hIndex].innerText);
+      const userM = parseInt(mList.children[mIndex].innerText);
 
       document.getElementById("game-area").style.display = "none";
       const expBox = document.getElementById("explanation");
@@ -218,7 +235,12 @@
       }
     }
 
-    window.onload = generateQuestion;
+    // すべての準備が整ってから初期化
+    window.onload = () => {
+      createRoll("roll-h", 1, 12, 1);
+      createRoll("roll-m", 0, 55, 5);
+      generateQuestion();
+    };
   </script>
 </body>
 </html>
