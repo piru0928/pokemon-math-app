@@ -3,14 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>とけいマスター Pro - Stylish</title>
+  <title>とけいマスター Pro - Pokemon Edition</title>
   <style>
     :root { --main-blue: #3498db; --accent-orange: #e67e22; --dark-text: #2c3e50; }
-    body { font-family: "Arial", sans-serif; background-color: #f8f9fa; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; touch-action: manipulation; }
+    body { font-family: "Arial", sans-serif; background-color: #f8f9fa; text-align: center; margin: 0; padding: 0; overflow-x: hidden; touch-action: manipulation; }
     
-    #top-nav { text-align: left; margin-bottom: 5px; }
-    #top-nav a { text-decoration: none; color: var(--main-blue); font-weight: bold; font-size: 14px; }
-    #status-row { font-size: 18px; font-weight: bold; color: var(--dark-text); margin: 5px 0 15px 0; }
+    /* ヘッダー・ナビゲーション（スマホで見えなくなる問題を修正） */
+    header {
+      background: white;
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    #top-nav a { 
+      text-decoration: none; 
+      color: var(--main-blue); 
+      font-weight: bold; 
+      font-size: 14px;
+      padding: 8px 12px;
+      border: 1px solid var(--main-blue);
+      border-radius: 20px;
+    }
+    #status-row { font-size: 16px; font-weight: bold; color: var(--dark-text); }
+
+    /* コンテンツエリア */
+    .main-content { padding: 15px; }
 
     #clock-box { 
       background: #fff; margin: 0 auto; width: 280px; height: 280px; 
@@ -19,47 +41,36 @@
     }
     canvas { width: 100%; height: auto; }
 
-    /* ピッカーのスタイル修正 */
     .picker-container {
       display: flex; justify-content: center; align-items: center;
-      margin: 25px auto; gap: 10px; background: #fff; padding: 15px;
+      margin: 20px auto; gap: 10px; background: #fff; padding: 15px;
       border-radius: 20px; max-width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     .picker-wrapper { position: relative; height: 120px; width: 80px; overflow: hidden; background: #fdfdfd; border-radius: 12px; }
-    
-    .picker-list {
-      scroll-snap-type: y mandatory; height: 100%; overflow-y: scroll;
-      scrollbar-width: none;
-    }
+    .picker-list { scroll-snap-type: y mandatory; height: 100%; overflow-y: scroll; scrollbar-width: none; }
     .picker-list::-webkit-scrollbar { display: none; }
-    
-    /* 上下に空のスペースを作るためのパディング設定 */
     .picker-spacer { height: 40px; pointer-events: none; }
-    
-    .picker-item {
-      height: 40px; line-height: 40px; font-size: 20px; font-weight: bold;
-      scroll-snap-align: center; color: #ccc; transition: 0.3s;
-    }
+    .picker-item { height: 40px; line-height: 40px; font-size: 20px; font-weight: bold; scroll-snap-align: center; color: #ccc; transition: 0.3s; }
     .picker-item.selected { color: var(--main-blue); font-size: 26px; }
-    
-    .picker-highlight {
-      position: absolute; top: 40px; left: 0; right: 0; height: 40px;
-      border-top: 2px solid #eee; border-bottom: 2px solid #eee;
-      pointer-events: none; background: rgba(52, 152, 219, 0.03);
-    }
+    .picker-highlight { position: absolute; top: 40px; left: 0; right: 0; height: 40px; border-top: 2px solid #eee; border-bottom: 2px solid #eee; pointer-events: none; background: rgba(52, 152, 219, 0.03); }
     .unit-label { font-size: 18px; font-weight: bold; color: var(--dark-text); }
 
     #check-button {
       width: 85%; max-width: 260px; padding: 16px; font-size: 20px;
       background-color: var(--accent-orange); color: white; border: none;
       border-radius: 50px; cursor: pointer; font-weight: bold;
-      box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3); transition: 0.2s;
+      box-shadow: 0 5px 15px rgba(230, 126, 34, 0.3);
     }
-    #check-button:active { transform: translateY(2px); box-shadow: none; }
 
     #explanation { background: #fff; border-left: 5px solid var(--accent-orange); padding: 15px; margin: 20px auto; max-width: 500px; border-radius: 8px; display: none; text-align: left; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-    #pokemon-img { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; margin-bottom: 10px; }
-    #next-button { margin-top: 15px; padding: 14px 40px; font-size: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
+    
+    /* ポケモン解説エリア */
+    #pokemon-card { background: #fff; border-radius: 15px; padding: 15px; margin-top: 15px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    #pokemon-img { width: 120px; height: 120px; }
+    #pokemon-info { color: #555; font-size: 14px; line-height: 1.5; margin-top: 10px; }
+    #pokemon-name { font-weight: bold; color: var(--main-blue); font-size: 18px; margin: 5px 0; }
+
+    #next-button { margin-top: 15px; padding: 14px 40px; font-size: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; display: none; }
     
     @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); background-color: #fffde7; } }
     .special-mode { animation: celebrate 0.5s ease 3; }
@@ -67,39 +78,40 @@
   </style>
 </head>
 <body>
-  <div id="top-nav">
-    <a href="index.html">🏠 トップページへ</a>
-  </div>
-  
-  <div id="status-row">Combo: <span id="cb">0</span></div>
-
-  <div id="clock-box">
-    <canvas id="clockCanvas" width="300" height="300"></canvas>
-  </div>
-
-  <div id="game-area">
-    <div class="picker-container">
-      <div class="picker-wrapper">
-        <div class="picker-highlight"></div>
-        <div id="roll-h" class="picker-list"></div>
-      </div>
-      <span class="unit-label">時</span>
-      <div class="picker-wrapper">
-        <div class="picker-highlight"></div>
-        <div id="roll-m" class="picker-list"></div>
-      </div>
-      <span class="unit-label">分</span>
+  <header>
+    <div id="top-nav">
+      <a href="https://piru0928.github.io/pokemon-math-app/index.html">🏠 もどる</a>
     </div>
-    <button id="check-button" onclick="checkAnswer()">こたえる！</button>
-  </div>
+    <div id="status-row">Combo: <span id="cb">0</span></div>
+  </header>
 
-  <div id="explanation"></div>
-  <div id="result-area">
-    <img id="pokemon-img" src="" alt="" style="display:none;">
-    <h2 id="special-msg" style="color:var(--accent-orange); display:none;">🎉 スペシャルコンボ！ 🎉</h2>
+  <div class="main-content">
+    <div id="clock-box">
+      <canvas id="clockCanvas" width="300" height="300"></canvas>
+    </div>
+
+    <div id="game-area">
+      <div class="picker-container">
+        <div class="picker-wrapper"><div class="picker-highlight"></div><div id="roll-h" class="picker-list"></div></div>
+        <span class="unit-label">時</span>
+        <div class="picker-wrapper"><div class="picker-highlight"></div><div id="roll-m" class="picker-list"></div></div>
+        <span class="unit-label">分</span>
+      </div>
+      <button id="check-button" onclick="checkAnswer()">こたえる！</button>
+    </div>
+
+    <div id="explanation"></div>
+
+    <div id="pokemon-card">
+      <p style="margin:0; font-size:12px; color:#aaa;">しょうりほうしゅう</p>
+      <img id="pokemon-img" src="" alt="pokemon">
+      <div id="pokemon-name"></div>
+      <div id="pokemon-info"></div>
+      <h2 id="special-msg" style="color:var(--accent-orange); display:none; font-size:16px;">🎉 スペシャルコンボ！ 🎉</h2>
+    </div>
+    
+    <button id="next-button" onclick="generateQuestion()">つぎへ</button>
   </div>
-  
-  <button id="next-button" onclick="generateQuestion()">つぎへ</button>
 
   <script>
     const Buzzer = {
@@ -125,79 +137,72 @@
       }
     };
 
-    let targetH, targetM;
-    let combo = 0;
+    let targetH, targetM, combo = 0;
+
+    async function fetchPokemon(id) {
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`);
+        const data = await response.json();
+        const name = data.names.find(n => n.language.name === "ja").name;
+        const genus = data.genera.find(g => g.language.name === "ja").genus;
+        const entry = data.flavor_text_entries.find(e => e.language.name === "ja").flavor_text.replace(/\f/g, "");
+        
+        document.getElementById("pokemon-name").innerText = `${name} (${genus})`;
+        document.getElementById("pokemon-info").innerText = entry;
+        document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+        document.getElementById("pokemon-card").style.display = "block";
+      } catch (e) {
+        document.getElementById("pokemon-name").innerText = "ポケモン発見！";
+        document.getElementById("pokemon-info").innerText = "こたえにせいかいして、ポケモンをあつめよう！";
+      }
+    }
 
     function createRoll(id, min, max, step) {
       const list = document.getElementById(id);
       list.innerHTML = "";
-      
-      // 上の余白
-      const topSpacer = document.createElement("div");
-      topSpacer.className = "picker-spacer";
-      list.appendChild(topSpacer);
-
-      // 数字アイテム
+      const topSpacer = document.createElement("div"); topSpacer.className = "picker-spacer"; list.appendChild(topSpacer);
       for (let i = min; i <= max; i += step) {
-        const item = document.createElement("div");
-        item.className = "picker-item";
-        item.innerText = i;
-        list.appendChild(item);
+        const item = document.createElement("div"); item.className = "picker-item"; item.innerText = i; list.appendChild(item);
       }
-
-      // 下の余白
-      const bottomSpacer = document.createElement("div");
-      bottomSpacer.className = "picker-spacer";
-      list.appendChild(bottomSpacer);
+      const bottomSpacer = document.createElement("div"); bottomSpacer.className = "picker-spacer"; list.appendChild(bottomSpacer);
 
       list.onscroll = () => {
         const items = Array.from(list.querySelectorAll(".picker-item"));
-        const containerTop = list.getBoundingClientRect().top + 40; // 選択枠の位置
-        
+        const containerTop = list.getBoundingClientRect().top + 40;
         items.forEach(el => {
           const rect = el.getBoundingClientRect();
-          const isSelected = rect.top >= containerTop - 20 && rect.top <= containerTop + 20;
-          el.classList.toggle("selected", isSelected);
+          el.classList.toggle("selected", rect.top >= containerTop - 20 && rect.top <= containerTop + 20);
         });
       };
-      
       setTimeout(() => { list.scrollTop = 0; }, 100);
     }
 
     function drawClock(h, m) {
-      const canvas = document.getElementById("clockCanvas");
-      const ctx = canvas.getContext("2d");
-      const radius = canvas.width / 2;
+      const canvas = document.getElementById("clockCanvas"), ctx = canvas.getContext("2d"), radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.beginPath(); ctx.arc(radius, radius, radius - 15, 0, 2 * Math.PI);
-      ctx.fillStyle = "white"; ctx.fill();
-      ctx.font = "bold 22px Arial"; ctx.fillStyle = "#333";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.beginPath(); ctx.arc(radius, radius, radius - 15, 0, 2 * Math.PI); ctx.fillStyle = "white"; ctx.fill();
+      ctx.font = "bold 22px Arial"; ctx.fillStyle = "#333"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
       for (let n = 1; n <= 12; n++) {
         let ang = n * Math.PI / 6;
         ctx.fillText(n, radius + Math.sin(ang)*(radius-45), radius - Math.cos(ang)*(radius-45));
       }
       drawHand(ctx, radius, (h % 12 + m / 60) * Math.PI / 6, radius * 0.5, 9, "#2c3e50");
       drawHand(ctx, radius, m * Math.PI / 30, radius * 0.8, 5, "#e67e22");
-      ctx.beginPath(); ctx.arc(radius, radius, 7, 0, 2 * Math.PI);
-      ctx.fillStyle = "#333"; ctx.fill();
+      ctx.beginPath(); ctx.arc(radius, radius, 7, 0, 2 * Math.PI); ctx.fillStyle = "#333"; ctx.fill();
     }
 
     function drawHand(ctx, center, pos, length, width, color) {
       ctx.beginPath(); ctx.lineWidth = width; ctx.lineCap = "round"; ctx.strokeStyle = color;
-      ctx.moveTo(center, center);
-      ctx.lineTo(center + Math.sin(pos)*length, center - Math.cos(pos)*length);
-      ctx.stroke();
+      ctx.moveTo(center, center); ctx.lineTo(center + Math.sin(pos)*length, center - Math.cos(pos)*length); ctx.stroke();
     }
 
     function generateQuestion() {
       document.body.classList.remove("special-mode");
       document.getElementById("special-msg").style.display = "none";
       document.getElementById("explanation").style.display = "none";
-      document.getElementById("pokemon-img").style.display = "none";
+      document.getElementById("pokemon-card").style.display = "none";
       document.getElementById("next-button").style.display = "none";
       document.getElementById("game-area").style.display = "block";
-      
       targetH = Math.floor(Math.random() * 12) + 1;
       targetM = Math.floor(Math.random() * 12) * 5; 
       drawClock(targetH, targetM);
@@ -205,18 +210,11 @@
 
     function checkAnswer() {
       const getSelected = (id) => {
-        const list = document.getElementById(id);
-        const selected = list.querySelector(".picker-item.selected");
+        const selected = document.getElementById(id).querySelector(".picker-item.selected");
         return selected ? parseInt(selected.innerText) : null;
       };
-
-      const userH = getSelected("roll-h");
-      const userM = getSelected("roll-m");
-
-      if (userH === null || userM === null) {
-        alert("数字をあわせてね！");
-        return;
-      }
+      const userH = getSelected("roll-h"), userM = getSelected("roll-m");
+      if (userH === null || userM === null) return;
 
       document.getElementById("game-area").style.display = "none";
       const expBox = document.getElementById("explanation");
@@ -225,11 +223,9 @@
       if (userH === targetH && userM === targetM) {
         combo++;
         Buzzer.play(true);
-        expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM === 0 ? 'ちょうど' : targetM + '分'} です。</strong>`;
+        expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM === 0 ? 'ちょうど' : targetM + '分'} です。</strong><br>ごほうびの ポケモンが あらわれた！`;
         if (combo > 0 && combo % 5 === 0) triggerSpecialEffect();
-        const pokeId = Math.floor(Math.random() * 151) + 1;
-        document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
-        document.getElementById("pokemon-img").style.display = "inline";
+        fetchPokemon(Math.floor(Math.random() * 151) + 1); // 初代151匹
       } else {
         combo = 0;
         Buzzer.play(false);
