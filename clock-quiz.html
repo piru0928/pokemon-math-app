@@ -103,7 +103,7 @@
     <div id="explanation"></div>
 
     <div id="pokemon-card">
-      <p style="margin:0; font-size:12px; color:#aaa;">しょうりほうしゅう</p>
+      <p style="margin:0; font-size:12px; color:#aaa;">ポケモンTips</p>
       <img id="pokemon-img" src="" alt="pokemon">
       <div id="pokemon-name"></div>
       <div id="pokemon-info"></div>
@@ -223,7 +223,7 @@
       if (userH === targetH && userM === targetM) {
         combo++;
         Buzzer.play(true);
-        expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM === 0 ? 'ちょうど' : targetM + '分'} です。</strong><br>ごほうびの ポケモンが あらわれた！`;
+        expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM === 0 ? 'ちょうど' : targetM + '分'} です。</strong>;
         if (combo > 0 && combo % 5 === 0) triggerSpecialEffect();
         fetchPokemon(Math.floor(Math.random() * 151) + 1); // 初代151匹
       } else {
