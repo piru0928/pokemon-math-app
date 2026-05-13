@@ -1,62 +1,3 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>しょうぎクイズ</title>
-  <style>
-    :root { --shogi-wood: #f3d494; --shogi-dark: #5d4037; --accent-red: #e74c3c; --correct-green: #2ecc71; --pokemon-pink: #ffafcc; }
-    body { font-family: sans-serif; background-color: #fdf5e6; color: var(--shogi-dark); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-    header { background-color: var(--shogi-dark); color: var(--shogi-wood); width: 100%; padding: 15px 0; text-align: center; }
-    .container { width: 92%; max-width: 500px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
-    .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; }
-    .combo-badge { background: var(--pokemon-pink); color: white; padding: 2px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    /* 盤面を見やすく調整 */
-    .board-aa { background: #f0f0f0; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; white-space: pre; line-height: 1.5; margin: 15px 0; font-size: 18px; border: 2px solid #ddd; text-align: center; letter-spacing: 2px; }
-    .options { display: grid; gap: 12px; margin-top: 20px; }
-    .option-btn { padding: 15px; font-size: 17px; background: var(--shogi-wood); border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: var(--shogi-dark); }
-    .explanation { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; line-height: 1.6; }
-    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-    .nav-btn { padding: 12px 25px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; }
-    .next-btn { background: var(--shogi-dark); color: white; }
-    .home-btn { background: #ccc; color: #333; }
-    .pokemon-img { width: 70px; float: right; margin-top: -10px; }
-    footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; width: 100%; padding-bottom: 20px; }
-    ruby rt { font-size: 0.6em; color: #666; }
-  </style>
-</head>
-<body>
-
-<header><h1><ruby>将棋<rt>しょうぎ</rt></ruby>クイズ</h1></header>
-
-<div id="main-menu" class="container" style="text-align:center;">
-  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" style="width:120px;" alt="ピッピ">
-  <h2>いっしょに<ruby>修行<rt>しゅぎょう</rt></ruby>しよう！</h2>
-  <button class="nav-btn next-btn" style="width:100%; font-size:18px;" onclick="startQuiz()">クイズをはじめる</button>
-</div>
-
-<div id="quiz-container" class="container" style="display:none;">
-  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" class="pokemon-img" alt="ピッピ">
-  
-  <div class="status-bar">
-    <div id="lv-disp" style="font-weight:bold;">LEVEL 1</div>
-    <div id="combo-disp" class="combo-badge">COMBO: 0</div>
-  </div>
-
-  <div id="q-text" style="font-size:18px; font-weight:bold; margin-bottom:10px;"></div>
-  <div id="board-aa" class="board-aa"></div>
-
-  <div class="options" id="options"></div>
-  <div id="explanation" class="explanation"></div>
-  
-  <div class="btn-group">
-    <button class="nav-btn home-btn" onclick="goHome()"><ruby>最初<rt>さいしょ</rt></ruby>に戻る</button>
-    <button id="next-btn" class="nav-btn next-btn" style="display:none;" onclick="loadQuestion()">つぎへ！</button>
-  </div>
-</div>
-
-<footer>Ver. 1.5.0 | しょうぎクイズ</footer>
-
 <script>
   const questions = [
   // --- カテゴリー1：駒の動きと成り（15問） ---
@@ -235,7 +176,7 @@
     aa: "香 ・ ・ \n銀 ・ ・ \n玉 ・ ・ ", 
     a: ["<ruby>王手<rt>おうて</rt></ruby>", "<ruby>千日手<rt>せんにちて</rt></ruby>", "<ruby>反則<rt>はんそく</rt></ruby>"], 
     c: 0, 
-    e: "<ruby>穴熊<rt>あなぐま</rt></ruby>は、周りの駒をはがされない限り、絶対に「<ruby>王手<rt>おうて</rt></ruby>」がかからない最強の囲いなんだ！" 
+    e: "<ruby>穴熊<rt>穴熊</rt></ruby>は、周りの駒をはがされない限り、絶対に「<ruby>王手<rt>おうて</rt></ruby>」がかからない最強の囲いなんだ！" 
   },
 
   // --- カテゴリー3：ルールと格言（5問） ---
@@ -270,10 +211,11 @@
   { 
     q: "取った<ruby>駒<rt>こま</rt></ruby>をどこに置く？", 
     aa: "将棋盤 ➡ [？]", 
-    a: ["<ruby>駒箱<rt>こまばこ</rt></ruby>", "<ruby>駒台<rt>こまだい</rt></ruby>", "<ruby>ポケット<rt>ぽけっと</rt></ruby>"], 
+    a: ["<ruby>駒箱<rt>こまばこ</rt></ruby>", "<ruby>駒台<rt>こmadaい</rt></ruby>", "<ruby>ポケット<rt>ぽけっと</rt></ruby>"], 
     c: 1, 
     e: "取った<ruby>駒<rt>こま</rt></ruby>は「<ruby>駒台<rt>こまだい</rt></ruby>」に置きます。いつでも使える自分の<ruby>味方<rt>みかた</rt></ruby>になるんだね！" 
-  }
+  },
+
   // --- カテゴリー4：駒の利きと活用（31-40問） ---
   { 
     q: "「<ruby>角<rt>かく</rt></ruby>」の<ruby>道<rt>みち</rt></ruby>をあけるために、<ruby>最初<rt>さいしょ</rt></ruby>に<ruby>動<rt>うご</rt></ruby>かす<ruby>歩<rt>ふ</rt></ruby>はどれ？", 
@@ -399,14 +341,14 @@
   { 
     q: "対局のあと、お互いの指し手を振り返ることを？", 
     aa: "棋譜 ＋ お話", 
-    a: ["<ruby>感想戦<rt>かんそうせん</rt></ruby>", "<ruby>反省会<rt>はんせいかい</rt></ruby>", "<ruby>作戦会議<rt>さくせんかいぎ</rt></ruby>"], 
+    a: ["<ruby>感想戦<rt>かんそうせん</rt></ruby>", "<ruby>反省会<rt>はんせいかい</rt></ruby>", "<ruby>作戦会議<rt>さくせん会議</rt></ruby>"], 
     c: 0, 
     e: "「あそこはこう指せばよかったね」と話し合う「<ruby>感想戦<rt>かんそうせん</rt></ruby>」で強くなるんだよ。" 
   },
   { 
     q: "次に自分の番がきたら相手を詰ませられる状態を？", 
     aa: "王 ・ ・ \n・ 飛 ・ \n(次で終わり)", 
-    a: ["<ruby>詰<rt>つ</rt></ruby>み", "<ruby>詰<rt>つ</rt></ruby>めろ", "<ruby>王手<rt>おうて</rt></ruby>"], 
+    a: ["<ruby>詰<rt>つ</rt></ruby>み", "<ruby>詰<rt>つ</rt></me>ろ", "<ruby>王手<rt>おうて</rt></ruby>"], 
     c: 1, 
     e: "まだ「<ruby>王手<rt>おうて</rt></ruby>」ではないけれど、放っておくと詰んじゃう状態を「<ruby>詰<rt>つ</rt></ruby>めろ」と言うよ。" 
   },
@@ -480,5 +422,3 @@
     currentIdx++;
   }
 </script>
-</body>
-</html>
