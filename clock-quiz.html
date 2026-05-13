@@ -2,63 +2,80 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>とけいマスター Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>とけいマスター Pro - Roll Edition</title>
   <style>
-    body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; padding: 10px; margin: 0; overflow-x: hidden; }
-    #clock-box {
-      background: #fff; border: 4px solid #3498db; padding: 20px;
-      margin: 10px auto; max-width: 320px; border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    canvas { max-width: 100%; height: auto; }
-    #question-text { font-size: 18px; margin: 10px; font-weight: bold; color: #e67e22; }
+    :root { --main-blue: #3498db; --accent-orange: #e67e22; }
+    body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; touch-action: manipulation; }
     
-    /* 入力エリア */
-    .input-container { margin: 15px 0; font-size: 24px; font-weight: bold; }
-    .input-container input {
-      width: 60px; font-size: 24px; padding: 5px; text-align: center;
-      border: 3px solid #3498db; border-radius: 10px; outline: none;
+    #status-row { font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px 0; }
+    #clock-box { background: #fff; border: 4px solid var(--main-blue); padding: 15px; margin: 0 auto; max-width: 280px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    canvas { width: 100%; height: auto; }
+
+    /* ドラムロール（ピッカー）のスタイル */
+    .picker-container {
+      display: flex; justify-content: center; align-items: center;
+      margin: 20px auto; gap: 10px; background: #fff; padding: 10px;
+      border-radius: 15px; max-width: 300px; border: 2px solid #ddd;
     }
+    .picker-wrapper { position: relative; height: 120px; width: 80px; overflow: hidden; background: #f9f9f9; border-radius: 8px; }
+    .picker-list {
+      scroll-snap-type: y mandatory; height: 100%; overflow-y: scroll;
+      padding-top: 40px; padding-bottom: 40px; scrollbar-width: none;
+    }
+    .picker-list::-webkit-scrollbar { display: none; }
+    .picker-item {
+      height: 40px; line-height: 40px; font-size: 20px; font-weight: bold;
+      scroll-snap-align: center; color: #999; transition: 0.3s;
+    }
+    .picker-item.selected { color: var(--main-blue); font-size: 26px; }
+    .picker-highlight {
+      position: absolute; top: 40px; left: 0; right: 0; height: 40px;
+      border-top: 2px solid var(--main-blue); border-bottom: 2px solid var(--main-blue);
+      pointer-events: none; background: rgba(52, 152, 219, 0.05);
+    }
+    .unit-label { font-size: 20px; font-weight: bold; margin: 0 5px; }
+
     #check-button {
-      padding: 10px 30px; font-size: 18px; background-color: #e67e22;
-      color: white; border: none; border-radius: 10px; cursor: pointer;
+      width: 80%; max-width: 250px; padding: 15px; font-size: 20px;
+      background-color: var(--accent-orange); color: white; border: none;
+      border-radius: 50px; cursor: pointer; box-shadow: 0 4px 0 #d35400;
     }
+    #check-button:active { transform: translateY(2px); box-shadow: none; }
 
-    #status-row { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
-    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 10px auto; max-width: 500px; border-radius: 10px; display: none; text-align: left; }
+    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 500px; border-radius: 10px; display: none; }
     #pokemon-img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
-    #next-button { margin-top: 10px; padding: 12px 30px; font-size: 18px; background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
+    #next-button { margin-top: 10px; padding: 12px 35px; font-size: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
     
-    /* スペシャル演出用のエフェクト */
-    @keyframes celebrate {
-      0% { transform: scale(1); background-color: #f0f4f8; }
-      50% { transform: scale(1.05); background-color: #fff9c4; }
-      100% { transform: scale(1); background-color: #f0f4f8; }
-    }
+    /* 演出用 */
+    @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); background-color: #fff9c4; } }
     .special-mode { animation: celebrate 0.5s ease 3; }
-    .confetti { position: fixed; width: 10px; height: 10px; background-color: #f1c40f; z-index: 999; pointer-events: none; }
-
-    ruby rt { font-size: 0.5em; color: #34495e; }
+    .confetti { position: fixed; width: 10px; height: 10px; z-index: 999; pointer-events: none; }
+    ruby rt { font-size: 0.5em; }
   </style>
 </head>
 <body>
-  <h1>🕒 とけいマスター Pro</h1>
+  <h1>🕒 とけいマスター Roll</h1>
   
-  <div id="status-row">
-    Combo: <span id="cb">0</span>
-  </div>
+  <div id="status-row">Combo: <span id="cb">0</span></div>
 
   <div id="clock-box">
     <canvas id="clockCanvas" width="300" height="300"></canvas>
   </div>
 
-  <div id="question-text"><ruby>何時<rt>なんじ</rt></ruby><ruby>何分<rt>なんぷん</rt></ruby>かな？</div>
-
-  <div id="input-area" class="input-container">
-    <input type="number" id="ans-h" min="1" max="12"> 時 
-    <input type="number" id="ans-m" min="0" max="59"> 分
-    <br><br>
+  <div id="game-area">
+    <div class="picker-container">
+      <div class="picker-wrapper">
+        <div class="picker-highlight"></div>
+        <div class="picker-list" id="roll-h"></div>
+      </div>
+      <span class="unit-label">時</span>
+      <div class="picker-wrapper">
+        <div class="picker-highlight"></div>
+        <div class="picker-list" id="roll-m"></div>
+      </div>
+      <span class="unit-label">分</span>
+    </div>
     <button id="check-button" onclick="checkAnswer()">こたえる！</button>
   </div>
 
@@ -79,7 +96,7 @@
         osc.connect(gain); gain.connect(this.ctx.destination);
         osc.type = type;
         osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.05, start);
+        gain.gain.setValueAtTime(0.02, start);
         osc.start(start); osc.stop(start + duration);
       },
       play(correct) {
@@ -97,34 +114,47 @@
     let targetH, targetM;
     let combo = 0;
 
+    // ドラムロールの生成
+    function createRoll(id, min, max, step) {
+      const list = document.getElementById(id);
+      for (let i = min; i <= max; i += step) {
+        const item = document.createElement("div");
+        item.className = "picker-item";
+        item.innerText = i;
+        list.appendChild(item);
+      }
+      list.onscroll = () => {
+        const index = Math.round(list.scrollTop / 40);
+        Array.from(list.children).forEach((el, i) => {
+          el.classList.toggle("selected", i === index);
+        });
+      };
+      // 初期状態をセット
+      setTimeout(() => { list.scrollTop = 0; list.onscroll(); }, 100);
+    }
+
+    createRoll("roll-h", 1, 12, 1);
+    createRoll("roll-m", 0, 55, 5); // 5分刻み
+
     function drawClock(h, m) {
       const canvas = document.getElementById("clockCanvas");
       const ctx = canvas.getContext("2d");
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // 時計盤
-      ctx.beginPath();
-      ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
+      ctx.beginPath(); ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
       ctx.fillStyle = "white"; ctx.fill();
       ctx.lineWidth = 5; ctx.strokeStyle = "#333"; ctx.stroke();
-
-      // 数字
-      ctx.font = "bold 20px Arial"; ctx.fillStyle = "#2c3e50";
+      ctx.font = "bold 22px Arial"; ctx.fillStyle = "#2c3e50";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       for (let n = 1; n <= 12; n++) {
         let ang = n * Math.PI / 6;
-        ctx.fillText(n, radius + Math.sin(ang)*(radius-35), radius - Math.cos(ang)*(radius-35));
+        ctx.fillText(n, radius + Math.sin(ang)*(radius-38), radius - Math.cos(ang)*(radius-38));
       }
-
-      // 針の描画 (短針は分の進み具合で少し動く)
-      drawHand(ctx, radius, (h % 12 + m / 60) * Math.PI / 6, radius * 0.5, 8, "#2c3e50");
-      drawHand(ctx, radius, m * Math.PI / 30, radius * 0.8, 5, "#e67e22");
-      
+      drawHand(ctx, radius, (h % 12 + m / 60) * Math.PI / 6, radius * 0.5, 9, "#2c3e50");
+      drawHand(ctx, radius, m * Math.PI / 30, radius * 0.85, 5, var(--accent-orange));
       ctx.beginPath(); ctx.arc(radius, radius, 8, 0, 2 * Math.PI);
       ctx.fillStyle = "#333"; ctx.fill();
     }
-
     function drawHand(ctx, center, pos, length, width, color) {
       ctx.beginPath(); ctx.lineWidth = width; ctx.lineCap = "round"; ctx.strokeStyle = color;
       ctx.moveTo(center, center);
@@ -138,27 +168,21 @@
       document.getElementById("explanation").style.display = "none";
       document.getElementById("pokemon-img").style.display = "none";
       document.getElementById("next-button").style.display = "none";
-      document.getElementById("input-area").style.display = "block";
-      document.getElementById("ans-h").value = "";
-      document.getElementById("ans-m").value = "";
+      document.getElementById("game-area").style.display = "block";
       
       targetH = Math.floor(Math.random() * 12) + 1;
-      const mOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-      targetM = mOptions[Math.floor(Math.random() * mOptions.length)];
+      targetM = Math.floor(Math.random() * 12) * 5; // 0, 5, 10...55分
 
       drawClock(targetH, targetM);
     }
 
     function checkAnswer() {
-      const userH = parseInt(document.getElementById("ans-h").value);
-      const userM = parseInt(document.getElementById("ans-m").value);
+      const hList = document.getElementById("roll-h");
+      const mList = document.getElementById("roll-m");
+      const userH = parseInt(hList.children[Math.round(hList.scrollTop / 40)].innerText);
+      const userM = parseInt(mList.children[Math.round(mList.scrollTop / 40)].innerText);
 
-      if (isNaN(userH) || isNaN(userM)) {
-        alert("数字を入力してね！");
-        return;
-      }
-
-      document.getElementById("input-area").style.display = "none";
+      document.getElementById("game-area").style.display = "none";
       const expBox = document.getElementById("explanation");
       expBox.style.display = "block";
 
@@ -166,21 +190,15 @@
         combo++;
         Buzzer.play(true);
         expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM}分 です。</strong>`;
-        
-        // スペシャル演出（5の倍数コンボ）
-        if (combo > 0 && combo % 5 === 0) {
-          triggerSpecialEffect();
-        }
-
+        if (combo > 0 && combo % 5 === 0) triggerSpecialEffect();
         const pokeId = Math.floor(Math.random() * 151) + 1;
         document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
         document.getElementById("pokemon-img").style.display = "inline";
       } else {
         combo = 0;
         Buzzer.play(false);
-        expBox.innerHTML = `<strong>❌ おしい！ 正解は ${targetH}時${targetM}分 でした。</strong>`;
+        expBox.innerHTML = `<strong>❌ おしい！ 正解は ${targetH}時${targetM}分。</strong>`;
       }
-
       document.getElementById("cb").innerText = combo;
       document.getElementById("next-button").style.display = "inline";
     }
@@ -189,8 +207,6 @@
       Buzzer.fanfare();
       document.body.classList.add("special-mode");
       document.getElementById("special-msg").style.display = "block";
-      
-      // 紙吹雪（簡易版）
       for (let i = 0; i < 30; i++) {
         const confetti = document.createElement("div");
         confetti.className = "confetti";
@@ -198,13 +214,7 @@
         confetti.style.top = "-10px";
         confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
         document.body.appendChild(confetti);
-        
-        const animation = confetti.animate([
-          { transform: 'translateY(0) rotate(0)' },
-          { transform: `translateY(100vh) rotate(${Math.random() * 360}deg)` }
-        ], { duration: 2000 + Math.random() * 1000 });
-        
-        animation.onfinish = () => confetti.remove();
+        confetti.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: `translateY(100vh) rotate(${Math.random() * 360}deg)` }], { duration: 2000 + Math.random() * 1000 }).onfinish = () => confetti.remove();
       }
     }
 
