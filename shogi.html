@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>将棋（しょうぎ）クイズ・マスター</title>
+  <style>
+    :root {
+      --shogi-wood: #f3d494;
+      --shogi-dark: #5d4037;
+      --accent-red: #e74c3c;
+      --correct-green: #2ecc71;
+    }
+    body {
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      background-color: #fdf5e6;
+      color: var(--shogi-dark);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      background-color: var(--shogi-dark);
+      color: var(--shogi-wood);
+      width: 100%;
+      padding: 15px 0;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 { margin: 0; font-size: 20px; }
+    .top-link {
+      display: inline-block;
+      margin-top: 5px;
+      color: var(--shogi-wood);
+      text-decoration: none;
+      font-size: 12px;
+      border: 1px solid var(--shogi-wood);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 500px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    #quiz-area { display: block; }
+    #result-area { display: none; text-align: center; }
+
+    .question-num { font-weight: bold; color: var(--accent-red); margin-bottom: 5px; }
+    .question-text { font-size: 18px; font-weight: bold; margin-bottom: 20px; line-height: 1.6; }
+    ruby rt { font-size: 0.6em; color: #888; }
+
+    .options { display: grid; gap: 10px; }
+    .option-btn {
+      padding: 15px;
+      font-size: 16px;
+      background: var(--shogi-wood);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--shogi-dark);
+      transition: transform 0.1s, background 0.2s;
+    }
+    .option-btn:active { transform: scale(0.98); background: #e6c57a; }
+
+    .explanation-card {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      text-align: left;
+    }
+    .correct-style { background-color: #d4edda; border-left: 5px solid var(--correct-green); }
+    .wrong-style { background-color: #f8d7da; border-left: 5px solid var(--accent-red); }
+
+    .next-btn {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: var(--shogi-dark);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #score-display { font-size: 24px; font-weight: bold; margin: 20px 0; }
+    .restart-btn {
+      padding: 12px 30px;
+      background: var(--correct-green);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>将棋（しょうぎ）クイズ・マスター</h1>
+  <a href="https://piru0928.github.io/pokemon-math-app/index.html" class="top-link">🏠 もどる</a>
+</header>
+
+<div class="container">
+  <div id="quiz-area">
+    <div id="progress" style="font-size: 12px; color: #999; margin-bottom: 10px;"></div>
+    <div class="question-num" id="q-number"></div>
+    <div class="question-text" id="q-text"></div>
+    <div class="options" id="options-container"></div>
+    <div id="explanation" class="explanation-card"></div>
+    <center><button id="next-button" class="next-btn" onclick="nextQuestion()">つぎの問題（もんだい）へ</button></center>
+  </div>
+
+  <div id="result-area">
+    <h2>結果発表（けっかはっぴょう）</h2>
+    <div id="score-display"></div>
+    <p id="evaluation-msg"></p>
+    <button class="restart-btn" onclick="restartQuiz()">もう一度（いちど）あそぶ</button>
+  </div>
+</div>
+
+<script>
+  const quizData = [
+    {
+      q: "<ruby>王様<rt>おうさま</rt></ruby>（<ruby>王将<rt>おうしょう</rt></ruby>）が、一歩（いっぽ）で<ruby>動<rt>うご</rt></ruby>けるのはどの<ruby>方向<rt>ほうこう</rt></ruby>？",
+      a: ["前（まえ）だけに一歩", "ななめ前（まえ）だけに一歩", "まわりの8方向（ほうこう）どこでも"],
+      correct: 2,
+      exp: "王様はまわりのどのマスにも動けます。でも、取られたら負けなので大切に守りましょう！"
+    },
+    {
+      q: "相手（あいて）の<ruby>陣地<rt>じんち</rt></ruby>に<ruby>入<rt>はい</rt></ruby>って、<ruby>駒<rt>こま</rt></ruby>をひっくり<ruby>返<rt>かえ</rt></ruby>してパワーアップすることを何と言う？",
+      a: ["成（な）る", "変身（へんしん）", "進化（しんか）"],
+      correct: 0,
+      exp: "「成（な）る」と言うよ。たとえば「歩（ふ）」が成ると「と金（きん）」になって、とっても強くなるんだ！"
+    },
+    {
+      q: "次（つぎ）の番（ばん）で<ruby>相手<rt>あいて</rt></ruby>の<ruby>王様<rt>おうさま</rt></ruby>を<ruby>取<rt>と</rt></ruby>れる状態（じょうたい）を何と言う？",
+      a: ["リーチ", "王手（おうて）", "詰（つ）み"],
+      correct: 1,
+      exp: "「王手（おうて）」と言います。王手されたら、王様を逃がすか、守るかしなきゃいけません。"
+    },
+    {
+      q: "どう逃（に）げても<ruby>次<rt>つぎ</rt></ruby>に<ruby>王様<rt>おうさま</rt></ruby>が取（と）られてしまう、逃（に）げ場（ば）がない最後（さいご）の状態を何と言う？",
+      a: ["おしまい", "チェックメイト", "詰（つ）み"],
+      correct: 2,
+      exp: "「詰（つ）み」と言います。これが決まったら、対戦（たいせん）がおわりです。"
+    },
+    {
+      q: "<ruby>王様<rt>おうさま</rt></ruby>を安全（あんぜん）な場所（ばしょ）に隠（かく）して、周（まわ）りを駒（こま）で固（かた）める守（まも）りの形を何と言う？",
+      a: ["バリア", "囲（かこ）い", "お城（しろ）"],
+      correct: 1,
+      exp: "「囲（かこ）い」と言います。「美濃囲（みのがこ）い」など、かっこいい名前の守り方がたくさんあるよ！"
+    },
+    {
+      q: "一手先（いってさき）を<ruby>読<rt>よ</rt></ruby>むためのコツは？",
+      a: ["とにかく早く指す", "相手（あいて）の次（つぎ）の動きを予想（よそう）する", "目をつぶって考える"],
+      correct: 1,
+      exp: "「自分がこう動いたら、相手はどうするかな？」と想像（そうぞう）することが、上達（じょうたつ）の近道です。"
+    }
+  ];
+
+  let currentQ = 0;
+  let score = 0;
+
+  function loadQuestion() {
+    const q = quizData[currentQ];
+    document.getElementById("progress").innerText = `もんだい ${currentQ + 1} / ${quizData.length}`;
+    document.getElementById("q-number").innerText = `第 ${currentQ + 1} 問`;
+    document.getElementById("q-text").innerHTML = q.q;
+    
+    const container = document.getElementById("options-container");
+    container.innerHTML = "";
+    q.a.forEach((opt, i) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerText = opt;
+      btn.onclick = () => checkAnswer(i);
+      container.appendChild(btn);
+    });
+
+    document.getElementById("explanation").style.display = "none";
+    document.getElementById("next-button").style.display = "none";
+  }
+
+  function checkAnswer(idx) {
+    const q = quizData[currentQ];
+    const exp = document.getElementById("explanation");
+    const btns = document.getElementsByClassName("option-btn");
+
+    for (let b of btns) b.disabled = true;
+
+    if (idx === q.correct) {
+      score++;
+      exp.innerHTML = "<strong>✨ せいかい！</strong><br>" + q.exp;
+      exp.className = "explanation-card correct-style";
+    } else {
+      exp.innerHTML = "<strong>❌ ざんねん！</strong> 正解は「" + q.a[q.correct] + "」でした。<br>" + q.exp;
+      exp.className = "explanation-card wrong-style";
+    }
+    
+    exp.style.display = "block";
+    document.getElementById("next-button").style.display = "inline-block";
+  }
+
+  function nextQuestion() {
+    currentQ++;
+    if (currentQ < quizData.length) {
+      loadQuestion();
+    } else {
+      showResult();
+    }
+  }
+
+  function showResult() {
+    document.getElementById("quiz-area").style.display = "none";
+    document.getElementById("result-area").style.display = "block";
+    document.getElementById("score-display").innerText = `${quizData.length}問中 ${score}問 正解！`;
+    
+    let msg = "";
+    if (score === quizData.length) msg = "完璧（かんぺき）です！奥様もびっくりするはず！";
+    else if (score >= 4) msg = "すごい！かなり将棋（しょうぎ）に詳しくなりましたね。";
+    else msg = "もう一度（いちど）復習（ふくしゅう）して、基礎（きそ）をマスターしよう！";
+    document.getElementById("evaluation-msg").innerText = msg;
+  }
+
+  function restartQuiz() {
+    currentQ = 0;
+    score = 0;
+    document.getElementById("quiz-area").style.display = "block";
+    document.getElementById("result-area").style.display = "none";
+    loadQuestion();
+  }
+
+  window.onload = loadQuestion;
+</script>
+
+</body>
+</html>
