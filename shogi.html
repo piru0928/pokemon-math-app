@@ -1,484 +1,285 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>しょうぎクイズ</title>
-  <style>
-    :root { --shogi-wood: #f3d494; --shogi-dark: #5d4037; --accent-red: #e74c3c; --correct-green: #2ecc71; --pokemon-pink: #ffafcc; }
-    body { font-family: sans-serif; background-color: #fdf5e6; color: var(--shogi-dark); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-    header { background-color: var(--shogi-dark); color: var(--shogi-wood); width: 100%; padding: 15px 0; text-align: center; }
-    .container { width: 92%; max-width: 500px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
-    .status-bar { display: flex; justify-content: space-between; margin-bottom: 15px; }
-    .combo-badge { background: var(--pokemon-pink); color: white; padding: 2px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    /* 盤面を見やすく調整 */
-    .board-aa { background: #f0f0f0; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; white-space: pre; line-height: 1.5; margin: 15px 0; font-size: 18px; border: 2px solid #ddd; text-align: center; letter-spacing: 2px; }
-    .options { display: grid; gap: 12px; margin-top: 20px; }
-    .option-btn { padding: 15px; font-size: 17px; background: var(--shogi-wood); border: none; border-radius: 10px; cursor: pointer; font-weight: bold; color: var(--shogi-dark); }
-    .explanation { margin-top: 20px; padding: 15px; border-radius: 10px; display: none; line-height: 1.6; }
-    .btn-group { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
-    .nav-btn { padding: 12px 25px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; }
-    .next-btn { background: var(--shogi-dark); color: white; }
-    .home-btn { background: #ccc; color: #333; }
-    .pokemon-img { width: 70px; float: right; margin-top: -10px; }
-    footer { margin-top: 20px; font-size: 11px; color: #999; text-align: center; width: 100%; padding-bottom: 20px; }
-    ruby rt { font-size: 0.6em; color: #666; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>しょうぎクイズ</title>
+  <style>
+    :root { 
+      --shogi-wood: #f3d494; 
+      --shogi-dark: #5d4037; 
+      --accent-red: #e74c3c; 
+      --correct-green: #2ecc71; 
+      --pokemon-pink: #ffafcc; 
+    }
+
+    body { 
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif; 
+      background-color: #fdf5e6; 
+      color: var(--shogi-dark); 
+      margin: 0; 
+      padding: 0; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      min-height: 100vh;
+    }
+
+    header { 
+      background-color: var(--shogi-dark); 
+      color: var(--shogi-wood); 
+      width: 100%; 
+      padding: 15px 0; 
+      text-align: center; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    h1 { margin: 0; font-size: 24px; }
+
+    .container { 
+      width: 90%; 
+      max-width: 500px; 
+      margin: 20px auto; 
+      background: white; 
+      padding: 20px; 
+      border-radius: 15px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+      box-sizing: border-box;
+    }
+
+    .status-bar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      margin-bottom: 15px; 
+    }
+
+    .combo-badge { 
+      background: var(--pokemon-pink); 
+      color: white; 
+      padding: 4px 12px; 
+      border-radius: 20px; 
+      font-weight: bold; 
+      font-size: 14px; 
+    }
+
+    /* 盤面表示の修正：はみ出し防止と中央揃え */
+    .board-aa { 
+      background: #fafafa; 
+      padding: 15px; 
+      border-radius: 10px; 
+      font-family: "Consolas", "Monaco", "Courier New", monospace; 
+      white-space: pre-wrap; /* 折り返しを許可 */
+      word-wrap: break-word;
+      line-height: 1.4; 
+      margin: 15px 0; 
+      font-size: 1.2rem; 
+      border: 2px solid #eee; 
+      text-align: center; 
+      letter-spacing: 0.1em;
+      color: #333;
+    }
+
+    .options { 
+      display: grid; 
+      gap: 10px; 
+      margin-top: 20px; 
+    }
+
+    .option-btn { 
+      padding: 12px 10px; 
+      font-size: 16px; 
+      background: var(--shogi-wood); 
+      border: none; 
+      border-radius: 10px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      color: var(--shogi-dark); 
+      transition: transform 0.1s, background 0.2s;
+      line-height: 1.5; /* ルビがあっても崩れないように */
+    }
+
+    .option-btn:active { transform: scale(0.98); }
+    .option-btn:disabled { opacity: 0.7; cursor: default; }
+
+    .explanation { 
+      margin-top: 20px; 
+      padding: 15px; 
+      border-radius: 10px; 
+      display: none; 
+      line-height: 1.6; 
+      font-size: 15px;
+    }
+
+    .btn-group { 
+      display: flex; 
+      gap: 10px; 
+      justify-content: center; 
+      margin-top: 20px; 
+    }
+
+    .nav-btn { 
+      padding: 12px 20px; 
+      border: none; 
+      border-radius: 25px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      font-size: 15px; 
+      flex: 1;
+    }
+
+    .next-btn { background: var(--shogi-dark); color: white; }
+    .home-btn { background: #eee; color: #666; }
+
+    .pokemon-img { 
+      width: 60px; 
+      height: 60px;
+      object-fit: contain;
+      float: right; 
+      margin-top: -5px; 
+    }
+
+    footer { 
+      margin-top: auto; 
+      font-size: 11px; 
+      color: #999; 
+      text-align: center; 
+      padding: 20px 0; 
+    }
+
+    ruby rt { font-size: 0.6em; color: rgba(0,0,0,0.5); }
+  </style>
 </head>
 <body>
 
-<header><h1><ruby>将棋<rt>しょうぎ</rt></ruby>クイズ</h1></header>
+<header>
+  <h1><ruby>将棋<rt>しょうぎ</rt></ruby>クイズ</h1>
+</header>
 
 <div id="main-menu" class="container" style="text-align:center;">
-  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" style="width:120px;" alt="ピッピ">
-  <h2>いっしょに<ruby>修行<rt>しゅぎょう</rt></ruby>しよう！</h2>
-  <button class="nav-btn next-btn" style="width:100%; font-size:18px;" onclick="startQuiz()">クイズをはじめる</button>
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" style="width:120px; margin-bottom: 10px;" alt="ピッピ">
+  <h2 style="margin-bottom: 20px;">いっしょに<ruby>修行<rt>しゅぎょう</rt></ruby>しよう！</h2>
+  <button class="nav-btn next-btn" style="width:100%; font-size:18px;" onclick="startQuiz()">クイズをはじめる</button>
 </div>
 
 <div id="quiz-container" class="container" style="display:none;">
-  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" class="pokemon-img" alt="ピッピ">
-  
-  <div class="status-bar">
-    <div id="lv-disp" style="font-weight:bold;">LEVEL 1</div>
-    <div id="combo-disp" class="combo-badge">COMBO: 0</div>
-  </div>
+  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png" class="pokemon-img" alt="ピッピ">
+  
+  <div class="status-bar">
+    <div id="lv-disp" style="font-weight:bold; color: var(--shogi-dark);">LEVEL 1</div>
+    <div id="combo-disp" class="combo-badge">COMBO: 0</div>
+  </div>
 
-  <div id="q-text" style="font-size:18px; font-weight:bold; margin-bottom:10px;"></div>
-  <div id="board-aa" class="board-aa"></div>
+  <div id="q-text" style="font-size:1.1rem; font-weight:bold; margin-bottom:10px; clear: left;"></div>
+  <div id="board-aa" class="board-aa"></div>
 
-  <div class="options" id="options"></div>
-  <div id="explanation" class="explanation"></div>
-  
-  <div class="btn-group">
-    <button class="nav-btn home-btn" onclick="goHome()"><ruby>最初<rt>さいしょ</rt></ruby>に戻る</button>
-    <button id="next-btn" class="nav-btn next-btn" style="display:none;" onclick="loadQuestion()">つぎへ！</button>
-  </div>
+  <div class="options" id="options"></div>
+  <div id="explanation" class="explanation"></div>
+  
+  <div class="btn-group">
+    <button class="nav-btn home-btn" onclick="goHome()">🏠 もどる</button>
+    <button id="next-btn" class="nav-btn next-btn" style="display:none;" onclick="loadQuestion()">つぎへ！ ➡</button>
+  </div>
 </div>
 
-<footer>Ver. 1.5.0 | しょうぎクイズ</footer>
+<footer>Ver. 1.5.1 | しょうぎクイズ</footer>
 
 <script>
-  const questions = [
-  // --- カテゴリー1：駒の動きと成り（15問） ---
-  { 
-    q: "「<ruby>角<rt>かく</rt></ruby>」が<ruby>成<rt>な</rt></ruby>った「<ruby>龍馬<rt>りょうま</rt></ruby>」は、どこに<ruby>動<rt>うご</rt></ruby>ける？", 
-    aa: "＼　┃　／\n　＼前／　\n━　馬　━\n　／後／　\n／　┃　／", 
-    a: ["ななめ<ruby>全部<rt>ぜんぶ</rt></ruby> ＋ <ruby>前後左右<rt>ぜんごさゆう</rt></ruby>1マス", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby><ruby>全部<rt>ぜんぶ</rt></ruby>", "ななめだけ"], 
-    c: 0, 
-    e: "「<ruby>龍馬<rt>りょうま</rt></ruby>」は<ruby>斜<rt>なな</rt></ruby>めの<ruby>動<rt>うご</rt></ruby>きに、<ruby>王様<rt>おうさま</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きがプラスされます！" 
-  },
-  { 
-    q: "「<ruby>歩<rt>ふ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", 
-    aa: "歩 ➡ (？)", 
-    a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>桂馬<rt>けいま</rt></ruby>"], 
-    c: 0, 
-    e: "「と<ruby>金<rt>きん</rt></ruby>」は、<ruby>金<rt>きん</rt></ruby>と<ruby>全<rt>まった</rt></ruby>く<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになるんだよ！" 
-  },
-  { 
-    q: "「<ruby>桂馬<rt>けいま</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", 
-    aa: "桂 ➡ (？)", 
-    a: ["<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>金<rt>きん</rt></ruby>", "<ruby>角<rt>かく</rt></ruby>"], 
-    c: 1, 
-    e: "「<ruby>成桂<rt>なりけい</rt></ruby>」も、やはり<ruby>金<rt>きん</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きになります。" 
-  },
-  { 
-    q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>った「<ruby>龍王<rt>りゅうおう</rt></ruby>」に<ruby>追加<rt>ついか</rt></ruby>される<ruby>動<rt>うご</rt></ruby>きは？", 
-    aa: "＼　┃　／\n━　龍　━\n／　┃　＼", 
-    a: ["ななめ1マス", "<ruby>横<rt>よこ</rt></ruby>1マス", "どこでもいける"], 
-    c: 0, 
-    e: "<ruby>最強<rt>さいきょう</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>、<ruby>龍王<rt>りゅうおう</rt></ruby>は<ruby>斜<rt>なな</rt></ruby>めにも1マス<ruby>動<rt>うご</rt></ruby>けるよ！" 
-  },
-  { 
-    q: "「<ruby>銀将<rt>ぎんしょう</rt></ruby>」が<ruby>行<rt>い</rt></ruby>けないのはどこ？", 
-    aa: "＼　↑　／\n←　銀　→\n／　↓　＼", 
-    a: ["<ruby>真下<rt>ました</rt></ruby>", "<ruby>真横<rt>まよこ</rt></ruby>", "<ruby>真下<rt>ました</rt></ruby>と<ruby>真横<rt>まよこ</rt></ruby>"], 
-    c: 2, 
-    e: "<ruby>銀<rt>ぎん</rt></ruby>は、<ruby>真横<rt>まよこ</rt></ruby>と<ruby>真下<rt>ました</rt></ruby>には<ruby>動<rt>うご</rt></ruby>けないんだ。" 
-  },
-  { 
-    q: "「<ruby>香車<rt>きょうしゃ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", 
-    aa: "香 ➡ (？)", 
-    a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>角<rt>かく</rt></ruby>"], 
-    c: 0, 
-    e: "「<ruby>成香<rt>なりきょう</rt></ruby>」も、<ruby>金<rt>きん</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きになります。" 
-  },
-  { 
-    q: "「<ruby>銀将<rt>ぎんしょう</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", 
-    aa: "銀 ➡ (？)", 
-    a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>王<rt>おう</rt></ruby>", "<ruby>飛車<rt>ひしゃ</rt></ruby>"], 
-    c: 0, 
-    e: "「<ruby>成銀<rt>なりぎん</rt></ruby>」も、<ruby>金<rt>きん</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きになります。<ruby>成<rt>な</rt></ruby>ると<ruby>斜<rt>なな</rt></ruby>めうしろに行けなくなるよ！" 
-  },
-  { 
-    q: "「<ruby>金将<rt>きんしょう</rt></ruby>」が<ruby>行<rt>い</rt></ruby>けないのはどこ？", 
-    aa: "＼　↑　／\n←　金　→\n／　↓　＼", 
-    a: ["<ruby>真下<rt>ました</rt></ruby>", "<ruby>ななめうしろ<rt>ななめうしろ</rt></ruby>", "<ruby>ななめうしろ<rt>ななめうしろ</rt></ruby>2か所"], 
-    c: 2, 
-    e: "<ruby>金<rt>きん</rt></ruby>は<ruby>斜<rt>なな</rt></ruby>めうしろには<ruby>動<rt>うご</rt></ruby>けないよ。<ruby>守<rt>まも</rt></ruby>りの<ruby>要<rt>かなめ</rt></ruby>だね！" 
-  },
-  { 
-    q: "「<ruby>王様<rt>おうさま</rt></ruby>」が1マスで<ruby>動<rt>うご</rt></ruby>けるのはどこ？", 
-    aa: "＼　↑　／\n←　玉　→\n／　↓　＼", 
-    a: ["ななめだけ", "まわり1マス<ruby>全部<rt>ぜんぶ</rt></ruby>", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby>だけ"], 
-    c: 1, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>は8<ruby>方向<rt>ほうこう</rt></ruby>すべてに1マスずつ<ruby>動<rt>うご</rt></ruby>けるんだ！" 
-  },
-  { 
-    q: "「<ruby>角行<rt>かくぎょう</rt></ruby>」が1<ruby>歩<rt>ぽ</rt></ruby>も<ruby>動<rt>うご</rt></ruby>けない<ruby>方向<rt>ほうこう</rt></ruby>は？", 
-    aa: "＼　↑　／\n←　角　→\n／　↓　＼", 
-    a: ["ななめ", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby>", "うしろだけ"], 
-    c: 1, 
-    e: "<ruby>角<rt>かく</rt></ruby>は<ruby>斜<rt>なな</rt></ruby>めにはどこまでもいけるけど、<ruby>縦横<rt>たてよこ</rt></ruby>にはいけません。" 
-  },
-  { 
-    q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」が1<ruby>歩<rt>ぽ</rt></ruby>も<ruby>動<rt>うご</rt></ruby>けない<ruby>方向<rt>ほうこう</rt></ruby>は？", 
-    aa: "＼　↑　／\n←　飛　→\n／　↓　＼", 
-    a: ["ななめ", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby>", "前だけ"], 
-    c: 0, 
-    e: "<ruby>飛車<rt>ひしゃ</rt></ruby>は<ruby>縦横<rt>たてよこ</rt></ruby>にはどこまでもいけるけど、<ruby>斜<rt>なな</rt></ruby>めにはいけません。" 
-  },
-  { 
-    q: "「<ruby>桂馬<rt>けいま</rt></ruby>」だけの<ruby>特別<rt>とくべつ</rt></ruby>なルールは？", 
-    aa: "　？　？　\n　　　　　\n　　桂　　", 
-    a: ["<ruby>駒<rt>こま</rt></ruby>を飛び越えられる", "2マス進める", "うしろに下がれる"], 
-    c: 0, 
-    e: "<ruby>桂馬<rt>けいま</rt></ruby>は<ruby>他<rt>ほか</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>をピョンと<ruby>飛<rt>と</rt></ruby>び<ruby>越<rt>こ</rt></ruby>せる<ruby>唯一<rt>ゆいいつ</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>だよ！" 
-  },
-  { 
-    q: "「<ruby>歩<rt>ふ</rt></ruby>」は、どこまで<ruby>進<rt>すす</rt></ruby>める？", 
-    aa: "　↑　\n　歩　", 
-    a: ["前へ1マスだけ", "前へどこまでも", "横へ1マス"], 
-    c: 0, 
-    e: "<ruby>歩<rt>ふ</rt></ruby>は地道に前へ1マスずつ。でも「<ruby>成<rt>な</rt></ruby>る」と強くなるよ！" 
-  },
-  { 
-    q: "「<ruby>香車<rt>きょうしゃ</rt></ruby>」は、どこまで<ruby>進<rt>すす</rt></ruby>める？", 
-    aa: "　↑　\n　┃　\n　香　", 
-    a: ["前へ1マスだけ", "前へどこまでも", "ななめ前へ"], 
-    c: 1, 
-    e: "<ruby>香車<rt>きょうしゃ</rt></ruby>は「やり」とも呼ばれ、前へどこまでもいけるんだ！" 
-  },
-  { 
-    q: "「<ruby>金<rt>きん</rt></ruby>」と「<ruby>銀<rt>ぎん</rt></ruby>」、どちらも<ruby>行<rt>い</rt></ruby>けるのはどこ？", 
-    aa: "金　　銀", 
-    a: ["<ruby>真横<rt>まよこ</rt></ruby>", "ななめ前1マス", "ななめうしろ1マス"], 
-    c: 1, 
-    e: "<ruby>金<rt>きん</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>、どちらもななめ前には<ruby>動<rt>うご</rt></ruby>けます。<ruby>攻<rt>せ</rt></ruby>めに大事なところだね！" 
-  },
+  // 質問データ（内容はそのまま保持）
+  const questions = [
+    { q: "「<ruby>角<rt>かく</rt></ruby>」が<ruby>成<rt>な</rt></ruby>った「<ruby>龍馬<rt>りょうま</rt></ruby>」は、どこに<ruby>動<rt>うご</rt></ruby>ける？", aa: "＼　┃　／\n　＼前／　\n━　馬　━\n　／後／　\n／　┃　／", a: ["ななめ<ruby>全部<rt>ぜんぶ</rt></ruby> ＋ <ruby>前後左右<rt>ぜんごさゆう</rt></ruby>1マス", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby><ruby>全部<rt>ぜんぶ</rt></ruby>", "ななめだけ"], c: 0, e: "「<ruby>龍馬<rt>りょうま</rt></ruby>」は<ruby>斜<rt>なな</rt></ruby>めの<ruby>動<rt>うご</rt></ruby>きに、<ruby>王様<rt>おうさま</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きがプラスされます！" },
+    { q: "「<ruby>歩<rt>ふ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", aa: "歩 ➡ (？)", a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>桂馬<rt>けいま</rt></ruby>"], c: 0, e: "「と<ruby>金<rt>きん</rt></ruby>」は、<ruby>金<rt>きん</rt></ruby>と<ruby>全<rt>まった</rt></ruby>く<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになるんだよ！" },
+    { q: "「<ruby>桂馬<rt>けいま</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", aa: "桂 ➡ (？)", a: ["<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>金<rt>きん</rt></ruby>", "<ruby>角<rt>かく</rt></ruby>"], c: 1, e: "「<ruby>成桂<rt>なりけい</rt></ruby>」も、やはり<ruby>金<rt>きん</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きになります。" },
+    { q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>った「<ruby>龍王<rt>りゅうおう</rt></ruby>」に<ruby>追加<rt>ついか</rt></ruby>される<ruby>動<rt>うご</rt></ruby>きは？", aa: "＼　┃　／\n━　龍　━\n／　┃　＼", a: ["ななめ1マス", "<ruby>横<rt>よこ</rt></ruby>1マス", "どこでもいける"], c: 0, e: "<ruby>最強<rt>さいきょう</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>、<ruby>龍王<rt>りゅうおう</rt></ruby>は<ruby>斜<rt>なな</rt></ruby>めにも1マス<ruby>動<rt>うご</rt></ruby>けるよ！" },
+    { q: "「<ruby>銀将<rt>ぎんしょう</rt></ruby>」が<ruby>行<rt>い</rt></ruby>けないのはどこ？", aa: "＼　↑　／\n←　銀　→\n／　↓　＼", a: ["<ruby>真下<rt>ました</rt></ruby>", "<ruby>真横<rt>まよこ</rt></ruby>", "<ruby>真下<rt>ました</rt></ruby>と<ruby>真横<rt>まよこ</rt></ruby>"], c: 2, e: "<ruby>銀<rt>ぎん</rt></ruby>は、<ruby>真横<rt>まよこ</rt></ruby>と<ruby>真下<rt>ました</rt></ruby>には<ruby>動<rt>うご</rt></ruby>けないんだ。" },
+    { q: "「<ruby>香車<rt>きょうしゃ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", aa: "香 ➡ (？)", a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>角<rt>かく</rt></ruby>"], c: 0, e: "「<ruby>成香<rt>なりきょう</rt></ruby>」も、<ruby>金<rt>きん</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きになります。" },
+    { q: "「<ruby>銀将<rt>ぎんしょう</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ると、どの<ruby>駒<rt>こま</rt></ruby>と<ruby>同<rt>おな</rt></ruby>じ<ruby>動<rt>うご</rt></ruby>きになる？", aa: "銀 ➡ (？)", a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>王<rt>おう</rt></ruby>", "<ruby>飛車<rt>ひしゃ</rt></ruby>"], c: 0, e: "「<ruby>成銀<rt>なりぎん</rt></ruby>」も、<ruby>金<rt>きん</rt></ruby>の<ruby>動<rt>うご</rt></ruby>きになります。<ruby>成<rt>な</rt></ruby>ると<ruby>斜<rt>なな</rt></ruby>めうしろに行けなくなるよ！" },
+    { q: "「<ruby>金将<rt>きんしょう</rt></ruby>」が<ruby>行<rt>い</rt></ruby>けないのはどこ？", aa: "＼　↑　／\n←　金　→\n／　↓　＼", a: ["<ruby>真下<rt>ました</rt></ruby>", "<ruby>ななめうしろ<rt>ななめうしろ</rt></ruby>", "<ruby>ななめうしろ<rt>ななめうしろ</rt></ruby>2か所"], c: 2, e: "<ruby>金<rt>きん</rt></ruby>は<ruby>斜<rt>なな</rt></ruby>めうしろには<ruby>動<rt>うご</rt></ruby>けないよ。<ruby>守<rt>まも</rt></ruby>りの<ruby>要<rt>かなめ</rt></ruby>だね！" },
+    { q: "「<ruby>王様<rt>おうさま</rt></ruby>」が1マスで<ruby>動<rt>うご</rt></ruby>けるのはどこ？", aa: "＼　↑　／\n←　玉　→\n／　↓　＼", a: ["ななめだけ", "まわり1マス<ruby>全部<rt>ぜんぶ</rt></ruby>", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby>だけ"], c: 1, e: "<ruby>王様<rt>おうさま</rt></ruby>は8<ruby>方向<rt>ほうこう</rt></ruby>すべてに1マスずつ<ruby>動<rt>うご</rt></ruby>けるんだ！" },
+    { q: "「<ruby>角行<rt>かくぎょう</rt></ruby>」が1<ruby>歩<rt>ぽ</rt></ruby>も<ruby>動<rt>うご</rt></ruby>けない<ruby>方向<rt>ほうこう</rt></ruby>は？", aa: "＼　↑　／\n←　角　→\n／　↓　＼", a: ["ななめ", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby>", "うしろだけ"], c: 1, e: "<ruby>角<rt>かく</rt></ruby>は<ruby>斜<rt>なな</rt></ruby>めにはどこまでもいけるけど、<ruby>縦横<rt>たてよこ</rt></ruby>にはいけません。" },
+    { q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」が1<ruby>歩<rt>ぽ</rt></ruby>も<ruby>動<rt>うご</rt></ruby>けない<ruby>方向<rt>ほうこう</rt></ruby>は？", aa: "＼　↑　／\n←　飛　→\n／　↓　＼", a: ["ななめ", "<ruby>前後左右<rt>ぜんごさゆう</rt></ruby>", "前だけ"], c: 0, e: "<ruby>飛車<rt>ひしゃ</rt></ruby>は<ruby>縦横<rt>たてよこ</rt></ruby>にはどこまでもいけるけど、<ruby>斜<rt>なな</rt></ruby>めにはいけません。" },
+    { q: "「<ruby>桂馬<rt>けいま</rt></ruby>」だけの<ruby>特別<rt>とくべつ</rt></ruby>なルールは？", aa: "　？　？　\n　　　　　\n　　桂　　", a: ["<ruby>駒<rt>こま</rt></ruby>を飛び越えられる", "2マス進める", "うしろに下がれる"], c: 0, e: "<ruby>桂馬<rt>けいま</rt></ruby>は<ruby>他<rt>ほか</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>をピョンと<ruby>飛<rt>と</rt></ruby>び<ruby>越<rt>こ</rt></ruby>せる<ruby>唯一<rt>ゆいいつ</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>だよ！" },
+    { q: "「<ruby>歩<rt>ふ</rt></ruby>」は、どこまで<ruby>進<rt>すす</rt></ruby>める？", aa: "　↑　\n　歩　", a: ["前へ1マスだけ", "前へどこまでも", "横へ1マス"], c: 0, e: "<ruby>歩<rt>ふ</rt></ruby>は地道に前へ1マスずつ。でも「<ruby>成<rt>な</rt></ruby>る」と強くなるよ！" },
+    { q: "「<ruby>香車<rt>きょうしゃ</rt></ruby>」は、どこまで<ruby>進<rt>すす</rt></ruby>める？", aa: "　↑　\n　┃　\n　香　", a: ["前へ1マスだけ", "前へどこまでも", "ななめ前へ"], c: 1, e: "<ruby>香車<rt>きょうしゃ</rt></ruby>は「やり」とも呼ばれ、前へどこまでもいけるんだ！" },
+    { q: "「<ruby>金<rt>きん</rt></ruby>」と「<ruby>銀<rt>ぎん</rt></ruby>」、どちらも<ruby>行<rt>い</rt></ruby>けるのはどこ？", aa: "金　　銀", a: ["<ruby>真横<rt>まよこ</rt></ruby>", "ななめ前1マス", "ななめうしろ1マス"], c: 1, e: "<ruby>金<rt>きん</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>、どちらもななめ前には<ruby>動<rt>うご</rt></ruby>けます。<ruby>攻<rt>せ</rt></ruby>めに大事なところだね！" },
+    { q: "この<ruby>囲<rt>かこ</rt></ruby>いの<ruby>名前<rt>なまえ</rt></ruby>は何？", aa: "・ ・ ・ \n・ 玉 ・ \n・ 銀 ・ \n金 金 ・ ", a: ["<ruby>穴熊<rt>あなぐま</rt></ruby>", "<ruby>美濃囲<rt>みのがこ</rt></ruby>い", "<ruby>矢倉<rt>やぐら</rt></ruby>"], c: 1, e: "<ruby>金<rt>きん</rt></ruby>2<ruby>枚<rt>まい</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>1<ruby>枚<rt>まい</rt></ruby>でガッチリ<ruby>守<rt>まomも</rt></ruby>る、<ruby>振<rt>ふ</rt></ruby>り<ruby>飛車<rt>びしゃ</rt></ruby>の<ruby>基本<rt>きほん</rt></ruby>です！" },
+    { q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>王様<rt>おうさま</rt></ruby>の<ruby>目<rt>め</rt></ruby>の<ruby>前<rt>まえ</rt></ruby>に「<ruby>金<rt>きん</rt></ruby>」を<ruby>打<rt>う</rt></ruby>つ<ruby>詰<rt>つ</rt></ruby>みの<ruby>名前<rt>なまえ</rt></ruby>は？", aa: "・ ・ ・ \n・ 王 ・ \n・ ？ ・ \n・ ・ ・ ", a: ["<ruby>腹銀<rt>はらぎん</rt></ruby>", "<ruby>尻金<rt>しりきん</rt></ruby>", "<ruby>頭金<rt>あたまきん</rt></ruby>"], c: 2, e: "<ruby>王様<rt>おうさま</rt></ruby>の「<ruby>頭<rt>あたま</rt></ruby>」に<ruby>金<rt>きん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つので「<ruby>頭金<rt>あたまきん</rt></ruby>」といいます！" },
+    { q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>王様<rt>おうさま</rt></ruby>の「<ruby>横<rt>よこ</rt></ruby>」から<ruby>銀<rt>ぎん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つ<ruby>詰<rt>つ</rt></ruby>みを何という？", aa: "・ ・ ・ \n・ 玉 ？ \n・ ・ ・ ", a: ["<ruby>頭銀<rt>あたまぎん</rt></ruby>", "<ruby>腹銀<rt>はらぎん</rt></ruby>", "<ruby>尻銀<rt>しりぎん</rt></ruby>"], c: 1, e: "<ruby>王様<rt>おうさま</rt></ruby>の「お<ruby>腹<rt>はら</rt></ruby>」に<ruby>銀<rt>ぎん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つから「<ruby>腹銀<rt>はらぎん</rt></ruby>」だよ！" },
+    { q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>一番<rt>いちばん</rt></ruby>うしろから<ruby>金<rt>きん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つ<ruby>詰<rt>つ</rt></ruby>みは？", aa: "・ 王 ・ \n・ ・ ・ \n・ ？ ・ ", a: ["<ruby>尻金<rt>しりきん</rt></ruby>", "<ruby>底金<rt>そこきん</rt></ruby>", "<ruby>背金<rt>せきん</rt></ruby>"], c: 0, e: "<ruby>王様<rt>おうさま</rt></ruby>の「お<ruby>尻<rt>しり</rt></ruby>」に<ruby>打<rt>う</rt></ruby>つので「<ruby>尻金<rt>しりきん</rt></ruby>」といいます。" },
+    { q: "隅っこに<ruby>王様<rt>おうさま</rt></ruby>を隠して、<ruby>香車<rt>きょうしゃ</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>でふたをする囲いは？", aa: "香 ・ ・ \n銀 ・ ・ \n玉 ・ ・ ", a: ["<ruby>美濃囲<rt>みのがこ</rt></ruby>い", "<ruby>穴熊<rt>あなぐま</rt></ruby>", "<ruby>船囲<rt>ふながこ</rt></ruby>い"], c: 1, e: "「<ruby>穴<rt>あな</rt></ruby>」に<ruby>潜<rt>もぐ</rt></ruby>った「<ruby>熊<rt>くま</rt></ruby>」のように固い「<ruby>穴熊<rt>あなぐま</rt></ruby>」です。" },
+    { q: "「<ruby>二歩<rt>にふ</rt></ruby>」とは、どんな<ruby>反則<rt>はんそく</rt></ruby>？", aa: "歩 ・ ・ \n歩 ・ ・ \n・ ・ ・ ", a: ["<ruby>同<rt>おな</rt></ruby>じ<ruby>列<rt>れつ</rt></ruby>に<ruby>歩<rt>ふ</rt></ruby>を2<ruby>枚置<rt>まいお</rt></ruby>く", "<ruby>歩<rt>ふ</rt></ruby>を2<ruby>回動<rt>かいどう</rt></ruby>かす", "<ruby>歩<rt>ふ</rt></ruby>を2<ruby>枚捨<rt>まいす</rt></ruby>てる"], c: 0, e: "同じ<ruby>列<rt>れつ</rt></ruby>（<ruby>縦<rt>たて</rt></ruby>のライン）に、自分の「成っていない<ruby>歩<rt>ふ</rt></ruby>」を2枚置いてはいけないよ。" },
+    { q: "「<ruby>王手<rt>おうて</rt></ruby>」をされたとき、<ruby>一番<rt>いちばん</rt></ruby>やってはいけないことは？", aa: "王 ⬅ 飛\n(ピンチ！)", a: ["<ruby>王様<rt>おうさま</rt></ruby>を逃がす", "<ruby>他<rt>ほか</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>を打つ", "そのまま放置する"], c: 2, e: "<ruby>王手<rt>おうて</rt></ruby>を無視して他の手を指すと、その場で負け（<ruby>反則<rt>はんそく</rt></ruby>）になっちゃうんだ。" },
+    { q: "取った「<ruby>歩<rt>ふ</rt></ruby>」を打って、すぐに相手を詰ませてしまう反則は？", aa: "・ 王 ・\n・ 歩 ・\n(ピピーン！)", a: ["<ruby>二歩<rt>にふ</rt></ruby>", "<ruby>打<rt>う</rt></ruby>ち<ruby>歩詰<rt>ふづめ</rt></ruby>", "<ruby>突<rt>つ</rt></ruby>き<ruby>歩詰<rt>ふづめ</rt></ruby>"], c: 1, e: "持ち駒の「<ruby>歩<rt>ふ</rt></ruby>」を打って詰ませるのはダメだけど、盤上の「<ruby>歩<rt>ふ</rt></ruby>」を突いて詰ませるのはOKだよ！" }
+  ];
 
-  // --- カテゴリー2：詰みの形（10問） ---
-  { 
-    q: "この<ruby>囲<rt>かこ</rt></ruby>いの<ruby>名前<rt>なまえ</rt></ruby>は何？", 
-    aa: "・ ・ ・ \n・ 玉 ・ \n・ 銀 ・ \n金 金 ・ ", 
-    a: ["<ruby>穴熊<rt>あなぐま</rt></ruby>", "<ruby>美濃囲<rt>みのがこ</rt></ruby>い", "<ruby>矢倉<rt>やぐら</rt></ruby>"], 
-    c: 1, 
-    e: "<ruby>金<rt>きん</rt></ruby>2<ruby>枚<rt>まい</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>1<ruby>枚<rt>まい</rt></ruby>でガッチリ<ruby>守<rt>まも</rt></ruby>る、<ruby>振<rt>ふ</rt></ruby>り<ruby>飛車<rt>びしゃ</rt></ruby>の<ruby>基本<rt>きほん</rt></ruby>です！" 
-  },
-  { 
-    q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>王様<rt>おうさま</rt></ruby>の<ruby>目<rt>め</rt></ruby>の<ruby>前<rt>まえ</rt></ruby>に「<ruby>金<rt>きん</rt></ruby>」を<ruby>打<rt>う</rt></ruby>つ<ruby>詰<rt>つ</rt></ruby>みの<ruby>名前<rt>なまえ</rt></ruby>は？", 
-    aa: "・ ・ ・ \n・ 王 ・ \n・ ？ ・ \n・ ・ ・ ", 
-    a: ["<ruby>腹銀<rt>はらぎん</rt></ruby>", "<ruby>尻金<rt>しりきん</rt></ruby>", "<ruby>頭金<rt>あたまきん</rt></ruby>"], 
-    c: 2, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>の「<ruby>頭<rt>あたま</rt></ruby>」に<ruby>金<rt>きん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つので「<ruby>頭金<rt>あたまきん</rt></ruby>」といいます！" 
-  },
-  { 
-    q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>王様<rt>おうさま</rt></ruby>の「<ruby>横<rt>よこ</rt></ruby>」から<ruby>銀<rt>ぎん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つ<ruby>詰<rt>つ</rt></ruby>みを何という？", 
-    aa: "・ ・ ・ \n・ 玉 ？ \n・ ・ ・ ", 
-    a: ["<ruby>頭銀<rt>あたまぎん</rt></ruby>", "<ruby>腹銀<rt>はらぎん</rt></ruby>", "<ruby>尻銀<rt>しりぎん</rt></ruby>"], 
-    c: 1, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>の「お<ruby>腹<rt>はら</rt></ruby>」に<ruby>銀<rt>ぎん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つから「<ruby>腹銀<rt>はらぎん</rt></ruby>」だよ！" 
-  },
-  { 
-    q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>一番<rt>いちばん</rt></ruby>うしろから<ruby>金<rt>きん</rt></ruby>を<ruby>打<rt>う</rt></ruby>つ<ruby>詰<rt>つ</rt></ruby>みは？", 
-    aa: "・ 王 ・ \n・ ・ ・ \n・ ？ ・ ", 
-    a: ["<ruby>尻金<rt>しりきん</rt></ruby>", "<ruby>底金<rt>そこきん</rt></ruby>", "<ruby>背金<rt>せきん</rt></ruby>"], 
-    c: 0, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>の「お<ruby>尻<rt>しり</rt></ruby>」に<ruby>打<rt>う</rt></ruby>つので「<ruby>尻金<rt>しりきん</rt></ruby>」といいます。" 
-  },
-  { 
-    q: "隅っこに<ruby>王様<rt>おうさま</rt></ruby>を隠して、<ruby>香車<rt>きょうしゃ</rt></ruby>と<ruby>銀<rt>ぎん</rt></ruby>でふたをする囲いは？", 
-    aa: "香 ・ ・ \n銀 ・ ・ \n玉 ・ ・ ", 
-    a: ["<ruby>美濃囲<rt>みのがこ</rt></ruby>い", "<ruby>穴熊<rt>あなぐま</rt></ruby>", "<ruby>船囲<rt>ふながこ</rt></ruby>い"], 
-    c: 1, 
-    e: "「<ruby>穴<rt>あな</rt></ruby>」に<ruby>潜<rt>もぐ</rt></ruby>った「<ruby>熊<rt>くま</rt></ruby>」のように固い「<ruby>穴熊<rt>あなぐま</rt></ruby>」です。" 
-  },
-  { 
-    q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」のすぐ下に「<ruby>金<rt>きん</rt></ruby>」を置いて守る、この守りは？", 
-    aa: "・ 飛 ・ \n・ 金 ・ \n・ ・ ・ ", 
-    a: ["<ruby>金飛車<rt>きんびしゃ</rt></ruby>", "<ruby>浮<rt>う</rt></ruby>き<ruby>飛車<rt>びしゃ</rt></ruby>", "<ruby>金<rt>きん</rt></ruby>の<ruby>クッション<rt>くっしょん</rt></ruby>"], 
-    c: 1, 
-    e: "<ruby>金<rt>きん</rt></ruby>で<ruby>飛車<rt>ひしゃ</rt></ruby>を支えるように守る形を「<ruby>浮<rt>う</rt></ruby>き<ruby>飛車<rt>びしゃ</rt></ruby>」などと呼びます。" 
-  },
-  { 
-    q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>最後<rt>さいご</rt></ruby>に「<ruby>桂馬<rt>けいま</rt></ruby>」でピョンと跳ねて<ruby>詰<rt>つ</rt></ruby>むのは？", 
-    aa: "？ ・ ？ \n・ ・ ・ \n・ 桂 ・ ", 
-    a: ["<ruby>吊<rt>つ</rt></ruby>るし<ruby>桂<rt>けい</rt></ruby>", "<ruby>跳<rt>は</rt></ruby>ね<ruby>桂<rt>けい</rt></ruby>", "<ruby>王手桂<rt>おうてけい</rt></ruby>"], 
-    c: 0, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>がどこにも逃げられないとき、<ruby>桂馬<rt>けいま</rt></ruby>がとどめを刺す「<ruby>吊<rt>つ</rt></ruby>るし<ruby>桂<rt>けい</rt></ruby>」だよ。" 
-  },
-  { 
-    q: "「<ruby>美濃囲<rt>みのがこ</rt></ruby>い」の<ruby>一番<rt>いちばん</rt></ruby>の弱点はどこ？", 
-    aa: "金 桂 香\n金 銀 ・\n・ 玉 ・", 
-    a: ["<ruby>正面<rt>しょうめん</rt></ruby>", "<ruby>斜<rt>なな</rt></ruby>め上（コビン）", "<ruby>うしろ<rt>うしろ</rt></ruby>"], 
-    c: 1, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>のななめ上、<ruby>銀<rt>ぎん</rt></ruby>の上のスペースを「コビン」と呼んで、そこが弱点なんだ。" 
-  },
-  { 
-    q: "「<ruby>矢倉<rt>やぐら</rt></ruby>」の<ruby>完成形<rt>かんせいけい</rt></ruby>で、<ruby>王様<rt>おうさま</rt></ruby>の横にいるのは？", 
-    aa: "銀 金 ・ \n・ 金 ・ \n・ 玉 ・ ", 
-    a: ["<ruby>角<rt>かく</rt></ruby>", "<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>金<rt>きん</rt></ruby>"], 
-    c: 2, 
-    e: "<ruby>金<rt>きん</rt></ruby>が<ruby>王様<rt>おうさま</rt></ruby>のすぐ横に寄り添って守るのが「<ruby>矢倉<rt>やぐら</rt></ruby>」の特徴だよ。" 
-  },
-  { 
-    q: "「<ruby>穴熊<rt>あなぐま</rt></ruby>」が<ruby>完成<rt>かんせい</rt></ruby>したあと、<ruby>絶対<rt>ぜったい</rt></ruby>にされないことは？", 
-    aa: "香 ・ ・ \n銀 ・ ・ \n玉 ・ ・ ", 
-    a: ["<ruby>王手<rt>おうて</rt></ruby>", "<ruby>千日手<rt>せんにちて</rt></ruby>", "<ruby>反則<rt>はんそく</rt></ruby>"], 
-    c: 0, 
-    e: "<ruby>穴熊<rt>あなぐま</rt></ruby>は、周りの駒をはがされない限り、絶対に「<ruby>王手<rt>おうて</rt></ruby>」がかからない最強の囲いなんだ！" 
-  },
+  let currentIdx = 0;
+  let combo = 0;
+  let shuffledQuestions = [];
 
-  // --- カテゴリー3：ルールと格言（5問） ---
-  { 
-    q: "「<ruby>二歩<rt>にふ</rt></ruby>」とは、どんな<ruby>反則<rt>はんそく</rt></ruby>？", 
-    aa: "歩 ・ ・ \n歩 ・ ・ \n・ ・ ・ ", 
-    a: ["<ruby>同<rt>おな</rt></ruby>じ<ruby>列<rt>れつ</rt></ruby>に<ruby>歩<rt>ふ</rt></ruby>を2<ruby>枚置<rt>まいお</rt></ruby>く", "<ruby>歩<rt>ふ</rt></ruby>を2<ruby>回動<rt>かいどう</rt></ruby>かす", "<ruby>歩<rt>ふ</rt></ruby>を2<ruby>枚捨<rt>まいす</rt></ruby>てる"], 
-    c: 0, 
-    e: "同じ<ruby>列<rt>れつ</rt></ruby>（<ruby>縦<rt>たて</rt></ruby>のライン）に、自分の「成っていない<ruby>歩<rt>ふ</rt></ruby>」を2枚置いてはいけないよ。" 
-  },
-  { 
-    q: "<ruby>格言<rt>かくげん</rt></ruby>：『（？）は<ruby>控<rt>ひか</rt></ruby>えて<ruby>打<rt>う</rt></ruby>て』", 
-    aa: "？ ➡ ・ \n・ ➡ ・ \n・ ➡ 王 ", 
-    a: ["<ruby>桂馬<rt>けいま</rt></ruby>", "<ruby>飛車<rt>ひしゃ</rt></ruby>", "<ruby>角<rt>かく</rt></ruby>"], 
-    c: 0, 
-    e: "「<ruby>桂馬<rt>けいま</rt></ruby>は<ruby>控<rt>ひか</rt></ruby>えて<ruby>打<rt>う</rt></ruby>て」。<ruby>王様<rt>おうさま</rt></ruby>から少し離れたところに打つのがいいんだよ！" 
-  },
-  { 
-    q: "<ruby>格言<rt>かくげん</rt></ruby>：『（？）の<ruby>頭<rt>あたま</rt></ruby>は<ruby>丸<rt>まる</rt></ruby>い』", 
-    aa: "（？）\n　↓\n　● ", 
-    a: ["<ruby>金<rt>きん</rt></ruby>", "<ruby>銀<rt>ぎん</rt></ruby>", "<ruby>桂馬<rt>けいま</rt></ruby>"], 
-    c: 2, 
-    e: "「<ruby>桂馬<rt>けいま</rt></ruby>の<ruby>頭<rt>あたま</rt></ruby>は<ruby>丸<rt>まる</rt></ruby>い」。<ruby>桂馬<rt>けいま</rt></ruby>のすぐ前はスキだらけ、という意味だよ。" 
-  },
-  { 
-    q: "「<ruby>成<rt>な</rt></ruby>る」ことができるのは、どこに入ったとき？", 
-    aa: "自陣　中段　敵陣\n[ ] [ ] [★]", 
-    a: ["<ruby>真ん中<rt>まんなか</rt></ruby>", "<ruby>相手<rt>あいて</rt></ruby>の<ruby>陣地<rt>じんち</rt></ruby>", "<ruby>自分<rt>じぶん</rt></ruby>の<ruby>陣地<rt>じんち</rt></ruby>"], 
-    c: 1, 
-    e: "<ruby>相手<rt>あいて</rt></ruby>の<ruby>陣地<rt>じんち</rt></ruby>（<ruby>上<rt>うえ</rt></ruby>から3<ruby>段<rt>だん</rt></ruby>まで）に入ったり、そこから出たりするときに「<ruby>成<rt>な</rt></ruby>る」ことができるよ。" 
-  },
-  { 
-    q: "取った<ruby>駒<rt>こま</rt></ruby>をどこに置く？", 
-    aa: "将棋盤 ➡ [？]", 
-    a: ["<ruby>駒箱<rt>こまばこ</rt></ruby>", "<ruby>駒台<rt>こまだい</rt></ruby>", "<ruby>ポケット<rt>ぽけっと</rt></ruby>"], 
-    c: 1, 
-    e: "取った<ruby>駒<rt>こま</rt></ruby>は「<ruby>駒台<rt>こまだい</rt></ruby>」に置きます。いつでも使える自分の<ruby>味方<rt>みかた</rt></ruby>になるんだね！" 
-  },
-  // --- カテゴリー4：駒の利きと活用（31-40問） ---
-  { 
-    q: "「<ruby>角<rt>かく</rt></ruby>」の<ruby>道<rt>みち</rt></ruby>をあけるために、<ruby>最初<rt>さいしょ</rt></ruby>に<ruby>動<rt>うご</rt></ruby>かす<ruby>歩<rt>ふ</rt></ruby>はどれ？", 
-    aa: "７ ８ ９\n・ ・ ・\n歩 歩 歩\n[ ] [ ] [★]", 
-    a: ["7<ruby>六歩<rt>ろくふ</rt></ruby>", "8<ruby>六歩<rt>ろくふ</rt></ruby>", "9<ruby>六歩<rt>ろくふ</rt></ruby>"], 
-    c: 0, 
-    e: "7<ruby>六歩<rt>ろくふ</rt></ruby>（ななめ前の歩）を突くと、<ruby>角<rt>かく</rt></ruby>がビュンと動けるようになるよ！" 
-  },
-  { 
-    q: "「<ruby>王手<rt>おうて</rt></ruby>」をされたとき、<ruby>一番<rt>いちばん</rt></ruby>やってはいけないことは？", 
-    aa: "王 ⬅ 飛\n(ピンチ！)", 
-    a: ["<ruby>王様<rt>おうさま</rt></ruby>を逃がす", "<ruby>他<rt>ほか</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>を打つ", "そのまま放置する"], 
-    c: 2, 
-    e: "<ruby>王手<rt>おうて</rt></ruby>を無視して他の手を指すと、その場で負け（<ruby>反則<rt>はんそく</rt></ruby>）になっちゃうんだ。" 
-  },
-  { 
-    q: "「<ruby>王手<rt>おうて</rt></ruby>」と「<ruby>次<rt>つぎ</rt></ruby>に取られる駒」を<ruby>同時<rt>どうじ</rt></ruby>に狙うことを何という？", 
-    aa: "飛 ・ ・ \n・ 桂 ・ \n・ ・ 王 ", 
-    a: ["<ruby>両天秤<rt>りょうてんびん</rt></ruby>", "<ruby>王手<rt>おうて</rt></ruby>（？）<ruby>取り<rt>とり</rt></ruby>", "<ruby>ダブルパンチ<rt>だぶるぱんち</rt></ruby>"], 
-    c: 1, 
-    e: "「<ruby>王手飛車取<rt>おうてびしゃと</rt></ruby>り」など、<ruby>王手<rt>おうて</rt></ruby>しながら他の駒も狙うのは強力な技だよ！" 
-  },
-  { 
-    q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」を<ruby>横<rt>よこ</rt></ruby>にスライドさせて戦う戦法を何という？", 
-    aa: "・ 飛 ・ ➡\n・ ・ ・ ・\n歩 歩 歩 歩", 
-    a: ["<ruby>居飛車<rt>いびしゃ</rt></ruby>", "<ruby>振<rt>ふ</rt></ruby>り<ruby>飛車<rt>びしゃ</rt></ruby>", "<ruby>横歩取<rt>よこふと</rt></ruby>り"], 
-    c: 1, 
-    e: "<ruby>飛車<rt>ひしゃ</rt></ruby>を左の方へ動かすのを「<ruby>振<rt>ふ</rt></ruby>り<ruby>飛車<rt>びしゃ</rt></ruby>」というんだ。守りが固くなるよ。" 
-  },
-  { 
-    q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」を<ruby>最初<rt>さいしょ</rt></ruby>の場所のまま戦う戦法を何という？", 
-    aa: "　 飛\n　 ↓\n(そのまま)", 
-    a: ["<ruby>居飛車<rt>いびしゃ</rt></ruby>", "<ruby>待機飛車<rt>たいきびしゃ</rt></ruby>", "<ruby>本気飛車<rt>ほんきびしゃ</rt></ruby>"], 
-    c: 0, 
-    e: "その場に「<ruby>居<rt>い</rt></ruby>る」から「<ruby>居飛車<rt>いびしゃ</rt></ruby>」。攻めが早いのが特徴だよ。" 
-  },
-  { 
-    q: "相手の「<ruby>角<rt>かく</rt></ruby>」の動きを止めるために、自分の「<ruby>歩<rt>ふ</rt></ruby>」を突くことを何という？", 
-    aa: "角 ＼\n・ ＼\n[歩] ★止め！", 
-    a: ["<ruby>角止<rt>かくど</rt></ruby>め", "<ruby>蓋<rt>ふた</rt></ruby>をする", "<ruby>角道<rt>かくみち</rt></ruby>を止める"], 
-    c: 2, 
-    e: "<ruby>角<rt>かく</rt></ruby>の通り道をふさぐことを「<ruby>角道<rt>かくみち</rt></ruby>を止める」と言うんだよ。" 
-  },
-  { 
-    q: "自分の駒2枚で、相手の駒1枚を狙っている状態を何という？", 
-    aa: "飛 ➡ [銀] ⬅ 角", 
-    a: ["<ruby>数攻<rt>かずぜ</rt></ruby>め", "<ruby>協力<rt>きょうりょく</rt></ruby>プレイ", "<ruby>重<rt>かさ</rt></ruby>なり攻め"], 
-    c: 0, 
-    e: "相手の守り（駒1枚）より多い数で攻めるのが、将棋の基本「<ruby>数攻<rt>かずぜ</rt></ruby>め」だよ。" 
-  },
-  { 
-    q: "「<ruby>歩<rt>ふ</rt></ruby>」が成った「<ruby>と金<rt>ときん</rt></ruby>」が、普通の「<ruby>金<rt>きん</rt></ruby>」より嫌がられる理由は？", 
-    aa: "と ➡ 取られる\n(ニコニコ)", 
-    a: ["動きが速いから", "<ruby>取<rt>と</rt></ruby>られても「<ruby>歩<rt>ふ</rt></ruby>」に戻るから", "<ruby>名前<rt>なまえ</rt></ruby>が可愛いから"], 
-    c: 1, 
-    e: "<ruby>金<rt>きん</rt></ruby>と同じ強さなのに、取られても相手の手には「<ruby>歩<rt>ふ</rt></ruby>」として渡るから、とってもおトクなんだ！" 
-  },
-  { 
-    q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」と「<ruby>角<rt>かく</rt></ruby>」、2枚合わせて何と呼ぶ？", 
-    aa: "飛 ＋ 角", 
-    a: ["<ruby>大駒<rt>おおごま</rt></ruby>", "<ruby>強駒<rt>きょうごま</rt></ruby>", "<ruby>親分駒<rt>おやぶんごま</rt></ruby>"], 
-    c: 0, 
-    e: "<ruby>遠<rt>とお</rt></ruby>くまで動ける強力な2枚を「<ruby>大駒<rt>おおごま</rt></ruby>」と呼ぶよ。" 
-  },
-  { 
-    q: "「<ruby>歩<rt>ふ</rt></ruby>・<ruby>香<rt>きょう</rt></ruby>・<ruby>桂<rt>けい</rt></ruby>・<ruby>銀<rt>ぎん</rt></ruby>・<ruby>金<rt>きん</rt></ruby>」をまとめて何と呼ぶ？", 
-    aa: "歩香桂銀金", 
-    a: ["<ruby>小駒<rt>こごま</rt></ruby>", "<ruby>働<rt>はたら</rt></ruby>き駒", "<ruby>足軽<rt>あしがる</rt></ruby>"], 
-    c: 0, 
-    e: "<ruby>大駒<rt>おおごま</rt></ruby>に対して、これらは「<ruby>小駒<rt>こごま</rt></ruby>」と呼ばれます。使い方が大事！" 
-  },
+  function startQuiz() {
+    document.getElementById("main-menu").style.display = "none";
+    document.getElementById("quiz-container").style.display = "block";
+    shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+    currentIdx = 0;
+    combo = 0;
+    loadQuestion();
+  }
 
-  // --- カテゴリー5：手筋と終盤（41-50問） ---
-  { 
-    q: "【1<ruby>手詰<rt>てづめ</rt></ruby>】<ruby>逃<rt>に</rt></ruby>げようとする<ruby>王様<rt>おうさま</rt></ruby>の「<ruby>後ろ<rt>うしろ</rt></ruby>」から<ruby>龍<rt>りゅう</rt></ruby>で追う詰みは？", 
-    aa: "・ 王 ・\n・ ？ ・\n・ 龍 ・", 
-    a: ["<ruby>送<rt>おく</rt></ruby>り<ruby>龍<rt>りゅう</rt></ruby>", "<ruby>送<rt>おく</rt></ruby>り<ruby>狼<rt>おおかみ</rt></ruby>", "<ruby>追<rt>お</rt></ruby>いかけ<ruby>龍<rt>りゅう</rt></ruby>"], 
-    c: 0, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>を後ろから追いかける手筋を「<ruby>送<rt>おく</rt></ruby>りの手筋」と言います。" 
-  },
-  { 
-    q: "「<ruby>王様<rt>おうさま</rt></ruby>」の守りに使っている「<ruby>金<rt>きん</rt></ruby>」を、他の駒で取ってしまう攻めを？", 
-    aa: "王 [金] ⬅ 銀\n(はがす)", 
-    a: ["<ruby>金盗<rt>きんと</rt></ruby>り", "<ruby>守<rt>まも</rt></ruby>り<ruby>剥<rt>は</rt></ruby>がし", "<ruby>掃除<rt>そうじ</rt></ruby>"], 
-    c: 1, 
-    e: "守りのカナメをはぎ取るので「<ruby>守<rt>まも</rt></ruby>り<ruby>剥<rt>は</rt></ruby>がし」と言います。これが終盤のコツ！" 
-  },
-  { 
-    q: "相手の駒と駒の間に「<ruby>桂馬<rt>けいま</rt></ruby>」を打って、両方を狙う技は？", 
-    aa: "飛　　角\n　＼／　\n　　桂　　", 
-    a: ["<ruby>桂<rt>けい</rt></ruby>のふんどし", "<ruby>桂<rt>けい</rt></ruby>のネクタイ", "<ruby>桂<rt>けい</rt></ruby>のジャンプ"], 
-    c: 0, 
-    e: "二股に分かれた形が似ているので「<ruby>桂<rt>けい</rt></ruby>のふんどし（<ruby>両取<rt>りょうと</rt></ruby>り）」と言います。" 
-  },
-  { 
-    q: "格言：『（？）は包むように寄せよ』", 
-    aa: "　➡　王　⬅\n　　　↑", 
-    a: ["<ruby>飛車<rt>ひしゃ</rt></ruby>", "<ruby>玉<rt>ぎょく</rt></ruby>（王）", "<ruby>金<rt>きん</rt></ruby>"], 
-    c: 1, 
-    e: "<ruby>王様<rt>おうさま</rt></ruby>は一方向から追うと逃げられちゃうので、周りから囲うのが正解だよ。" 
-  },
-  { 
-    q: "詰みそうで詰まない、<ruby>王様<rt>おうさま</rt></ruby>がギリギリ助かっている状態を？", 
-    aa: "王 ・ [ ]\n(セーフ！)", 
-    a: ["<ruby>不詰<rt>ふづめ</rt></ruby>", "<ruby>詰<rt>つ</rt></ruby>みなし", "<ruby>打<rt>う</rt></ruby>ち<ruby>歩詰<rt>ふづめ</rt></ruby>"], 
-    c: 0, 
-    e: "どれだけ攻めても詰まないことを「<ruby>不詰<rt>ふづめ</rt></ruby>」と言います。" 
-  },
-  { 
-    q: "相手に「<ruby>王手<rt>おうて</rt></ruby>」をかけ続けられ、逃げ場がなくなることを？", 
-    aa: "王 ⬅ 飛\n(逃げ道なし)", 
-    a: ["<ruby>詰<rt>つ</rt></ruby>み", "<ruby>終<rt>お</rt></ruby>わり", "<ruby>負<rt>ま</rt></ruby>け"], 
-    c: 0, 
-    e: "どんなに逃げても守っても、次に取られるのを防げなくなったら「<ruby>詰<rt>つ</rt></ruby>み」です。" 
-  },
-  { 
-    q: "取った「<ruby>歩<rt>ふ</rt></ruby>」を打って、すぐに相手を詰ませてしまう反則は？", 
-    aa: "・ 王 ・\n・ 歩 ・\n(ピピーン！)", 
-    a: ["<ruby>二歩<rt>にふ</rt></ruby>", "<ruby>打<rt>う</rt></ruby>ち<ruby>歩詰<rt>ふづめ</rt></ruby>", "<ruby>突<rt>つ</rt></ruby>き<ruby>歩詰<rt>ふづめ</rt></ruby>"], 
-    c: 1, 
-    e: "持ち駒の「<ruby>歩<rt>ふ</rt></ruby>」を打って詰ませるのはダメだけど、盤上の「<ruby>歩<rt>ふ</rt></ruby>」を突いて詰ませるのはOKだよ！" 
-  },
-  { 
-    q: "対局のあと、お互いの指し手を振り返ることを？", 
-    aa: "棋譜 ＋ お話", 
-    a: ["<ruby>感想戦<rt>かんそうせん</rt></ruby>", "<ruby>反省会<rt>はんせいかい</rt></ruby>", "<ruby>作戦会議<rt>さくせんかいぎ</rt></ruby>"], 
-    c: 0, 
-    e: "「あそこはこう指せばよかったね」と話し合う「<ruby>感想戦<rt>かんそうせん</rt></ruby>」で強くなるんだよ。" 
-  },
-  { 
-    q: "次に自分の番がきたら相手を詰ませられる状態を？", 
-    aa: "王 ・ ・ \n・ 飛 ・ \n(次で終わり)", 
-    a: ["<ruby>詰<rt>つ</rt></ruby>み", "<ruby>詰<rt>つ</rt></ruby>めろ", "<ruby>王手<rt>おうて</rt></ruby>"], 
-    c: 1, 
-    e: "まだ「<ruby>王手<rt>おうて</rt></ruby>」ではないけれど、放っておくと詰んじゃう状態を「<ruby>詰<rt>つ</rt></ruby>めろ」と言うよ。" 
-  },
-  { 
-    q: "プロの将棋を、最初から最後まで並べて勉強することを？", 
-    aa: "プロのマネ", 
-    a: ["<ruby>棋譜並<rt>きふなら</rt></ruby>べ", "<ruby>定跡<rt>じょうせき</rt></ruby>", "<ruby>指<rt>さ</rt></ruby>しマネ"], 
-    c: 0, 
-    e: "強い人の指し方をマネする「<ruby>棋譜並<rt>きふなら</rt></ruby>べ」は、上達の近道です！" 
-  }
-];
+  function goHome() {
+    document.getElementById("main-menu").style.display = "block";
+    document.getElementById("quiz-container").style.display = "none";
+  }
 
-  let currentIdx = 0;
-  let combo = 0;
+  function loadQuestion() {
+    if (currentIdx >= shuffledQuestions.length) {
+      alert("全問終了！お疲れ様でした！");
+      goHome();
+      return;
+    }
+    const q = shuffledQuestions[currentIdx];
+    
+    document.getElementById("lv-disp").innerText = `第 ${currentIdx + 1} 問`;
+    document.getElementById("combo-disp").innerText = `COMBO: ${combo}`;
+    document.getElementById("q-text").innerHTML = q.q;
+    document.getElementById("board-aa").innerText = q.aa;
+    
+    const optCont = document.getElementById("options");
+    optCont.innerHTML = "";
+    q.a.forEach((txt, i) => {
+      const b = document.createElement("button");
+      b.className = "option-btn";
+      b.innerHTML = txt;
+      b.onclick = () => check(i);
+      optCont.appendChild(b);
+    });
+    
+    document.getElementById("explanation").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+  }
 
-  function startQuiz() {
-    document.getElementById("main-menu").style.display = "none";
-    document.getElementById("quiz-container").style.display = "block";
-    currentIdx = 0;
-    combo = 0;
-    loadQuestion();
-  }
+  function check(i) {
+    const q = shuffledQuestions[currentIdx];
+    const exp = document.getElementById("explanation");
+    const btns = document.querySelectorAll(".option-btn");
+    btns.forEach(b => b.disabled = true);
 
-  function goHome() {
-    document.getElementById("main-menu").style.display = "block";
-    document.getElementById("quiz-container").style.display = "none";
-  }
-
-  function loadQuestion() {
-    if (currentIdx >= questions.length) currentIdx = 0;
-    const q = questions[currentIdx];
-    
-    document.getElementById("lv-disp").innerText = `LEVEL ${currentIdx + 1}`;
-    document.getElementById("combo-disp").innerText = `COMBO: ${combo}`;
-    document.getElementById("q-text").innerHTML = q.q;
-    document.getElementById("board-aa").innerText = q.aa;
-    
-    const optCont = document.getElementById("options");
-    optCont.innerHTML = "";
-    q.a.forEach((txt, i) => {
-      const b = document.createElement("button");
-      b.className = "option-btn";
-      b.innerHTML = txt;
-      b.onclick = () => check(i);
-      optCont.appendChild(b);
-    });
-    
-    document.getElementById("explanation").style.display = "none";
-    document.getElementById("next-btn").style.display = "none";
-  }
-
-  function check(i) {
-    const q = questions[currentIdx];
-    const exp = document.getElementById("explanation");
-    const btns = document.querySelectorAll(".option-btn");
-    btns.forEach(b => b.disabled = true);
-
-    if (i === q.c) {
-      combo++;
-      exp.innerHTML = "<strong>★<ruby>正解<rt>せいかい</rt></ruby>！★</strong><br>" + q.e;
-      exp.style.backgroundColor = "#d4edda";
-      exp.style.borderLeft = "5px solid var(--correct-green)";
-    } else {
-      combo = 0;
-      exp.innerHTML = "<strong><ruby>残念<rt>ざんねん</rt></ruby>！</strong><br><ruby>正解<rt>せいかい</rt></ruby>は「" + q.a[q.c] + "」でした。<br>" + q.e;
-      exp.style.backgroundColor = "#f8d7da";
-      exp.style.borderLeft = "5px solid var(--accent-red)";
-    }
-    exp.style.display = "block";
-    document.getElementById("next-btn").style.display = "block";
-    currentIdx++;
-  }
+    if (i === q.c) {
+      combo++;
+      exp.innerHTML = "<strong>★<ruby>正解<rt>せいかい</rt></ruby>！★</strong><br>" + q.e;
+      exp.style.backgroundColor = "#d4edda";
+      exp.style.color = "#155724";
+      exp.style.borderLeft = "5px solid var(--correct-green)";
+    } else {
+      combo = 0;
+      exp.innerHTML = "<strong><ruby>残念<rt>ざんねん</rt></ruby>！</strong><br><ruby>正解<rt>せいかい</rt></ruby>は「" + q.a[q.c] + "」でした。<br>" + q.e;
+      exp.style.backgroundColor = "#f8d7da";
+      exp.style.color = "#721c24";
+      exp.style.borderLeft = "5px solid var(--accent-red)";
+    }
+    exp.style.display = "block";
+    document.getElementById("next-btn").style.display = "inline-block";
+    currentIdx++;
+  }
 </script>
 </body>
 </html>
