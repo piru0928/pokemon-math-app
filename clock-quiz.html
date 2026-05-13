@@ -8,12 +8,10 @@
     :root { --main-blue: #3498db; --accent-orange: #e67e22; --dark-text: #2c3e50; }
     body { font-family: "Arial", sans-serif; background-color: #f8f9fa; text-align: center; margin: 0; padding: 10px; overflow-x: hidden; touch-action: manipulation; }
     
-    /* リンク・ステータス */
     #top-nav { text-align: left; margin-bottom: 5px; }
     #top-nav a { text-decoration: none; color: var(--main-blue); font-weight: bold; font-size: 14px; }
     #status-row { font-size: 18px; font-weight: bold; color: var(--dark-text); margin: 5px 0 15px 0; }
 
-    /* 時計のデザイン（青枠を削除し影で立体感） */
     #clock-box { 
       background: #fff; margin: 0 auto; width: 280px; height: 280px; 
       border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
@@ -21,23 +19,29 @@
     }
     canvas { width: 100%; height: auto; }
 
-    /* ドラムロールのスタイル */
+    /* ピッカーのスタイル修正 */
     .picker-container {
       display: flex; justify-content: center; align-items: center;
       margin: 25px auto; gap: 10px; background: #fff; padding: 15px;
       border-radius: 20px; max-width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     .picker-wrapper { position: relative; height: 120px; width: 80px; overflow: hidden; background: #fdfdfd; border-radius: 12px; }
+    
     .picker-list {
       scroll-snap-type: y mandatory; height: 100%; overflow-y: scroll;
-      padding-top: 40px; padding-bottom: 40px; scrollbar-width: none;
+      scrollbar-width: none;
     }
     .picker-list::-webkit-scrollbar { display: none; }
+    
+    /* 上下に空のスペースを作るためのパディング設定 */
+    .picker-spacer { height: 40px; pointer-events: none; }
+    
     .picker-item {
       height: 40px; line-height: 40px; font-size: 20px; font-weight: bold;
       scroll-snap-align: center; color: #ccc; transition: 0.3s;
     }
     .picker-item.selected { color: var(--main-blue); font-size: 26px; }
+    
     .picker-highlight {
       position: absolute; top: 40px; left: 0; right: 0; height: 40px;
       border-top: 2px solid #eee; border-bottom: 2px solid #eee;
@@ -45,7 +49,6 @@
     }
     .unit-label { font-size: 18px; font-weight: bold; color: var(--dark-text); }
 
-    /* ボタン */
     #check-button {
       width: 85%; max-width: 260px; padding: 16px; font-size: 20px;
       background-color: var(--accent-orange); color: white; border: none;
@@ -58,7 +61,6 @@
     #pokemon-img { width: 110px; height: 110px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; margin-bottom: 10px; }
     #next-button { margin-top: 15px; padding: 14px 40px; font-size: 20px; background-color: var(--main-blue); color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; }
     
-    /* 演出 */
     @keyframes celebrate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); background-color: #fffde7; } }
     .special-mode { animation: celebrate 0.5s ease 3; }
     .confetti { position: fixed; width: 8px; height: 8px; z-index: 999; pointer-events: none; }
@@ -79,12 +81,12 @@
     <div class="picker-container">
       <div class="picker-wrapper">
         <div class="picker-highlight"></div>
-        <div class="picker-list" id="roll-h"></div>
+        <div id="roll-h" class="picker-list"></div>
       </div>
       <span class="unit-label">時</span>
       <div class="picker-wrapper">
         <div class="picker-highlight"></div>
-        <div class="picker-list" id="roll-m"></div>
+        <div id="roll-m" class="picker-list"></div>
       </div>
       <span class="unit-label">分</span>
     </div>
@@ -129,22 +131,37 @@
     function createRoll(id, min, max, step) {
       const list = document.getElementById(id);
       list.innerHTML = "";
+      
+      // 上の余白
+      const topSpacer = document.createElement("div");
+      topSpacer.className = "picker-spacer";
+      list.appendChild(topSpacer);
+
+      // 数字アイテム
       for (let i = min; i <= max; i += step) {
         const item = document.createElement("div");
         item.className = "picker-item";
         item.innerText = i;
         list.appendChild(item);
       }
+
+      // 下の余白
+      const bottomSpacer = document.createElement("div");
+      bottomSpacer.className = "picker-spacer";
+      list.appendChild(bottomSpacer);
+
       list.onscroll = () => {
-        const index = Math.round(list.scrollTop / 40);
-        Array.from(list.children).forEach((el, i) => {
-          el.classList.toggle("selected", i === index);
+        const items = Array.from(list.querySelectorAll(".picker-item"));
+        const containerTop = list.getBoundingClientRect().top + 40; // 選択枠の位置
+        
+        items.forEach(el => {
+          const rect = el.getBoundingClientRect();
+          const isSelected = rect.top >= containerTop - 20 && rect.top <= containerTop + 20;
+          el.classList.toggle("selected", isSelected);
         });
       };
-      setTimeout(() => { 
-        list.scrollTop = 0; 
-        list.dispatchEvent(new Event('scroll')); 
-      }, 100);
+      
+      setTimeout(() => { list.scrollTop = 0; }, 100);
     }
 
     function drawClock(h, m) {
@@ -152,26 +169,16 @@
       const ctx = canvas.getContext("2d");
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // 文字盤
-      ctx.beginPath(); 
-      ctx.arc(radius, radius, radius - 15, 0, 2 * Math.PI);
+      ctx.beginPath(); ctx.arc(radius, radius, radius - 15, 0, 2 * Math.PI);
       ctx.fillStyle = "white"; ctx.fill();
-
-      // 数字（少し内側に配置）
       ctx.font = "bold 22px Arial"; ctx.fillStyle = "#333";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       for (let n = 1; n <= 12; n++) {
         let ang = n * Math.PI / 6;
         ctx.fillText(n, radius + Math.sin(ang)*(radius-45), radius - Math.cos(ang)*(radius-45));
       }
-
-      // 短針
       drawHand(ctx, radius, (h % 12 + m / 60) * Math.PI / 6, radius * 0.5, 9, "#2c3e50");
-      // 長針
       drawHand(ctx, radius, m * Math.PI / 30, radius * 0.8, 5, "#e67e22");
-
-      // 中心
       ctx.beginPath(); ctx.arc(radius, radius, 7, 0, 2 * Math.PI);
       ctx.fillStyle = "#333"; ctx.fill();
     }
@@ -193,15 +200,23 @@
       
       targetH = Math.floor(Math.random() * 12) + 1;
       targetM = Math.floor(Math.random() * 12) * 5; 
-
       drawClock(targetH, targetM);
     }
 
     function checkAnswer() {
-      const hList = document.getElementById("roll-h");
-      const mList = document.getElementById("roll-m");
-      const userH = parseInt(hList.children[Math.round(hList.scrollTop / 40)].innerText);
-      const userM = parseInt(mList.children[Math.round(mList.scrollTop / 40)].innerText);
+      const getSelected = (id) => {
+        const list = document.getElementById(id);
+        const selected = list.querySelector(".picker-item.selected");
+        return selected ? parseInt(selected.innerText) : null;
+      };
+
+      const userH = getSelected("roll-h");
+      const userM = getSelected("roll-m");
+
+      if (userH === null || userM === null) {
+        alert("数字をあわせてね！");
+        return;
+      }
 
       document.getElementById("game-area").style.display = "none";
       const expBox = document.getElementById("explanation");
@@ -241,7 +256,7 @@
 
     window.onload = () => {
       createRoll("roll-h", 1, 12, 1);
-      createRoll("roll-m", 0, 55, 5); // 5分刻みで55まで表示
+      createRoll("roll-m", 0, 55, 5);
       generateQuestion();
     };
   </script>
