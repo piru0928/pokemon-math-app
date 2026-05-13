@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>とけいマスター Ver 1.0.0</title>
+  <style>
+    body { font-family: "Arial", sans-serif; background-color: #f0f4f8; text-align: center; padding: 10px; margin: 0; padding-bottom: 50px; }
+    #clock-box {
+      background: #fff; border: 4px solid #3498db; padding: 20px;
+      margin: 15px auto; max-width: 400px; border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    canvas { max-width: 100%; height: auto; }
+    #question-text { font-size: 20px; margin: 15px; font-weight: bold; color: #e67e22; min-height: 2em; }
+    .choice {
+      font-size: 18px; padding: 12px; margin: 8px auto;
+      border-radius: 12px; border: 2px solid #bdc3c7;
+      cursor: pointer; background-color: #fff; width: 95%; max-width: 500px;
+      display: block; font-weight: bold; transition: 0.2s;
+    }
+    .choice:hover { background-color: #fef9e7; border-color: #f1c40f; }
+    #explanation { background: #fdf2f2; border: 2px solid #e74c3c; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 10px; display: none; text-align: left; line-height: 1.8; }
+    #pokemon-img { margin-top: 10px; width: 100px; height: 100px; border-radius: 50%; border: 4px solid #f1c40f; background: #fff; }
+    #next-button { margin-top: 15px; padding: 12px 30px; font-size: 18px; background-color: #3498db; color: white; border: none; border-radius: 30px; cursor: pointer; display: none; }
+    #version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 11px; color: #7f8c8d; font-family: monospace; }
+    ruby rt { font-size: 0.5em; color: #34495e; }
+  </style>
+</head>
+<body>
+  <h1>🕒 とけいマスター</h1>
+  
+  <div id="clock-box">
+    <canvas id="clockCanvas" width="300" height="300"></canvas>
+  </div>
+
+  <div id="question-text"></div>
+  <div id="choices"></div>
+  <div id="explanation"></div>
+  <div id="result-area"><img id="pokemon-img" src="" alt="" style="display:none;"></div>
+  
+  <button id="next-button" onclick="generateQuestion()">つぎの<ruby>問題<rt>もんだい</rt></ruby>へ</button>
+  <br><br>
+  <a href="index.html">← <ruby>戻<rt>もど</rt></ruby>る</a>
+
+  <div id="version-tag">Version 1.0.0 (Canvas Clock Engine)</div>
+
+  <script>
+    const Buzzer = {
+      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      _note(freq, type, start, duration) {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.05, start);
+        osc.start(start); osc.stop(start + duration);
+      },
+      play(correct) {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const now = this.ctx.currentTime;
+        if (correct) { this._note(880, 'sine', now, 0.1); this._note(1100, 'sine', now + 0.1, 0.2); }
+        else { this._note(200, 'sawtooth', now, 0.3); }
+      }
+    };
+
+    let currentAns = "";
+    let lastHour = -1;
+
+    // 時計を描画する関数
+    function drawClock(h, m) {
+      const canvas = document.getElementById("clockCanvas");
+      const ctx = canvas.getContext("2d");
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // 外枠
+      ctx.beginPath();
+      ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = "#333";
+      ctx.stroke();
+
+      // 数字
+      ctx.font = "bold 20px Arial";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#2c3e50";
+      for (let num = 1; num <= 12; num++) {
+        let ang = num * Math.PI / 6;
+        ctx.fillText(num.toString(), radius + Math.sin(ang) * (radius - 35), radius - Math.cos(ang) * (radius - 35));
+      }
+
+      // 目盛り（分）
+      for (let i = 0; i < 60; i++) {
+        let ang = i * Math.PI / 30;
+        ctx.beginPath();
+        ctx.lineWidth = i % 5 === 0 ? 3 : 1;
+        ctx.moveTo(radius + Math.sin(ang) * (radius - 15), radius - Math.cos(ang) * (radius - 15));
+        ctx.lineTo(radius + Math.sin(ang) * (radius - 20), radius - Math.cos(ang) * (radius - 20));
+        ctx.stroke();
+      }
+
+      // 短針
+      const hourPos = (h % 12 + m / 60) * Math.PI / 6;
+      drawHand(ctx, radius, hourPos, radius * 0.5, 8, "#2c3e50");
+
+      // 長針
+      const minPos = m * Math.PI / 30;
+      drawHand(ctx, radius, minPos, radius * 0.8, 5, "#e67e22");
+
+      // 中心点
+      ctx.beginPath();
+      ctx.arc(radius, radius, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = "#333";
+      ctx.fill();
+    }
+
+    function drawHand(ctx, center, pos, length, width, color) {
+      ctx.beginPath();
+      ctx.lineWidth = width;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = color;
+      ctx.moveTo(center, center);
+      ctx.lineTo(center + Math.sin(pos) * length, center - Math.cos(pos) * length);
+      ctx.stroke();
+    }
+
+    function generateQuestion() {
+      document.getElementById("explanation").style.display = "none";
+      document.getElementById("pokemon-img").style.display = "none";
+      document.getElementById("next-button").style.display = "none";
+      document.getElementById("choices").innerHTML = "";
+
+      // ランダムな時間を生成（難易度調整：00分か30分を優先的に出す）
+      let h, m;
+      do { h = Math.floor(Math.random() * 12) + 1; } while (h === lastHour);
+      lastHour = h;
+      
+      const mOptions = [0, 15, 30, 45, 10, 20, 40, 50];
+      m = mOptions[Math.floor(Math.random() * mOptions.length)];
+
+      drawClock(h, m);
+
+      const timeStr = `${h}時${m === 0 ? "ちょうど" : m + "分"}`;
+      currentAns = timeStr;
+      
+      document.getElementById("question-text").innerHTML = `とけいは <ruby>何時<rt>なんじ</rt></ruby><ruby>何分<rt>なんぷん</rt></ruby>を さしていますか？`;
+
+      // 選択肢の作成
+      let options = [currentAns];
+      while(options.length < 3) {
+        let fakeH = Math.floor(Math.random() * 12) + 1;
+        let fakeM = mOptions[Math.floor(Math.random() * mOptions.length)];
+        let fakeStr = `${fakeH}時${fakeM === 0 ? "ちょうど" : fakeM + "分"}`;
+        if (!options.includes(fakeStr)) options.push(fakeStr);
+      }
+
+      const explanation = `みじかい<ruby>針<rt>はり</rt></ruby>が「${h}」の<ruby>近<rt>ちか</rt></ruby>くにあり、ながい<ruby>針<rt>はり</rt></ruby>が「${m/5 === 0 ? 12 : m/5}」をさしているときは、${timeStr} です。`;
+
+      options.sort(() => Math.random() - 0.5).forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.innerHTML = opt;
+        btn.onclick = () => checkAnswer(opt, explanation);
+        document.getElementById("choices").appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, exp) {
+      document.getElementById("choices").innerHTML = "";
+      const expBox = document.getElementById("explanation");
+      expBox.style.display = "block";
+      if (selected === currentAns) {
+        Buzzer.play(true);
+        expBox.innerHTML = `<strong>✨ <ruby>正解<rt>せいかい</rt></ruby>！</strong><br>${exp}`;
+        const pokeId = Math.floor(Math.random() * 151) + 1;
+        document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
+        document.getElementById("pokemon-img").style.display = "inline";
+      } else {
+        Buzzer.play(false);
+        expBox.innerHTML = `<strong>❌ <ruby>残念<rt>ざんねん</rt></ruby>！ <ruby>正解<rt>せいかい</rt></ruby>は「${currentAns}」</strong><br>${exp}`;
+      }
+      document.getElementById("next-button").style.display = "inline";
+    }
+
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>
