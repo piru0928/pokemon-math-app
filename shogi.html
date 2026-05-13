@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>将棋（しょうぎ）クイズ・マスター</title>
+  <title>将棋（しょうぎ）の基礎知識（きそちしき）クイズ</title>
   <style>
     :root {
       --shogi-wood: #f3d494;
@@ -27,12 +27,11 @@
       width: 100%;
       padding: 15px 0;
       text-align: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       position: sticky;
       top: 0;
       z-index: 100;
     }
-    header h1 { margin: 0; font-size: 20px; }
+    header h1 { margin: 0; font-size: 18px; }
     .top-link {
       display: inline-block;
       margin-top: 5px;
@@ -54,12 +53,12 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
-    #quiz-area { display: block; }
-    #result-area { display: none; text-align: center; }
+    #quiz-area, #result-area { display: none; }
+    #quiz-area.active, #result-area.active { display: block; }
 
     .question-num { font-weight: bold; color: var(--accent-red); margin-bottom: 5px; }
-    .question-text { font-size: 18px; font-weight: bold; margin-bottom: 20px; line-height: 1.6; }
-    ruby rt { font-size: 0.6em; color: #888; }
+    .question-text { font-size: 18px; font-weight: bold; margin-bottom: 20px; line-height: 1.8; }
+    ruby rt { font-size: 0.6em; color: #666; }
 
     .options { display: grid; gap: 10px; }
     .option-btn {
@@ -71,9 +70,9 @@
       cursor: pointer;
       font-weight: bold;
       color: var(--shogi-dark);
-      transition: transform 0.1s, background 0.2s;
+      text-align: left;
     }
-    .option-btn:active { transform: scale(0.98); background: #e6c57a; }
+    .option-btn:disabled { opacity: 0.7; cursor: default; }
 
     .explanation-card {
       margin-top: 20px;
@@ -81,24 +80,27 @@
       border-radius: 10px;
       display: none;
       text-align: left;
+      line-height: 1.6;
     }
     .correct-style { background-color: #d4edda; border-left: 5px solid var(--correct-green); }
     .wrong-style { background-color: #f8d7da; border-left: 5px solid var(--accent-red); }
 
     .next-btn {
-      margin-top: 20px;
-      padding: 12px 30px;
+      margin: 20px auto 0;
+      padding: 12px 40px;
       background: var(--shogi-dark);
       color: white;
       border: none;
       border-radius: 25px;
       font-size: 16px;
       cursor: pointer;
-      display: none;
+      display: block;
     }
 
-    #score-display { font-size: 24px; font-weight: bold; margin: 20px 0; }
+    #score-display { font-size: 22px; font-weight: bold; margin: 20px 0; text-align: center; }
     .restart-btn {
+      display: block;
+      margin: 0 auto;
       padding: 12px 30px;
       background: var(--correct-green);
       color: white;
@@ -111,65 +113,76 @@
 <body>
 
 <header>
-  <h1>将棋（しょうぎ）クイズ・マスター</h1>
+  <h1><ruby>将棋<rt>しょうぎ</rt></ruby>の<ruby>知識<rt>ちしき</rt></ruby>習得<ruby>講座<rt>こうざ</rt></ruby></h1>
   <a href="https://piru0928.github.io/pokemon-math-app/index.html" class="top-link">🏠 もどる</a>
 </header>
 
 <div class="container">
-  <div id="quiz-area">
+  <div id="quiz-area" class="active">
     <div id="progress" style="font-size: 12px; color: #999; margin-bottom: 10px;"></div>
     <div class="question-num" id="q-number"></div>
     <div class="question-text" id="q-text"></div>
     <div class="options" id="options-container"></div>
     <div id="explanation" class="explanation-card"></div>
-    <center><button id="next-button" class="next-btn" onclick="nextQuestion()">つぎの問題（もんだい）へ</button></center>
+    <button id="next-button" class="next-btn" onclick="nextQuestion()" style="display:none;">つぎの<ruby>問題<rt>もんだい</rt></ruby>へ</button>
   </div>
 
   <div id="result-area">
-    <h2>結果発表（けっかはっぴょう）</h2>
+    <h2 style="text-align:center;"><ruby>最終結果<rt>さいしゅうけっか</rt></ruby></h2>
     <div id="score-display"></div>
-    <p id="evaluation-msg"></p>
-    <button class="restart-btn" onclick="restartQuiz()">もう一度（いちど）あそぶ</button>
+    <button class="restart-btn" onclick="restartQuiz()">もう一度<ruby>挑戦<rt>ちょうせん</rt></ruby>する</button>
   </div>
 </div>
 
 <script>
   const quizData = [
     {
-      q: "<ruby>王様<rt>おうさま</rt></ruby>（<ruby>王将<rt>おうしょう</rt></ruby>）が、一歩（いっぽ）で<ruby>動<rt>うご</rt></ruby>けるのはどの<ruby>方向<rt>ほうこう</rt></ruby>？",
-      a: ["前（まえ）だけに一歩", "ななめ前（まえ）だけに一歩", "まわりの8方向（ほうこう）どこでも"],
-      correct: 2,
-      exp: "王様はまわりのどのマスにも動けます。でも、取られたら負けなので大切に守りましょう！"
+      q: "<ruby>自分<rt>じぶん</rt></ruby>の<ruby>番<rt>ばん</rt></ruby>のときに、まだ<ruby>使<rt>つか</rt></ruby>っていない<ruby>持<rt>も</rt></ruby>ち<ruby>駒<rt>ごま</rt></ruby>をマスに<ruby>置<rt>お</rt></ruby>くことを何と言う？",
+      a: ["<ruby>指<rt>さ</rt></ruby>す", "<ruby>打<rt>う</rt></ruby>つ", "<ruby>置<rt>お</rt></ruby>く"],
+      correct: 1,
+      exp: "盤上にある駒を動かすことは「指す」、持ち駒を新しく置くことは「打つ」と使い分けます。"
     },
     {
-      q: "相手（あいて）の<ruby>陣地<rt>じんち</rt></ruby>に<ruby>入<rt>はい</rt></ruby>って、<ruby>駒<rt>こま</rt></ruby>をひっくり<ruby>返<rt>かえ</rt></ruby>してパワーアップすることを何と言う？",
-      a: ["成（な）る", "変身（へんしん）", "進化（しんか）"],
+      q: "<ruby>歩<rt>ふ</rt></ruby>を<ruby>打<rt>う</rt></ruby>つときに、すでに<ruby>自分<rt>じぶん</rt></ruby>の「<ruby>歩<rt>ふ</rt></ruby>」がある<ruby>縦<rt>たて</rt></ruby>の列（れつ）に、もう一（ひと）つ<ruby>歩<rt>ふ</rt></ruby>を<ruby>打<rt>う</rt></ruby>ってはいけないというルールは？",
+      a: ["<ruby>二歩<rt>にふ</rt></ruby>", "<ruby>打歩詰<rt>うちふづめ</rt></ruby>", "<ruby>歩重<rt>ふがさ</rt></ruby>ね"],
       correct: 0,
-      exp: "「成（な）る」と言うよ。たとえば「歩（ふ）」が成ると「と金（きん）」になって、とっても強くなるんだ！"
+      exp: "同じ縦の列に、自分の「成っていない歩」を2枚置くことは禁止されており、反則負けになります。"
     },
     {
-      q: "次（つぎ）の番（ばん）で<ruby>相手<rt>あいて</rt></ruby>の<ruby>王様<rt>おうさま</rt></ruby>を<ruby>取<rt>と</rt></ruby>れる状態（じょうたい）を何と言う？",
-      a: ["リーチ", "王手（おうて）", "詰（つ）み"],
-      correct: 1,
-      exp: "「王手（おうて）」と言います。王手されたら、王様を逃がすか、守るかしなきゃいけません。"
+      q: "「<ruby>飛車<rt>ひしゃ</rt></ruby>」が<ruby>成<rt>な</rt></ruby>ったときの<ruby>名前<rt>なまえ</rt></ruby>を何と言う？",
+      a: ["<ruby>龍王<rt>りゅうおう</rt></ruby>", "<ruby>龍馬<rt>りゅうめ</rt></ruby>", "<ruby>成飛<rt>なりび</rt></ruby>"],
+      correct: 0,
+      exp: "飛車が成ると「龍王（龍）」になり、もとの動きに加えて、周り1マスずつにも動ける最強の駒になります。"
     },
     {
-      q: "どう逃（に）げても<ruby>次<rt>つぎ</rt></ruby>に<ruby>王様<rt>おうさま</rt></ruby>が取（と）られてしまう、逃（に）げ場（ば）がない最後（さいご）の状態を何と言う？",
-      a: ["おしまい", "チェックメイト", "詰（つ）み"],
+      q: "<ruby>駒<rt>こま</rt></ruby>の<ruby>価値<rt>かち</rt></ruby>について、一般的（いっぱんてき）に「<ruby>角行<rt>かくぎょう</rt></ruby>」と「<ruby>銀将<rt>ぎんしょう</rt></ruby>」はどちらの方が価値が高いとされる？",
+      a: ["<ruby>角行<rt>かくぎょう</rt></ruby>", "<ruby>銀将<rt>ぎんしょう</rt></ruby>", "<ruby>同<rt>おな</rt></ruby>じくらい"],
+      correct: 0,
+      exp: "遠くまで動ける「角」や「飛車」は大駒（おおごま）と呼ばれ、銀や金よりも価値が高いとされています。"
+    },
+    {
+      q: "<ruby>王様<rt>おうさま</rt></ruby>を<ruby>守<rt>まも</rt></ruby>るための「<ruby>囲<rt>かこ</rt></ruby>い」のうち、ななめの<ruby>攻<rt>せ</rt></ruby>めに<ruby>強<rt>つよ</rt></ruby>く、バランスが良いとされる<ruby>代表的<rt>だいひょうてき</rt></ruby>な形は？",
+      a: ["<ruby>穴熊<rt>あなぐま</rt></ruby>", "<ruby>矢倉<rt>やぐら</rt></ruby>", "<ruby>美濃囲<rt>みのがこ</rt></ruby>い"],
       correct: 2,
-      exp: "「詰（つ）み」と言います。これが決まったら、対戦（たいせん）がおわりです。"
+      exp: "美濃囲いは、横からの攻めに強く、初心者からプロまでよく使われる非常に効率の良い守りです。"
     },
     {
-      q: "<ruby>王様<rt>おうさま</rt></ruby>を安全（あんぜん）な場所（ばしょ）に隠（かく）して、周（まわ）りを駒（こま）で固（かた）める守（まも）りの形を何と言う？",
-      a: ["バリア", "囲（かこ）い", "お城（しろ）"],
+      q: "<ruby>対局中<rt>たいきょくちゅう</rt></ruby>に「これ以上<ruby>指<rt>さ</rt></ruby>しても<ruby>勝<rt>か</rt></ruby>てない」と<ruby>判断<rt>はんだん</rt></ruby>し、みずから<ruby>負<rt>ま</rt></ruby>けを<ruby>認<rt>みと</rt></ruby>めることを何と言う？",
+      a: ["<ruby>降参<rt>こうさん</rt></ruby>", "<ruby>投了<rt>とうりょう</rt></ruby>", "<ruby>終局<rt>しゅうきょく</rt></ruby>"],
       correct: 1,
-      exp: "「囲（かこ）い」と言います。「美濃囲（みのがこ）い」など、かっこいい名前の守り方がたくさんあるよ！"
+      exp: "「負けました」と言って投了することで対局が終了します。これは礼儀正しい行為とされています。"
     },
     {
-      q: "一手先（いってさき）を<ruby>読<rt>よ</rt></ruby>むためのコツは？",
-      a: ["とにかく早く指す", "相手（あいて）の次（つぎ）の動きを予想（よそう）する", "目をつぶって考える"],
-      correct: 1,
-      exp: "「自分がこう動いたら、相手はどうするかな？」と想像（そうぞう）することが、上達（じょうたつ）の近道です。"
+      q: "<ruby>王様<rt>おうさま</rt></ruby>が詰（つ）むか詰（つ）まないか、という<ruby>終盤<rt>しゅうばん</rt></ruby>の問題のことを何と言う？",
+      a: ["<ruby>詰将棋<rt>つめしょうぎ</rt></ruby>", "<ruby>次<rt>つぎ</rt></ruby>の一手", "<ruby>必至<rt>ひっし</rt></ruby>"],
+      correct: 0,
+      exp: "詰将棋を解くことで、王様を捕まえる力（読みの力）が養われ、二手先、三手先が読めるようになります。"
+    },
+    {
+      q: "相手（あいて）の<ruby>王様<rt>おうさま</rt></ruby>を<ruby>捕<rt>つか</rt></ruby>まえるために、<ruby>複数<rt>ふくすう</rt></ruby>の<ruby>駒<rt>こま</rt></ruby>を協力（きょうりょく）させて攻めることを何と言う？",
+      a: ["<ruby>数<rt>かず</rt></ruby>の<ruby>攻<rt>せ</rt></ruby>め", "<ruby>連携<rt>れんけい</rt></ruby>", "<ruby>一点集中<rt>いってんしゅうちゅう</rt></ruby>"],
+      correct: 0,
+      exp: "一つの場所に、相手の守りよりも多くの駒を利かせる「数の攻め」は、将棋の基本中の基本です。"
     }
   ];
 
@@ -178,8 +191,8 @@
 
   function loadQuestion() {
     const q = quizData[currentQ];
-    document.getElementById("progress").innerText = `もんだい ${currentQ + 1} / ${quizData.length}`;
-    document.getElementById("q-number").innerText = `第 ${currentQ + 1} 問`;
+    document.getElementById("progress").innerHTML = `<ruby>問題<rt>もんだい</rt></ruby> ${currentQ + 1} / ${quizData.length}`;
+    document.getElementById("q-number").innerHTML = `<ruby>第<rt>だい</rt></ruby> ${currentQ + 1} <ruby>問<rt>もん</rt></ruby>`;
     document.getElementById("q-text").innerHTML = q.q;
     
     const container = document.getElementById("options-container");
@@ -187,7 +200,7 @@
     q.a.forEach((opt, i) => {
       const btn = document.createElement("button");
       btn.className = "option-btn";
-      btn.innerText = opt;
+      btn.innerHTML = opt;
       btn.onclick = () => checkAnswer(i);
       container.appendChild(btn);
     });
@@ -205,15 +218,15 @@
 
     if (idx === q.correct) {
       score++;
-      exp.innerHTML = "<strong>✨ せいかい！</strong><br>" + q.exp;
+      exp.innerHTML = "<strong><ruby>正解<rt>せいかい</rt></ruby></strong><br>" + q.exp;
       exp.className = "explanation-card correct-style";
     } else {
-      exp.innerHTML = "<strong>❌ ざんねん！</strong> 正解は「" + q.a[q.correct] + "」でした。<br>" + q.exp;
+      exp.innerHTML = "<strong><ruby>不正解<rt>ふせいかい</rt></ruby></strong><br><ruby>正解<rt>せいかい</rt></ruby>は「" + q.a[q.correct] + "」です。<br>" + q.exp;
       exp.className = "explanation-card wrong-style";
     }
     
     exp.style.display = "block";
-    document.getElementById("next-button").style.display = "inline-block";
+    document.getElementById("next-button").style.display = "block";
   }
 
   function nextQuestion() {
@@ -226,22 +239,16 @@
   }
 
   function showResult() {
-    document.getElementById("quiz-area").style.display = "none";
-    document.getElementById("result-area").style.display = "block";
-    document.getElementById("score-display").innerText = `${quizData.length}問中 ${score}問 正解！`;
-    
-    let msg = "";
-    if (score === quizData.length) msg = "完璧（かんぺき）です！奥様もびっくりするはず！";
-    else if (score >= 4) msg = "すごい！かなり将棋（しょうぎ）に詳しくなりましたね。";
-    else msg = "もう一度（いちど）復習（ふくしゅう）して、基礎（きそ）をマスターしよう！";
-    document.getElementById("evaluation-msg").innerText = msg;
+    document.getElementById("quiz-area").classList.remove("active");
+    document.getElementById("result-area").classList.add("active");
+    document.getElementById("score-display").innerHTML = `${quizData.length}<ruby>問中<rt>もんちゅう</rt></ruby> ${score}<ruby>問<rt>もん</rt></ruby> <ruby>正解<rt>せいかい</rt></ruby>`;
   }
 
   function restartQuiz() {
     currentQ = 0;
     score = 0;
-    document.getElementById("quiz-area").style.display = "block";
-    document.getElementById("result-area").style.display = "none";
+    document.getElementById("quiz-area").classList.add("active");
+    document.getElementById("result-area").classList.remove("active");
     loadQuestion();
   }
 
