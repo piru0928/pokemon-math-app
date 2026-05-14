@@ -8,7 +8,6 @@
     :root { --main-blue: #3498db; --accent-orange: #e67e22; --dark-text: #2c3e50; }
     body { font-family: "Arial", sans-serif; background-color: #f8f9fa; text-align: center; margin: 0; padding: 0; overflow-x: hidden; touch-action: manipulation; }
     
-    /* ヘッダー・ナビゲーション（スマホで見えなくなる問題を修正） */
     header {
       background: white;
       padding: 10px 15px;
@@ -31,7 +30,6 @@
     }
     #status-row { font-size: 16px; font-weight: bold; color: var(--dark-text); }
 
-    /* コンテンツエリア */
     .main-content { padding: 15px; }
 
     #clock-box { 
@@ -39,7 +37,7 @@
       border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
       display: flex; align-items: center; justify-content: center;
     }
-    canvas { width: 100%; height: auto; }
+    canvas { max-width: 100%; height: auto; }
 
     .picker-container {
       display: flex; justify-content: center; align-items: center;
@@ -47,7 +45,7 @@
       border-radius: 20px; max-width: 280px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     .picker-wrapper { position: relative; height: 120px; width: 80px; overflow: hidden; background: #fdfdfd; border-radius: 12px; }
-    .picker-list { scroll-snap-type: y mandatory; height: 100%; overflow-y: scroll; scrollbar-width: none; }
+    .picker-list { scroll-snap-type: y mandatory; height: 100%; overflow-y: scroll; scrollbar-width: none; -ms-overflow-style: none; }
     .picker-list::-webkit-scrollbar { display: none; }
     .picker-spacer { height: 40px; pointer-events: none; }
     .picker-item { height: 40px; line-height: 40px; font-size: 20px; font-weight: bold; scroll-snap-align: center; color: #ccc; transition: 0.3s; }
@@ -64,7 +62,6 @@
 
     #explanation { background: #fff; border-left: 5px solid var(--accent-orange); padding: 15px; margin: 20px auto; max-width: 500px; border-radius: 8px; display: none; text-align: left; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     
-    /* ポケモン解説エリア */
     #pokemon-card { background: #fff; border-radius: 15px; padding: 15px; margin-top: 15px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     #pokemon-img { width: 120px; height: 120px; }
     #pokemon-info { color: #555; font-size: 14px; line-height: 1.5; margin-top: 10px; }
@@ -115,8 +112,10 @@
 
   <script>
     const Buzzer = {
-      ctx: new (window.AudioContext || window.webkitAudioContext)(),
+      ctx: null,
+      init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
       _note(freq, type, start, duration) {
+        this.init();
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.connect(gain); gain.connect(this.ctx.destination);
@@ -126,12 +125,14 @@
         osc.start(start); osc.stop(start + duration);
       },
       play(correct) {
+        this.init();
         if (this.ctx.state === 'suspended') this.ctx.resume();
         const now = this.ctx.currentTime;
         if (correct) { this._note(880, 'sine', now, 0.1); this._note(1100, 'sine', now + 0.1, 0.2); }
         else { this._note(200, 'sawtooth', now, 0.3); }
       },
       fanfare() {
+        this.init();
         const now = this.ctx.currentTime;
         [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => this._note(f, 'sine', now + i*0.1, 0.2));
       }
@@ -166,15 +167,22 @@
       }
       const bottomSpacer = document.createElement("div"); bottomSpacer.className = "picker-spacer"; list.appendChild(bottomSpacer);
 
-      list.onscroll = () => {
+      const updateSelected = () => {
         const items = Array.from(list.querySelectorAll(".picker-item"));
-        const containerTop = list.getBoundingClientRect().top + 40;
+        const listRect = list.getBoundingClientRect();
+        const center = listRect.top + listRect.height / 2;
         items.forEach(el => {
           const rect = el.getBoundingClientRect();
-          el.classList.toggle("selected", rect.top >= containerTop - 20 && rect.top <= containerTop + 20);
+          const itemCenter = rect.top + rect.height / 2;
+          el.classList.toggle("selected", Math.abs(center - itemCenter) < 20);
         });
       };
-      setTimeout(() => { list.scrollTop = 0; }, 100);
+
+      list.onscroll = updateSelected;
+      setTimeout(() => { 
+        list.scrollTop = 0; 
+        updateSelected();
+      }, 200);
     }
 
     function drawClock(h, m) {
@@ -223,9 +231,9 @@
       if (userH === targetH && userM === targetM) {
         combo++;
         Buzzer.play(true);
-        expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM === 0 ? 'ちょうど' : targetM + '分'} です。</strong>;
+        expBox.innerHTML = `<strong>✨ 正解！ ${targetH}時${targetM === 0 ? 'ちょうど' : targetM + '分'} です。</strong>`;
         if (combo > 0 && combo % 5 === 0) triggerSpecialEffect();
-        fetchPokemon(Math.floor(Math.random() * 151) + 1); // 初代151匹
+        fetchPokemon(Math.floor(Math.random() * 151) + 1);
       } else {
         combo = 0;
         Buzzer.play(false);
