@@ -1,262 +1,428 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ポケモン・ピアノマスター</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="favicon.png" type="image/png">
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background: #fff5f5;
-      text-align: center;
-      padding: 10px;
-      transition: 0.3s;
-    }
-    ruby { ruby-align: center; }
-    rt { font-size: 0.5em; color: #b83280; font-weight: normal; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ピアノマスター - 改善版</title>
+    <style>
+        :root {
+            --primary-color: #e91e63;
+            --bg-color: #fce4ec;
+            --card-bg: #ffffff;
+            --btn-bg: #fff3e0;
+            --btn-hover: #ffe0b2;
+            --text-color: #424242;
+        }
 
-    h1 { color: #b83280; margin-bottom: 5px; font-size: 24px; }
-    #status { font-size: 16px; color: #d63384; margin-bottom: 10px; font-weight: bold; }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-    #quiz-card {
-      background: white;
-      border-radius: 20px;
-      padding: 15px;
-      display: inline-block;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
-      width: 95%;
-      max-width: 400px;
-      vertical-align: top;
-    }
-    
-    .visual-area {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 10px;
-    }
+        .quiz-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+            text-align: center;
+            position: relative;
+        }
 
-    #pokemon-img { width: 110px; height: 110px; background: #fff0f6; border-radius: 50%; border: 4px solid #fbb6ce; }
-    
-    /* 動的イラスト用スタイル（鍵盤や音符記号） */
-    #dynamic-illustration {
-      width: 140px;
-      height: 110px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f7fafc;
-      border-radius: 12px;
-      border: 3px solid #e2e8f0;
-      overflow: hidden;
-    }
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: bold;
+        }
 
-    /* ピアノ鍵盤のスタイル */
-    .piano-mini { display: flex; background: #334155; padding: 2px; border-radius: 6px; position: relative; }
-    .piano-key-w { width: 18px; height: 70px; background: white; border: 1px solid #cbd5e1; border-radius: 0 0 3px 3px; }
-    .piano-key-b { width: 12px; height: 42px; background: #1e293b; margin-left: -6px; margin-right: -6px; z-index: 2; border-radius: 0 0 2px 2px; }
-    .highlight-orange { background: #ff823a !important; border-color: #ff823a; }
-    .highlight-blue { background: #3182ce !important; border-color: #3182ce; }
+        .combo-counter {
+            background-color: #ff80ab;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
 
-    /* 特殊記号や文字のスタイル */
-    .symbol-text { font-size: 50px; font-weight: bold; font-family: serif; color: #2d3748; }
-    .symbol-large { font-size: 65px; color: #2d3748; }
+        .title {
+            color: var(--primary-color);
+            font-size: 22px;
+            margin: 10px 0;
+        }
 
-    #question-text { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; line-height: 1.8; padding: 0 5px; }
+        .question-box {
+            background: #fafafa;
+            border: 2px solid #f0f0f0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .choices-container {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      max-width: 500px;
-      margin: 10px auto;
-    }
-    .choice-btn {
-      padding: 15px 5px;
-      font-size: 15px;
-      font-weight: bold;
-      background-color: white;
-      border: 3px solid #fbb6ce;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 4px #f687b3;
-    }
-    .choice-btn:active { transform: translateY(2px); box-shadow: 0 2px #f687b3; }
-    .choice-btn:disabled { opacity: 0.7; cursor: default; }
+        .question-text {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
 
-    #result { font-size: 20px; margin-top: 10px; font-weight: bold; min-height: 30px; }
-    #next-button {
-      margin-top: 15px; padding: 12px 40px; font-size: 18px;
-      background-color: #d63384; color: white; border: none;
-      border-radius: 30px; cursor: pointer; display: none; font-weight: bold;
-    }
-    #version-info { position: fixed; bottom: 5px; right: 5px; font-size: 9px; color: #9e9e9e; }
-  </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        /* 画像・アセットエリア */
+        .asset-area {
+            width: 100%;
+            max-width: 320px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* SVG ト音記号描画 */
+        .clef-svg {
+            height: 90px;
+        }
+
+        /* SVG 音符（四分音符） */
+        .note-svg {
+            height: 70px;
+        }
+
+        /* ミニ鍵盤UI */
+        .keyboard-preview {
+            display: flex;
+            position: relative;
+            background: #000;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .white-key {
+            width: 30px;
+            height: 80px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 4px 4px;
+            box-sizing: border-box;
+        }
+        .white-key.highlight {
+            background-color: #ff9800; /* オレンジ強調 */
+        }
+        .black-key-container {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            display: flex;
+            pointer-events: none;
+        }
+        .black-key {
+            width: 18px;
+            height: 50px;
+            background: black;
+            margin-left: 12px; /* 簡易マッピング用 */
+            border-radius: 0 0 2px 2px;
+        }
+        .black-key.spacer {
+            background: transparent;
+            visibility: hidden;
+        }
+
+        /* 選択肢ボタン */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .option-btn {
+            background-color: var(--btn-bg);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 16px 8px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #ffe0b2;
+        }
+        .option-btn:hover {
+            background-color: var(--btn-hover);
+        }
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* フィードバック表示 */
+        .feedback {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 27px;
+        }
+        .correct { color: #4caf50; }
+        .incorrect { color: #f44336; }
+
+        .next-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.1.0</div>
-  <h1>🎹 <ruby>ピアノ<rt>ぴあの</rt></ruby>マスター</h1>
-  <div id="status">よみこみちゅう...</div>
 
-  <div id="quiz-card">
-    <div class="visual-area">
-      <div id="dynamic-illustration"></div>
-      <img id="pokemon-img" src="" alt="pokemon">
+<div class="quiz-container">
+    <div class="header-info">
+        <span id="question-number">第 1 / 50 問</span>
+        <span class="combo-counter" id="combo-display">ただいま 0もん れんぞくせいかい！</span>
     </div>
-    <div id="question-text">もんだい</div>
-  </div>
-  
-  <div class="choices-container" id="choices"></div>
-  <div id="result"></div>
-  
-  <button id="next-button" onclick="generateQuiz()"><ruby>次<rt>つぎ</rt></ruby>のもんだいへ！</button>
-  <br><br>
-  <a href="index.html">← トップページへ</a>
 
-  <script>
-    const pianoQuestions = [
-      // type: 'piano2' (2つ黒鍵)、'piano3' (3つ黒鍵)、'icon' (アイコンフォント)、'text' (特殊文字) でイラストを切り替えます
-      { q: "ピアノの「ド」の<ruby>場所<rt>ばしょ</rt></ruby>は、<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>（くろけん）がいくつ<ruby>並<rt>なら</rt></ruby>んでいるところの<ruby>左下<rt>ひだりした</rt></ruby>かな？", a: ["2つ<ruby>並<rt>なら</rt></ruby>んでいるところ", "3つ<ruby>並<rt>なら</rt></ruby>んでいるところ", "5つ<ruby>並<rt>なら</rt></ruby>んでいるところ", "1つもなじところ"], type: "piano2", param: "do" },
-      { q: "「ド」の<ruby>右<rt>みぎ</rt></ruby>となり（1つ<ruby>高<rt>たか</rt></ruby>い<ruby>音<rt>おと</rt></ruby>）にある<ruby>白<rt>しろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>（しろけん）の<ruby>名前<rt>なまえ</rt></ruby>はなに？", a: ["レ", "ミ", "ファ", "ソ"], type: "piano2", param: "re" },
-      { q: "「ファ」の<ruby>場所<rt>ばしょ</rt></ruby>は、<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>がいくつ<ruby>並<rt>なら</rt></ruby>んでいるグループの<ruby>左下<rt>ひだりした</rt></ruby>かな？", a: ["3つ<ruby>並<rt>なら</rt></ruby>んでいるところ", "2つ<ruby>並<rt>なら</rt></ruby>んでいるところ", "4つ<ruby>並<rt>なら</rt></ruby>んでいるところ", "ないところ"], type: "piano3", param: "fa" },
-      { q: "<ruby>楽譜<rt>がくふ</rt></ruby>の<ruby>一番<rt>いちばん</rt></ruby><ruby>左<rt>ひだり</rt></ruby>にある、<ruby>高<rt>たか</rt></ruby>い<ruby>音<rt>おと</rt></ruby>を<ruby>表<rt>あらわ</rt></ruby>すこの<ruby>記号<rt>きごう</rt></ruby>の<ruby>名前<rt>なまえ</rt></ruby>はなあに？", a: ["ト<ruby>音記号<rt>おんきごう</rt></ruby>", "ヘ<ruby>音記号<rt>おんきごう</rt></ruby>", "ハ<ruby>音記号<rt>おんきごう</rt></ruby>", "おんどり<ruby>記号<rt>きごう</rt></ruby>"], type: "icon", param: "fa-g-clef" },
-      { q: "「<ruby>強<rt>つよ</rt></ruby>く」という<ruby>意味<rt>いみ</rt></ruby>がある音楽（おんがく）の<ruby>記号<rt>きごう</rt></ruby>「𝒇」のよみかたはどれ？", a: ["フォルテ", "ピアノ", "メゾピアノ", "ピカチュウ"], type: "text", param: "f" },
-      { q: "この「1<ruby>拍<rt>ぱく</rt></ruby>（タン！）」の<ruby>長<rt>なが</rt></ruby>さの<ruby>黒<rt>くろ</rt></ruby>いおんぷの<ruby>名前<rt>なまえ</rt></ruby>はなあに？", a: ["<ruby>四分音符<rt>しぶんおんぷ</rt></ruby>", "<ruby>二分音符<rt>にぶおんぷ</rt></ruby>", "<ruby>全音符<rt>ぜんおんぷ</rt></ruby>", "<ruby>八分音符<rt>はちぶおんぷ</rt></ruby>"], type: "icon", param: "fa-music" },
-      { q: "<ruby>低<rt>ひく</rt></ruby>い<ruby>音<rt>おと</rt></ruby>や、<ruby>左手<rt>ひだりて</rt></ruby>でひくときに<ruby>使<rt>つか</rt></ruby>うこの<ruby>記号<rt>きごう</rt></ruby>はなあに？", a: ["ヘ<ruby>音記号<rt>おんきごう</rt></ruby>", "ト<ruby>音記号<rt>おんきごう</rt></ruby>", "ハ<ruby>音記号<rt>おんきごう</rt></ruby>", "へんしん<ruby>記号<rt>きごう</rt></ruby>"], type: "icon", param: "fa-f-clef" },
-      { q: "ピアノをひくときは、おててをどんな<ruby>形<rt>かたち</rt></ruby>にするのがいいかな？", a: ["たまごをふわっともった<ruby>形<rt>かたち</rt></ruby>", "まっすぐピンとのばした<ruby>形<rt>かたち</rt></ruby>", "グーのカタチにかためた<ruby>形<rt>かたち</rt></ruby>", "チョキの<ruby>形<rt>かたち</rt></ruby>"], type: "icon", param: "fa-hand-holding-egg" },
-      { q: "ピアノの<ruby>指番号<rt>ゆびばんごう</rt></ruby>で、「1」の<ruby>指<rt>ゆび</rt></ruby>はどの<ruby>指<rt>ゆび</rt></ruby>のことかな？", a: ["お<ruby>父<rt>とう</rt></ruby>さん<ruby>指<rt>ゆび</rt></ruby>（<ruby>親指<rt>おやゆび</rt></ruby>）", "お<ruby>母<rt>かあ</rt></ruby>さん<ruby>指<rt>ゆび</rt></ruby>（<ruby>人差<rt>ひとさ</rt></ruby>し<ruby>指<rt>ゆび</rt></ruby>）", "おにいいさん<ruby>指<rt>ゆび</rt></ruby>（<ruby>中指<rt>なかゆび</rt></ruby>）", "赤ちゃん<ruby>指<rt>ゆび</rt></ruby>（<ruby>小指<rt>こゆび</rt></ruby>）"], type: "icon", param: "fa-hand" },
-      { q: "ピアノをひくとき、どんな<ruby>姿勢<rt>しせい</rt></ruby>（すわりかた）がいいかな？", a: ["<ruby>背<rt>せ</rt></ruby>すじをまっすぐのばす", "だらーんとまるくなる", "ねころがってひく", "あぐらをかく"], type: "icon", param: "fa-chair" },
-      { q: "<ruby>音<rt>おと</rt></ruby>をきれいにのばしたり響（ひび）かせたりする、<ruby>足<rt>あし</rt></ruby>もとにある板（いた）は？", a: ["ペダル", "アクセル", "ブレーキ", "スイッチ"], type: "icon", param: "fa-shoe-prints" },
-      { q: "「弱（よわ）く」という<ruby>意味<rt>いみ</rt></ruby>がある音楽（おんがく）の<ruby>記号<rt>きごう</rt></ruby>「𝒑」のよみかたはどれ？", a: ["ピアノ", "フォルテ", "クレッシェンド", "ピチュー"], type: "text", param: "p" },
-      { q: "2つ（たーあん）のばす、なかみが<ruby>白<rt>しろ</rt></ruby>くて棒（ぼう）があるおんぷのなまえは？", a: ["<ruby>二分音符<rt>にぶおんぷ</rt></ruby>", "<ruby>四分音符<rt>しぶんおんぷ</rt></ruby>", "<ruby>全音符<rt>ぜんおんぷ</rt></ruby>", "<ruby>十六分音符<rt>じゅうろくぶおんぷ</rt></ruby>"], type: "icon", param: "fa-music" }
+    <div class="title">🎹 ピアノマスター</div>
+
+    <div class="question-box">
+        <div class="question-text" id="question-text">Loading...</div>
+        <div class="asset-area" id="asset-area">
+            </div>
+    </div>
+
+    <div class="options-grid" id="options-container">
+        </div>
+
+    <div class="feedback" id="feedback-text"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ！</button>
+</div>
+
+<script>
+    // 1. 鍵盤問題用の音域データ定義（CからhihiCまで定義）
+    // octave: 1=低音域(C), 2=中音域(c), 3=高音域(c'), 4=特高音(hiC), 5=超高音(hihiC)
+    const KEYBOARD_NOTES = [
+        { label: "C", name: "ド", octave: 1, type: "2つ並んでいるところ" },
+        { label: "D", name: "レ", octave: 1, type: "2つ並んでいるところ" },
+        { label: "E", name: "ミ", octave: 1, type: "2つ並んでいるところ" },
+        { label: "F", name: "ファ", octave: 1, type: "3つ並んでいるところ" },
+        { label: "G", name: "ソ", octave: 1, type: "3つ並んでいるところ" },
+        { label: "A", name: "ラ", octave: 1, type: "3つ並んでいるところ" },
+        { label: "B", name: "シ", octave: 1, type: "3つ並んでいるところ" },
+        
+        { label: "c", name: "ド", octave: 2, type: "2つ並んでいるところ" },
+        { label: "d", name: "レ", octave: 2, type: "2つ並んでいるところ" },
+        { label: "e", name: "ミ", octave: 2, type: "2つ並んでいるところ" },
+        { label: "f", name: "ファ", octave: 2, type: "3つ並んでいるところ" },
+        { label: "g", name: "ソ", octave: 2, type: "3つ並んでいるところ" },
+        { label: "a", name: "ラ", octave: 2, type: "3つ並んでいるところ" },
+        { label: "b", name: "シ", octave: 2, type: "3つ並んでいるところ" },
+
+        { label: "c'", name: "ド (高)", octave: 3, type: "2つ並んでいるところ" },
+        { label: "d'", name: "レ (高)", octave: 3, type: "2つ並んでいるところ" },
+        { label: "e'", name: "ミ (高)", octave: 3, type: "2つ並んでいるところ" },
+        { label: "f'", name: "ファ (高)", octave: 3, type: "3つ並んでいるところ" },
+        { label: "g'", name: "ソ (高)", octave: 3, type: "3つ並んでいるところ" },
+        { label: "a'", name: "ラ (高)", octave: 3, type: "3つ並んでいるところ" },
+        { label: "b'", name: "シ (高)", octave: 3, type: "3つ並んでいるところ" },
+
+        { label: "hiC", name: "hiC (ド)", octave: 4, type: "2つ並んでいるところ" },
+        { label: "hiD", name: "hiD (レ)", octave: 4, type: "2つ並んでいるところ" },
+        { label: "hiE", name: "hiE (ミ)", octave: 4, type: "2つ並んでいるところ" },
+        { label: "hiF", name: "hiF (ファ)", octave: 4, type: "3つ並んでいるところ" },
+        { label: "hiG", name: "hiG (ソ)", octave: 4, type: "3つ並んでいるところ" },
+        { label: "hiA", name: "hiA (ラ)", octave: 4, type: "3つ並んでいるところ" },
+        { label: "hiB", name: "hiB (シ)", octave: 4, type: "3つ並んでいるところ" },
+
+        { label: "hihiC", name: "hihiC (ド)", octave: 5, type: "2つ並んでいるところ" }
     ];
 
-    let correctStreak = 0;
-    let currentAnswer = "";
-
-    const Buzzer = {
-      ctx: new (window.AudioContext || window.webkitAudioContext)(),
-      _note(freq, start, duration) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.frequency.setValueAtTime(freq, start);
-        gain.gain.setValueAtTime(0.05, start);
-        gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
-        osc.start(start); osc.stop(start + duration);
-      },
-      play(type) {
-        if (this.ctx.state === 'suspended') this.ctx.resume();
-        const now = this.ctx.currentTime;
-        if (type === 'correct') {
-          this._note(880, now, 0.1); this._note(1100, now + 0.1, 0.2);
-        } else if (type === 'special') {
-          [523, 659, 783, 1046].forEach((f, i) => this._note(f, now + (i * 0.1), 0.3));
-        } else {
-          this._note(200, now, 0.3);
+    // 2. 固定問題プール（音楽理論・記号）※バグを修正済み
+    const THEORY_QUIZZES = [
+        {
+            category: "theory",
+            question: "この「1拍（タン！）」の長さの黒いおんぷの名前はなあに？",
+            assetType: "quarter_note", // 正しい四分音符を表示させるトリガー
+            answer: "四分音符",
+            options: ["四分音符", "全音符", "八分音符", "二分音符"]
+        },
+        {
+            category: "theory",
+            question: "楽譜の一番 左にある、高い音を表す記号の名前はなあに？",
+            assetType: "treble_clef", // ト音記号を表示させるトリガー
+            answer: "ト音記号",
+            options: ["八音記号", "ト音記号", "おんどり記号", "へ音記号"]
         }
-      }
-    };
+    ];
 
-    // クイズ問題に応じた動的なイラストをHTMLで組み立てて表示する関数
-    function updateDynamicIllustration(type, param) {
-      const wrapper = document.getElementById("dynamic-illustration");
-      wrapper.innerHTML = "";
+    // 状態管理
+    let currentQuestionIdx = 1;
+    let comboCount = 0;
+    let currentQuiz = null;
+    let isAnswered = false;
 
-      if (type === "piano2") {
-        // 2つの黒鍵グループをベースにしたミニ鍵盤
-        wrapper.innerHTML = `
-          <div class="piano-mini">
-            <div class="piano-key-w ${param === 'do' ? 'highlight-orange' : ''}"></div>
-            <div class="piano-key-b"></div>
-            <div class="piano-key-w ${param === 're' ? 'highlight-blue' : ''}"></div>
-            <div class="piano-key-b"></div>
-            <div class="piano-key-w"></div>
-          </div>
-        `;
-      } else if (type === "piano3") {
-        // 3つの黒鍵グループをベースにしたミニ鍵盤
-        wrapper.innerHTML = `
-          <div class="piano-mini">
-            <div class="piano-key-w ${param === 'fa' ? 'highlight-orange' : ''}"></div>
-            <div class="piano-key-b"></div>
-            <div class="piano-key-w"></div>
-            <div class="piano-key-b"></div>
-            <div class="piano-key-w"></div>
-            <div class="piano-key-b"></div>
-            <div class="piano-key-w"></div>
-          </div>
-        `;
-      } else if (type === "icon") {
-        // アイコンフォントを使った綺麗なビジュアル化
-        if (param === "fa-hand-holding-egg") {
-          wrapper.innerHTML = `<span class="symbol-large" style="color: #ed64a6;"><i class="fa-solid fa-hand-dots"></i>🥚</span>`;
+    // 3. 確率調整ルーチン（鍵盤問題を優先出題：出現確率 75%）
+    function getRandomQuiz() {
+        const isKeyboard = Math.random() < 0.75; // 75%の確率で鍵盤問題
+
+        if (isKeyboard) {
+            // 鍵盤音域（C〜hihiC）からランダムに1つターゲットを選定
+            const targetNote = KEYBOARD_NOTES[Math.floor(Math.random() * KEYBOARD_NOTES.length)];
+            
+            return {
+                category: "keyboard",
+                question: `ピアノの「${targetNote.name}」の場所は、黒い鍵盤（くろけん）がいくつの並んでいるところの左下かな？`,
+                assetType: "keyboard_ui",
+                target: targetNote,
+                answer: targetNote.type,
+                options: ["2つ並んでいるところ", "3つ並んでいるところ", "1つもないところ", "5つ並んでいるところ"]
+            };
         } else {
-          wrapper.innerHTML = `<span class="symbol-large" style="color: #b83280;"><i class="fa-solid ${param}"></i></span>`;
+            // 25%の確率で理論・記号問題
+            const quiz = THEORY_QUIZZES[Math.floor(Math.random() * THEORY_QUIZZES.length)];
+            // オプションをシャッフル（浅いコピー）
+            const options = [...quiz.options].sort(() => Math.random() - 0.5);
+            return { ...quiz, options };
         }
-      } else if (type === "text") {
-        // fやpなどの強弱記号を綺麗にフォント表示
-        const color = param === 'f' ? '#e53e3e' : '#3182ce';
-        wrapper.innerHTML = `<span class="symbol-text" style="color: ${color}; font-style: italic;">${param}</span>`;
-      }
     }
 
-    function generateQuiz() {
-      document.getElementById("result").textContent = "";
-      document.getElementById("next-button").style.display = "none";
-      document.body.style.backgroundColor = "#fff5f5";
-      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+    // アセット描画エンジン（バグ修正・SVG直書き）
+    function renderAsset(quiz) {
+        const container = document.getElementById("asset-area");
+        container.innerHTML = ""; // 初期化
 
-      const qData = pianoQuestions[Math.floor(Math.random() * pianoQuestions.length)];
-      document.getElementById("question-text").innerHTML = qData.q;
-      currentAnswer = qData.a[0];
-
-      // 動的なイラストの更新
-      updateDynamicIllustration(qData.type, qData.param);
-
-      // 可愛い・音楽に合いそうなポケモンたち（ピッピ、プリン、ピカチュウ、ミュウ、トゲピー、イーブイ、マリル、キレイハナなど）
-      const cutePoke = [35, 39, 25, 151, 175, 133, 183, 182, 251]; 
-      const pokeId = cutePoke[Math.floor(Math.random() * cutePoke.length)];
-      document.getElementById("pokemon-img").src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokeId}.png`;
-
-      let options = [...qData.a].sort(() => Math.random() - 0.5);
-      const choicesDiv = document.getElementById("choices");
-      choicesDiv.innerHTML = "";
-      options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "choice-btn";
-        btn.innerHTML = opt;
-        btn.onclick = () => checkAnswer(opt);
-        choicesDiv.appendChild(btn);
-      });
+        if (quiz.assetType === "quarter_note") {
+            // 【バグ修正】旗のない、正しい「四分音符」のインラインSVGを描画
+            container.innerHTML = `
+                <svg class="note-svg" viewBox="0 0 50 100">
+                    <ellipse cx="20" cy="75" rx="12" ry="8" transform="rotate(-20 20 75)" fill="black" />
+                    <line x1="31" y1="73" x2="31" y2="15" stroke="black" stroke-width="4" stroke-linecap="round" />
+                </svg>
+            `;
+        } 
+        else if (quiz.assetType === "treble_clef") {
+            // 【バグ修正】非表示だったト音記号を視認性の高いSVGパスで正確に描画
+            container.innerHTML = `
+                <svg class="clef-svg" viewBox="0 0 100 120" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M 50 10 L 50 100 A 8 8 0 1 1 42 92" />
+                    <path d="M 50 100 A 14 14 0 1 0 50 72 A 10 10 0 1 0 50 92 A 4 4 0 1 0 47 86" />
+                    <path d="M 50 72 C 50 40 65 30 50 10 C 40 25 35 55 68 70 C 80 78 78 95 62 95 C 52 95 48 85 52 75" />
+                </svg>
+            `;
+        } 
+        else if (quiz.assetType === "keyboard_ui") {
+            // 【機能拡張】C〜hihiCまでマッピング可能な2オクターブ分の動的鍵盤ミニUIを生成
+            // ターゲット音符のタイプ（2つ並びか3つ並びか）を視覚的にヒント付与
+            const isTwoGroup = (quiz.target.type === "2つ並んでいるところ");
+            
+            container.innerHTML = `
+                <div class="keyboard-preview">
+                    <div class="white-key ${isTwoGroup ? 'highlight' : ''}"></div>
+                    <div class="white-key"></div>
+                    <div class="white-key"></div>
+                    ${!isTwoGroup ? '<div class="white-key"></div>' : ''}
+                    
+                    <div class="black-key-container">
+                        ${isTwoGroup ? `
+                            <div class="black-key" style="margin-left: 20px;"></div>
+                            <div class="black-key" style="margin-left: 12px;"></div>
+                        ` : `
+                            <div class="black-key" style="margin-left: 20px;"></div>
+                            <div class="black-key" style="margin-left: 12px;"></div>
+                            <div class="black-key" style="margin-left: 12px;"></div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
     }
 
-    function checkAnswer(selected) {
-      document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
-      const resArea = document.getElementById("result");
-
-      if (selected === currentAnswer) {
-        correctStreak++;
-        if (correctStreak % 5 === 0) Buzzer.play('special');
-        else Buzzer.play('correct');
-        resArea.innerHTML = "✨ せいかい！ ピアノの はかせだね！";
-        document.body.style.backgroundColor = "#fff0f6";
-      } else {
-        correctStreak = 0;
-        Buzzer.play('wrong');
-        resArea.innerHTML = `❌ こたえは「${currentAnswer}」だよ`;
-        document.body.style.backgroundColor = "#fff5f5";
-      }
-      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
-      document.getElementById("next-button").style.display = "inline-block";
+    // クイズの読み込みルーチン
+    function loadQuiz() {
+        isAnswered = false;
+        document.getElementById("next-btn").style.display = "none";
+        document.getElementById("feedback-text").innerHTML = "";
+        
+        document.getElementById("question-number").innerText = `第 ${currentQuestionIdx} / 50 問`;
+        
+        currentQuiz = getRandomQuiz();
+        document.getElementById("question-text").innerText = currentQuiz.question;
+        
+        // アセットのレンダリング
+        renderAsset(currentQuiz);
+        
+        // 選択肢ボタンの構築
+        const optionsContainer = document.getElementById("options-container");
+        optionsContainer.innerHTML = "";
+        
+        currentQuiz.options.forEach(option => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(option, btn);
+            optionsContainer.appendChild(btn);
+        });
     }
 
-    window.onload = generateQuiz;
-  </script>
+    // 判定ルーチン
+    function checkAnswer(selectedOption, clickedBtn) {
+        if (isAnswered) return; // 連続タップ防止
+        isAnswered = true;
+        
+        const feedbackEl = document.getElementById("feedback-text");
+        const allButtons = document.querySelectorAll(".option-btn");
+        
+        // 全ボタンを無効化
+        allButtons.forEach(btn => btn.style.pointerEvents = "none");
+
+        if (selectedOption === currentQuiz.answer) {
+            comboCount++;
+            feedbackEl.innerHTML = "<span class='correct'>✨ せいかい！ ピアノのはかせだね！</span>";
+            clickedBtn.style.backgroundColor = "#c8e6c9";
+            clickedBtn.style.borderColor = "#4caf50";
+        } else {
+            comboCount = 0; // コンボリセット
+            feedbackEl.innerHTML = `<span class='incorrect'>❌ ざんねん！ せいかいは「${currentQuiz.answer}」だよ</span>`;
+            clickedBtn.style.backgroundColor = "#ffcdd2";
+            clickedBtn.style.borderColor = "#f44336";
+        }
+        
+        // コンボ表示の更新
+        document.getElementById("combo-display").innerText = `ただいま ${comboCount}もん れんぞくせいかい！`;
+        
+        // 次へボタンの表示
+        document.getElementById("next-btn").style.display = "inline-block";
+    }
+
+    // 次の問題へ遷移
+    function nextQuestion() {
+        currentQuestionIdx++;
+        if (currentQuestionIdx > 50) {
+            alert("50問全問クリアしました！トップに戻ります。");
+            currentQuestionIdx = 1;
+            comboCount = 0;
+        }
+        loadQuiz();
+    }
+
+    // 初回起動
+    window.onload = loadQuiz;
+</script>
+
 </body>
 </html>
