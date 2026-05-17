@@ -66,7 +66,7 @@
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 20px;
-            min-height: 180px;
+            min-height: 200px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -76,11 +76,11 @@
         .question-text {
             font-size: 18px;
             font-weight: bold;
-            line-height: 1.5;
+            line-height: 1.8;
             margin-bottom: 15px;
         }
 
-        /* 画像・アセットエリア */
+        /* アセットエリア */
         .asset-area {
             width: 100%;
             max-width: 320px;
@@ -91,34 +91,26 @@
             margin-top: 10px;
         }
 
-        /* SVG ト音記号描画 */
-        .clef-svg {
-            height: 90px;
-        }
-
-        /* SVG 音符（四分音符） */
-        .note-svg {
-            height: 70px;
-        }
-
-        /* ミニ鍵盤UI */
+        /* 連動型・鍵盤UIグラフィック */
         .keyboard-preview {
             display: flex;
             position: relative;
             background: #000;
             padding: 2px;
-            border-radius: 4px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .white-key {
-            width: 30px;
-            height: 80px;
+            width: 35px;
+            height: 90px;
             background: white;
             border: 1px solid #ccc;
             border-radius: 0 0 4px 4px;
             box-sizing: border-box;
         }
+        /* 正解の基準となるエリアを視覚的にハイライト */
         .white-key.highlight {
-            background-color: #ff9800; /* オレンジ強調 */
+            background-color: #fff9c4; 
         }
         .black-key-container {
             position: absolute;
@@ -128,15 +120,10 @@
             pointer-events: none;
         }
         .black-key {
-            width: 18px;
-            height: 50px;
+            width: 20px;
+            height: 55px;
             background: black;
-            margin-left: 12px; /* 簡易マッピング用 */
-            border-radius: 0 0 2px 2px;
-        }
-        .black-key.spacer {
-            background: transparent;
-            visibility: hidden;
+            border-radius: 0 0 3px 3px;
         }
 
         /* 選択肢ボタン */
@@ -188,6 +175,17 @@
             margin-top: 10px;
             display: none;
         }
+
+        /* ルビの読みやすさ微調整 */
+        ruby {
+            ruby-position: over;
+        }
+        rt {
+            font-size: 0.55em;
+            color: #e91e63;
+            letter-spacing: 0.05em;
+            padding-bottom: 1px;
+        }
     </style>
 </head>
 <body>
@@ -202,214 +200,190 @@
 
     <div class="question-box">
         <div class="question-text" id="question-text">Loading...</div>
-        <div class="asset-area" id="asset-area">
-            </div>
+        <div class="asset-area" id="asset-area"></div>
     </div>
 
-    <div class="options-grid" id="options-container">
-        </div>
+    <div class="options-grid" id="options-container"></div>
 
     <div class="feedback" id="feedback-text"></div>
     <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ！</button>
 </div>
 
 <script>
-    // 1. 鍵盤問題用の音域データ定義（CからhihiCまで定義）
-    // octave: 1=低音域(C), 2=中音域(c), 3=高音域(c'), 4=特高音(hiC), 5=超高音(hihiC)
-    const KEYBOARD_NOTES = [
-        { label: "C", name: "ド", octave: 1, type: "2つ並んでいるところ" },
-        { label: "D", name: "レ", octave: 1, type: "2つ並んでいるところ" },
-        { label: "E", name: "ミ", octave: 1, type: "2つ並んでいるところ" },
-        { label: "F", name: "ファ", octave: 1, type: "3つ並んでいるところ" },
-        { label: "G", name: "ソ", octave: 1, type: "3つ並んでいるところ" },
-        { label: "A", name: "ラ", octave: 1, type: "3つ並んでいるところ" },
-        { label: "B", name: "シ", octave: 1, type: "3つ並んでいるところ" },
-        
-        { label: "c", name: "ド", octave: 2, type: "2つ並んでいるところ" },
-        { label: "d", name: "レ", octave: 2, type: "2つ並んでいるところ" },
-        { label: "e", name: "ミ", octave: 2, type: "2つ並んでいるところ" },
-        { label: "f", name: "ファ", octave: 2, type: "3つ並んでいるところ" },
-        { label: "g", name: "ソ", octave: 2, type: "3つ並んでいるところ" },
-        { label: "a", name: "ラ", octave: 2, type: "3つ並んでいるところ" },
-        { label: "b", name: "シ", octave: 2, type: "3つ並んでいるところ" },
+    // 1. 各音名（C〜hihiC）ごとの正確な「黒鍵タイプ」マッピングデータ
+    // type => 0: 2つ並んでいるところ, 1: 3つ並んでいるところ, 2: 並んでいないところ
+    const NOTE_DATA = [
+        // 低音域 (オクターブ1)
+        { name: "ド", display: "ド", type: 0 },
+        { name: "レ", display: "レ", type: 0 },
+        { name: "ミ", display: "ミ", type: 0 },
+        { name: "ファ", display: "ファ", type: 1 },
+        { name: "ソ", display: "ソ", type: 1 },
+        { name: "ラ", display: "ラ", type: 1 },
+        { name: "シ", display: "シ", type: 1 },
 
-        { label: "c'", name: "ド (高)", octave: 3, type: "2つ並んでいるところ" },
-        { label: "d'", name: "レ (高)", octave: 3, type: "2つ並んでいるところ" },
-        { label: "e'", name: "ミ (高)", octave: 3, type: "2つ並んでいるところ" },
-        { label: "f'", name: "ファ (高)", octave: 3, type: "3つ並んでいるところ" },
-        { label: "g'", name: "ソ (高)", octave: 3, type: "3つ並んでいるところ" },
-        { label: "a'", name: "ラ (高)", octave: 3, type: "3つ並んでいるところ" },
-        { label: "b'", name: "シ (高)", octave: 3, type: "3つ並んでいるところ" },
+        // 中音域 (オクターブ2)
+        { name: "ド", display: "ド", type: 0 },
+        { name: "レ", display: "レ", type: 0 },
+        { name: "ミ", display: "ミ", type: 0 },
+        { name: "ファ", display: "ファ", type: 1 },
+        { name: "ソ", display: "ソ", type: 1 },
+        { name: "ラ", display: "ラ", type: 1 },
+        { name: "シ", display: "シ", type: 1 },
 
-        { label: "hiC", name: "hiC (ド)", octave: 4, type: "2つ並んでいるところ" },
-        { label: "hiD", name: "hiD (レ)", octave: 4, type: "2つ並んでいるところ" },
-        { label: "hiE", name: "hiE (ミ)", octave: 4, type: "2つ並んでいるところ" },
-        { label: "hiF", name: "hiF (ファ)", octave: 4, type: "3つ並んでいるところ" },
-        { label: "hiG", name: "hiG (ソ)", octave: 4, type: "3つ並んでいるところ" },
-        { label: "hiA", name: "hiA (ラ)", octave: 4, type: "3つ並んでいるところ" },
-        { label: "hiB", name: "hiB (シ)", octave: 4, type: "3つ並んでいるところ" },
+        // 高音域 (オクターブ3)
+        { name: "ド（高）", display: "ド<span style='font-size:12px;'>(高)</span>", type: 0 },
+        { name: "レ（高）", display: "レ<span style='font-size:12px;'>(高)</span>", type: 0 },
+        { name: "ミ（高）", display: "ミ<span style='font-size:12px;'>(高)</span>", type: 0 },
+        { name: "ファ（高）", display: "ファ<span style='font-size:12px;'>(高)</span>", type: 1 },
+        { name: "ソ（高）", display: "ソ<span style='font-size:12px;'>(高)</span>", type: 1 },
+        { name: "ラ（高）", display: "ラ<span style='font-size:12px;'>(高)</span>", type: 1 },
+        { name: "シ（高）", display: "シ<span style='font-size:12px;'>(高)</span>", type: 1 },
 
-        { label: "hihiC", name: "hihiC (ド)", octave: 5, type: "2つ並んでいるところ" }
+        // 特高音域 hi (オクターブ4)
+        { name: "hiC", display: "hiC", type: 0 },
+        { name: "hiD", display: "hiD", type: 0 },
+        { name: "hiE", display: "hiE", type: 0 },
+        { name: "hiF", display: "hiF", type: 1 },
+        { name: "hiG", display: "hiG", type: 1 },
+        { name: "hiA", display: "hiA", type: 1 },
+        { name: "hiB", display: "hiB", type: 1 },
+
+        // 超高音域 hihi (オクターブ5) ※最高音のド
+        { name: "hihiC", display: "hihiC", type: 2 } // 単体のドのため周辺に黒鍵が並んでいない扱い
     ];
 
-    // 2. 固定問題プール（音楽理論・記号）※バグを修正済み
-    const THEORY_QUIZZES = [
-        {
-            category: "theory",
-            question: "この「1拍（タン！）」の長さの黒いおんぷの名前はなあに？",
-            assetType: "quarter_note", // 正しい四分音符を表示させるトリガー
-            answer: "四分音符",
-            options: ["四分音符", "全音符", "八分音符", "二分音符"]
-        },
-        {
-            category: "theory",
-            question: "楽譜の一番 左にある、高い音を表す記号の名前はなあに？",
-            assetType: "treble_clef", // ト音記号を表示させるトリガー
-            answer: "ト音記号",
-            options: ["八音記号", "ト音記号", "おんどり記号", "へ音記号"]
-        }
+    // 選択肢の定義（HTMLルビ付き文字列）
+    const ANSWER_OPTIONS = [
+        { id: 0, html: `<ruby>2つ<rt>ふたつ</rt></ruby><ruby>並<rt>なら</rt></ruby>んでいるところ` },
+        { id: 1, html: `<ruby>3つ<rt>みっつ</rt></ruby><ruby>並<rt>なら</rt></ruby>んでいるところ` },
+        { id: 2, html: `<ruby>並<rt>なら</rt></ruby>んでいないところ` },
+        { id: 3, html: `<ruby>5つ<rt>いつつ</rt></ruby><ruby>並<rt>なら</rt></ruby>んでいるところ` }
     ];
 
-    // 状態管理
     let currentQuestionIdx = 1;
     let comboCount = 0;
     let currentQuiz = null;
     let isAnswered = false;
 
-    // 3. 確率調整ルーチン（鍵盤問題を優先出題：出現確率 75%）
-    function getRandomQuiz() {
-        const isKeyboard = Math.random() < 0.75; // 75%の確率で鍵盤問題
-
-        if (isKeyboard) {
-            // 鍵盤音域（C〜hihiC）からランダムに1つターゲットを選定
-            const targetNote = KEYBOARD_NOTES[Math.floor(Math.random() * KEYBOARD_NOTES.length)];
-            
-            return {
-                category: "keyboard",
-                question: `ピアノの「${targetNote.name}」の場所は、黒い鍵盤（くろけん）がいくつの並んでいるところの左下かな？`,
-                assetType: "keyboard_ui",
-                target: targetNote,
-                answer: targetNote.type,
-                options: ["2つ並んでいるところ", "3つ並んでいるところ", "1つもないところ", "5つ並んでいるところ"]
-            };
-        } else {
-            // 25%の確率で理論・記号問題
-            const quiz = THEORY_QUIZZES[Math.floor(Math.random() * THEORY_QUIZZES.length)];
-            // オプションをシャッフル（浅いコピー）
-            const options = [...quiz.options].sort(() => Math.random() - 0.5);
-            return { ...quiz, options };
-        }
+    // クイズ生成（問題・画像・答えの不整合を完全修正）
+    function generateQuiz() {
+        // 全音域のリストからランダムに1つ選定
+        const targetNote = NOTE_DATA[Math.floor(Math.random() * NOTE_DATA.length)];
+        
+        return {
+            noteName: targetNote.display,
+            blackKeyType: targetNote.type, // 正解のID (0, 1, 2)
+            answerHtml: ANSWER_OPTIONS.find(o => o.id === targetNote.type).html
+        };
     }
 
-    // アセット描画エンジン（バグ修正・SVG直書き）
-    function renderAsset(quiz) {
+    // 鍵盤グラフィックの動的連動生成
+    function drawKeyboard(type) {
         const container = document.getElementById("asset-area");
-        container.innerHTML = ""; // 初期化
+        container.innerHTML = "";
 
-        if (quiz.assetType === "quarter_note") {
-            // 【バグ修正】旗のない、正しい「四分音符」のインラインSVGを描画
-            container.innerHTML = `
-                <svg class="note-svg" viewBox="0 0 50 100">
-                    <ellipse cx="20" cy="75" rx="12" ry="8" transform="rotate(-20 20 75)" fill="black" />
-                    <line x1="31" y1="73" x2="31" y2="15" stroke="black" stroke-width="4" stroke-linecap="round" />
-                </svg>
+        const keyboardDiv = document.createElement("div");
+        keyboardDiv.className = "keyboard-preview";
+
+        let whiteKeysHtml = "";
+        let blackKeysHtml = "";
+
+        if (type === 0 || type === 2) {
+            // 「2つ並び」または「並んでいない（単体）」のときは、ド・レ・ミ側の3鍵盤を描画
+            whiteKeysHtml = `
+                <div class="white-key highlight"></div>
+                <div class="white-key"></div>
+                <div class="white-key"></div>
             `;
-        } 
-        else if (quiz.assetType === "treble_clef") {
-            // 【バグ修正】非表示だったト音記号を視認性の高いSVGパスで正確に描画
-            container.innerHTML = `
-                <svg class="clef-svg" viewBox="0 0 100 120" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M 50 10 L 50 100 A 8 8 0 1 1 42 92" />
-                    <path d="M 50 100 A 14 14 0 1 0 50 72 A 10 10 0 1 0 50 92 A 4 4 0 1 0 47 86" />
-                    <path d="M 50 72 C 50 40 65 30 50 10 C 40 25 35 55 68 70 C 80 78 78 95 62 95 C 52 95 48 85 52 75" />
-                </svg>
+            // 黒鍵は2本
+            blackKeysHtml = `
+                <div class="black-key" style="margin-left: 24px;"></div>
+                <div class="black-key" style="margin-left: 14px;"></div>
             `;
-        } 
-        else if (quiz.assetType === "keyboard_ui") {
-            // 【機能拡張】C〜hihiCまでマッピング可能な2オクターブ分の動的鍵盤ミニUIを生成
-            // ターゲット音符のタイプ（2つ並びか3つ並びか）を視覚的にヒント付与
-            const isTwoGroup = (quiz.target.type === "2つ並んでいるところ");
-            
-            container.innerHTML = `
-                <div class="keyboard-preview">
-                    <div class="white-key ${isTwoGroup ? 'highlight' : ''}"></div>
-                    <div class="white-key"></div>
-                    <div class="white-key"></div>
-                    ${!isTwoGroup ? '<div class="white-key"></div>' : ''}
-                    
-                    <div class="black-key-container">
-                        ${isTwoGroup ? `
-                            <div class="black-key" style="margin-left: 20px;"></div>
-                            <div class="black-key" style="margin-left: 12px;"></div>
-                        ` : `
-                            <div class="black-key" style="margin-left: 20px;"></div>
-                            <div class="black-key" style="margin-left: 12px;"></div>
-                            <div class="black-key" style="margin-left: 12px;"></div>
-                        `}
-                    </div>
-                </div>
+        } else if (type === 1) {
+            // 「3つ並び」のときは、ファ・ソ・ラ・シ側の4鍵盤を描画
+            whiteKeysHtml = `
+                <div class="white-key highlight"></div>
+                <div class="white-key"></div>
+                <div class="white-key"></div>
+                <div class="white-key"></div>
+            `;
+            // 黒鍵は3本
+            blackKeysHtml = `
+                <div class="black-key" style="margin-left: 24px;"></div>
+                <div class="black-key" style="margin-left: 14px;"></div>
+                <div class="black-key" style="margin-left: 14px;"></div>
             `;
         }
+
+        keyboardDiv.innerHTML = whiteKeysHtml;
+        
+        const blackContainer = document.createElement("div");
+        blackContainer.className = "black-key-container";
+        blackContainer.innerHTML = blackKeysHtml;
+        
+        keyboardDiv.appendChild(blackContainer);
+        container.appendChild(keyboardDiv);
     }
 
-    // クイズの読み込みルーチン
+    // クイズ画面のレンダリング
     function loadQuiz() {
         isAnswered = false;
         document.getElementById("next-btn").style.display = "none";
         document.getElementById("feedback-text").innerHTML = "";
-        
         document.getElementById("question-number").innerText = `第 ${currentQuestionIdx} / 50 問`;
-        
-        currentQuiz = getRandomQuiz();
-        document.getElementById("question-text").innerText = currentQuiz.question;
-        
-        // アセットのレンダリング
-        renderAsset(currentQuiz);
-        
-        // 選択肢ボタンの構築
+
+        currentQuiz = generateQuiz();
+
+        // 【修正】問題文全体にルビを追加し、動的に音名を埋め込み
+        document.getElementById("question-text").innerHTML = `
+            ピアノの「<strong>${currentQuiz.noteName}</strong>」の<ruby>場所<rt>ばしょ</rt></ruby>は、
+            <ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>（くろけん）が
+            いくつの<ruby>並<rt>なら</rt></ruby>んでいるところの<ruby>左下<rt>ひだりした</rt></ruby>かな？
+        `;
+
+        // 【修正】問題の正解タイプに合わせた正しい鍵盤イラストを生成
+        drawKeyboard(currentQuiz.blackKeyType);
+
+        // 選択肢ボタンの生成（すべての選択肢にルビ適用）
         const optionsContainer = document.getElementById("options-container");
         optionsContainer.innerHTML = "";
-        
-        currentQuiz.options.forEach(option => {
+
+        ANSWER_OPTIONS.forEach(opt => {
             const btn = document.createElement("button");
             btn.className = "option-btn";
-            btn.innerText = option;
-            btn.onclick = () => checkAnswer(option, btn);
+            btn.innerHTML = opt.html;
+            btn.onclick = () => checkAnswer(opt.id, btn);
             optionsContainer.appendChild(btn);
         });
     }
 
-    // 判定ルーチン
-    function checkAnswer(selectedOption, clickedBtn) {
-        if (isAnswered) return; // 連続タップ防止
+    // 判定ロジック
+    function checkAnswer(selectedId, clickedBtn) {
+        if (isAnswered) return;
         isAnswered = true;
-        
+
         const feedbackEl = document.getElementById("feedback-text");
         const allButtons = document.querySelectorAll(".option-btn");
-        
-        // 全ボタンを無効化
         allButtons.forEach(btn => btn.style.pointerEvents = "none");
 
-        if (selectedOption === currentQuiz.answer) {
+        if (selectedId === currentQuiz.blackKeyType) {
             comboCount++;
             feedbackEl.innerHTML = "<span class='correct'>✨ せいかい！ ピアノのはかせだね！</span>";
             clickedBtn.style.backgroundColor = "#c8e6c9";
             clickedBtn.style.borderColor = "#4caf50";
         } else {
-            comboCount = 0; // コンボリセット
-            feedbackEl.innerHTML = `<span class='incorrect'>❌ ざんねん！ せいかいは「${currentQuiz.answer}」だよ</span>`;
+            comboCount = 0;
+            feedbackEl.innerHTML = `<span class='incorrect'>❌ ざんねん！ せいかいは「${currentQuiz.answerHtml}」だよ</span>`;
             clickedBtn.style.backgroundColor = "#ffcdd2";
             clickedBtn.style.borderColor = "#f44336";
         }
-        
-        // コンボ表示の更新
+
         document.getElementById("combo-display").innerText = `ただいま ${comboCount}もん れんぞくせいかい！`;
-        
-        // 次へボタンの表示
         document.getElementById("next-btn").style.display = "inline-block";
     }
 
-    // 次の問題へ遷移
     function nextQuestion() {
         currentQuestionIdx++;
         if (currentQuestionIdx > 50) {
@@ -420,7 +394,6 @@
         loadQuiz();
     }
 
-    // 初回起動
     window.onload = loadQuiz;
 </script>
 
