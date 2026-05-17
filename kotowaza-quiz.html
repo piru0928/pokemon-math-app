@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ポケモン・ことばマスター</title>
+  <title>ポケモン・ことわざマスター</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="favicon.png" type="image/png">
   <style>
@@ -12,12 +12,39 @@
       text-align: center;
       padding: 10px;
       transition: 0.3s;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    ruby { ruby-align: center; }
-    rt { font-size: 0.5em; color: #7b1fa2; font-weight: normal; }
+    ruby { ruby-position: over; }
+    rt { font-size: 0.55em; color: #7b1fa2; font-weight: normal; }
 
     h1 { color: #7b1fa2; margin-bottom: 5px; font-size: 24px; }
-    #status { font-size: 16px; color: #4a148c; margin-bottom: 10px; font-weight: bold; }
+    
+    .score-container {
+      display: flex;
+      justify-content: space-between;
+      max-width: 400px;
+      margin: 0 auto 10px auto;
+      gap: 10px;
+    }
+    .combo-counter {
+      flex: 1;
+      background-color: #ba68c8;
+      color: white;
+      padding: 6px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    .best-counter {
+      flex: 1;
+      background-color: #ffb300;
+      color: white;
+      padding: 6px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+    }
 
     #quiz-card {
       background: white;
@@ -28,16 +55,17 @@
       margin-bottom: 15px;
       width: 95%;
       max-width: 400px;
+      box-sizing: border-box;
     }
     
-    #pokemon-img { width: 140px; height: 140px; background: #fdfbff; border-radius: 50%; border: 4px solid #ce93d8; margin-bottom: 10px; }
+    #pokemon-img { width: 130px; height: 130px; background: #fdfbff; border-radius: 50%; border: 4px solid #ce93d8; margin-bottom: 10px; }
     #question-text { font-size: 18px; font-weight: bold; color: #333; margin: 10px 0; line-height: 1.8; padding: 0 5px; }
 
     .choices-container {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      max-width: 500px;
+      max-width: 400px;
       margin: 10px auto;
     }
     .choice-btn {
@@ -59,14 +87,20 @@
       margin-top: 15px; padding: 12px 40px; font-size: 18px;
       background-color: #9c27b0; color: white; border: none;
       border-radius: 30px; cursor: pointer; display: none; font-weight: bold;
+      box-shadow: 0 4px 0 #7b1fa2;
     }
+    #next-button:active { transform: translateY(2px); box-shadow: 0 2px 0 #7b1fa2; }
     #version-info { position: fixed; bottom: 5px; right: 5px; font-size: 9px; color: #9e9e9e; }
   </style>
 </head>
 <body>
-  <div id="version-info">Ver 1.0.0</div>
-  <h1>💬 <ruby>言葉<rt>ことば</rt></ruby>マスター</h1>
-  <div id="status">よみこみちゅう...</div>
+  <div id="version-info">Ver 1.1.0</div>
+  <h1>💬 <ruby>諺<rt>ことわざ</rt></ruby>マスター</h1>
+  
+  <div class="score-container">
+    <div class="combo-counter" id="combo-display">れんぞくせいかい: 0 もん</div>
+    <div class="best-counter" id="best-display">👑 さいこう: 0 もん</div>
+  </div>
 
   <div id="quiz-card">
     <img id="pokemon-img" src="" alt="pokemon">
@@ -81,37 +115,32 @@
   <a href="index.html">← トップページへ</a>
 
   <script>
+    // 全て王道・定番の「ことわざ（諺）」に差し替え・追加（全20問）
     const wordQuestions = [
-      // --- 1. どうぶつが出てくる ことわざ ---
       { q: "「ネコに <ruby>小判<rt>こばん</rt></ruby>」と<ruby>同<rt>おな</rt></ruby>じいみの <ruby>言葉<rt>ことば</rt></ruby>は、どっちかな？", a: ["ブタに <ruby>真珠<rt>しんじゅ</rt></ruby>", "イヌに おやつ", "ウサギに ぼうし", "カメに こうら"] },
       { q: "「イヌも <ruby>歩<rt>ある</rt></ruby>けば ○に あたる」。○に <ruby>入<rt>はい</rt></ruby>るのは？", a: ["<ruby>棒<rt>ぼう</rt></ruby>", "<ruby>石<rt>いし</rt></ruby>", "パン", "<ruby>穴<rt>あな</rt></ruby>"] },
-      { q: "「サルも <ruby>木<rt>き</rt></ruby>から ○」。とくいなことでも <ruby>失敗<rt>しっぱい</rt></ruby>する、という意味（いみ）だよ。", a: ["<ruby>落<rt>お</rt></ruby>ちる", "<ruby>飛<rt>と</rt></ruby>ぶ", "<ruby>寝<rt>ね</rt></ruby>る", "<ruby>笑<rt>わら</rt></ruby>う"] },
+      { q: "「サルも <ruby>木<rt>き</rt></ruby>から ○」。とくいなことでも <ruby>失敗<rt>しっぱい</rt></ruby>する、という意味だよ。", a: ["<ruby>落<rt>お</rt></ruby>ちる", "<ruby>飛<rt>と</rt></ruby>ぶ", "<ruby>寝<rt>ね</rt></ruby>る", "<ruby>笑<rt>わら</rt></ruby>う"] },
       { q: "「カエルの <ruby>子<rt>こ</rt></ruby>は ○」。子どもは 親（おや）に にるものだ、という意味だよ。", a: ["カエル", "おたまじゃくし", "ヘビ", "サカナ"] },
       { q: "「スズメの ○」。とっても すくない、という意味の<ruby>言葉<rt>ことば</rt></ruby>だよ。", a: ["<ruby>涙<rt>なみだ</rt></ruby>", "<ruby>羽根<rt>はね</rt></ruby>", "<ruby>歌<rt>うた</rt></ruby>", "<ruby>巣<rt>す</rt></ruby>"] },
       { q: "「○の <ruby>耳<rt>みみ</rt></ruby>に <ruby>念仏<rt>ねんぶつ</rt></ruby>」。いくら言っても きかないことだよ。", a: ["ウマ", "ウシ", "ヤギ", "ネズミ"] },
-      { q: "「タヌキの ○<ruby>算用<rt>ざんよう</rt></ruby>」。まだ手に入っていないのに、計算（けいさん）することだよ。", a: ["<ruby>皮<rt>かわ</rt></ruby>", "<ruby>尻尾<rt>しっぽ</rt></ruby>", "<ruby>化<rt>ば</rt></ruby>かし", "<ruby>昼寝<rt>ひるね</rt></ruby>"] },
-      { q: "「○を <ruby>呑<rt>の</rt></ruby>んだ ヘビ」。びっくりして 固（かた）まっている様子（ようす）だよ。", a: ["カエル", "ウサギ", "タマゴ", "ネズミ"] },
-
-      // --- 2. からだの 名前を使った 言葉 ---
-      { q: "「○が <ruby>高<rt>たか</rt></ruby>い」。じまんしたい、えっへん！という気持ちだよ。", a: ["<ruby>鼻<rt>はな</rt></ruby>", "<ruby>目<rt>め</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>頭<rt>あたま</rt></ruby>"] },
-      { q: "「○を <ruby>丸<rt>まる</rt></ruby>くする」。とっても びっくりしたときの 目（め）つきだよ。", a: ["<ruby>目<rt>め</rt></ruby>", "<ruby>口<rt>くち</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>顔<rt>かお</rt></ruby>"] },
-      { q: "「○を <ruby>長<rt>なが</rt></ruby>くして まつ」。とっても たのしみに まっていることだよ。", a: ["<ruby>首<rt>くび</rt></ruby>", "<ruby>足<rt>あし</rt></ruby>", "<ruby>手<rt>て</rt></ruby>", "<ruby>指<rt>ゆび</rt></ruby>"] },
-      { q: "「○を かす」。お<ruby>話<rt>はな</rt></ruby>しを しっかり きいてあげることだよ。", a: ["<ruby>耳<rt>みみ</rt></ruby>", "<ruby>口<rt>くち</rt></ruby>", "<ruby>目<rt>め</rt></ruby>", "<ruby>肩<rt>かた</rt></ruby>"] },
-      { q: "「○が <ruby>重<rt>おも</rt></ruby>い」。やりたくなくて、なかなか 動（うご）けないことだよ。", a: ["<ruby>腰<rt>こし</rt></ruby>", "<ruby>頭<rt>あたま</rt></ruby>", "<ruby>手<rt>て</rt></ruby>", "<ruby>足<rt>あし</rt></ruby>"] },
-      { q: "「○が <ruby>広<rt>ひろ</rt></ruby>い」。お<ruby>友<rt>とも</rt></ruby>だちが たくさん いることだよ。", a: ["<ruby>顔<rt>かお</rt></ruby>", "<ruby>背中<rt>せなか</rt></ruby>", "<ruby>胸<rt>むね</rt></ruby>", "<ruby>手<rt>て</rt></ruby>"] },
-      { q: "「○が おちる」。とっても <ruby>美味<rt>おい</rt></ruby>しいときのことだよ。", a: ["ほっぺた", "<ruby>目<rt>め</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>頭<rt>あたま</rt></ruby>"] },
-
-      // --- 3. はんたいの ことば ---
-      { q: "「<ruby>大<rt>おお</rt></ruby>きい」の はんたいは、なあに？", a: ["<ruby>小<rt>ちい</rt></ruby>さい", "<ruby>長<rt>なが</rt></ruby>い", "<ruby>重<rt>おも</rt></ruby>い", "<ruby>高<rt>たか</rt></ruby>い"] },
-      { q: "「<ruby>明<rt>あか</rt></ruby>るい」の はんたいは、なあに？", a: ["<ruby>暗<rt>くら</rt></ruby>い", "<ruby>寒<rt>さむ</rt></ruby>い", "<ruby>痛<rt>いた</rt></ruby>い", "<ruby>狭<rt>せま</rt></ruby>い"] },
-      { q: "「<ruby>暑<rt>あつ</rt></ruby>い」の はんたいは、なあに？", a: ["<ruby>寒<rt>さむ</rt></ruby>い", "<ruby>遠<rt>とお</rt></ruby>い", "<ruby>速<rt>はや</rt></ruby>い", "<ruby>低<rt>ひく</rt></ruby>い"] },
-      { q: "「<ruby>重<rt>おも</rt></ruby>い」の はんたいは、なあに？", a: ["<ruby>軽<rt>かる</rt></ruby>い", "<ruby>細<rt>ほそ</rt></ruby>い", "<ruby>弱<rt>よわ</rt></ruby>い", "<ruby>短<rt>みじか</rt></ruby>い"] },
-      { q: "「<ruby>強<rt>つよ</rt></ruby>い」の はんたいは、なあに？", a: ["<ruby>弱<rt>よわ</rt></ruby>い", "<ruby>恐<rt>おそ</rt></ruby>い", "<ruby>遅<rt>おそ</rt></ruby>い", "<ruby>悪<rt>わる</rt></ruby>い"] },
-      { q: "「<ruby>勝<rt>か</rt></ruby>つ」の はんたいは、なあに？", a: ["<ruby>負<rt>ま</rt></ruby>ける", "<ruby>走<rt>はし</rt></ruby>る", "<ruby>怒<rt>おこ</rt></ruby>る", "<ruby>泣<rt>な</rt></ruby>く"] },
-      { q: "「<ruby>始<rt>はじ</rt></ruby>まる」の はんたいは、なあに？", a: ["<ruby>終<rt>お</rt></ruby>わる", "<ruby>消<rt>き</rt></ruby>える", "<ruby>動<rt>うご</rt></ruby>く", "<ruby>休<rt>やす</rt></ruby>む"] }
+      { q: "「○の <ruby>前<rt>まえ</rt></ruby>の <ruby>杖<rt>つえ</rt></ruby>」。あぶないことが 起（お）こる前（まえ）に、しっかり<ruby>準備<rt>じゅんび</rt></ruby>することだよ。", a: ["<ruby>転<rt>ころ</rt></ruby>ばぬ", "<ruby>走<rt>はし</rt></ruby>らぬ", "<ruby>起<rt>お</rt></ruby>きぬ", "<ruby>滑<rt>すべ</rt></ruby>らぬ"] },
+      { q: "「○は <ruby>災<rt>わざわ</rt></ruby>いの <ruby>元<rt>もと</rt></ruby>」。うっかりしゃべったことで、トラブルに なることだよ。", a: ["<ruby>口<rt>くち</rt></ruby>", "<ruby>目<rt>め</rt></ruby>", "<ruby>耳<rt>みみ</rt></ruby>", "<ruby>手<rt>て</rt></ruby>"] },
+      { q: "「ちりも <ruby>積<rt>つ</rt></ruby>もれば ○と なる」。すこしのことでも、ずっと つづければ 大きな力になるよ。", a: ["<ruby>山<rt>やま</rt></ruby>", "<ruby>海<rt>うみ</rt></ruby>", "<ruby>城<rt>しろ</rt></ruby>", "<ruby>雲<rt>くも</rt></ruby>"] },
+      { q: "「○を聞（き）いて <ruby>十<rt>じゅう</rt></ruby>を知（し）る」。あたまがよくて、すこし聞いただけで すべてわかることだよ。", a: ["<ruby>一<rt>いち</rt></ruby>", "<ruby>二<rt>に</rt></ruby>", "<ruby>三<rt>さん</rt></ruby>", "<ruby>五<rt>ご</rt></ruby>"] },
+      { q: "「<ruby>三日<rt>みっか</rt></ruby>ボーズ」と<ruby>同<rt>おな</rt></ruby>じいみの <ruby>言葉<rt>ことば</rt></ruby>は、どっちかな？", a: ["<ruby>三日<rt>みっか</rt></ruby>ぼうず", "<ruby>十日<rt>とおか</rt></ruby>ぼうず", "<ruby>一年<rt>いちねん</rt></ruby>ぼうず", "<ruby>五日<rt>いつか</rt></ruby>ぼうず"] },
+      { q: "「○より だんご」。かっこいいものより、おなかが ふくらむ 実（じつ）のあるほうが いいな！という意味だよ。", a: ["<ruby>花<rt>はな</rt></ruby>", "<ruby>星<rt>ほし</rt></ruby>", "<ruby>歌<rt>うた</rt></ruby>", "<ruby>服<rt>ふく</rt></ruby>"] },
+      { q: "「<ruby>失敗<rt>しっぱい</rt></ruby>は ○の <ruby>母<rt>はは</rt></ruby>」。うまくいかなくても、それがつぎの チャンスになるよ。", a: ["<ruby>成功<rt>せいこう</rt></ruby>", "<ruby>天才<rt>てんさい</rt></ruby>", "<ruby>元気<rt>げんき</rt></ruby>", "<ruby>応援<rt>おうえん</rt></ruby>"] },
+      { q: "「早（はや）おきは ○の <ruby>得<rt>とく</rt></ruby>」。朝（あさ）はやく 起（お）きると、いいことが あるよという意味だよ。", a: ["<ruby>三文<rt>さんもん</rt></ruby>", "<ruby>百円<rt>ひゃくえん</rt></ruby>", "<ruby>一両<rt>いちりょう</rt></ruby>", "<ruby>十円<rt>じゅうえん</rt></ruby>"] },
+      { q: "「急（いそ）がば ○」。いそいでいるときほど、あわてず 安全（あんぜん）な道（みち）を 行（い）こうということだよ。", a: ["<ruby>回<rt>まわ</rt></ruby>れ", "<ruby>走<rt>はし</rt></ruby>れ", "<ruby>止<rt>と</rt></ruby>まれ", "<ruby>進<rt>すす</rt></ruby>め"] },
+      { q: "「○に <ruby>追<rt>お</rt></ruby>われるものは ○をみず」。ひとつのことに むちゅうになると、まわりが 見（み）えなくなるよ。", a: ["<ruby>鹿<rt>しか</rt></ruby>", "<ruby>鳥<rt>とり</rt></ruby>", "<ruby>魚<rt>さかな</rt></ruby>", "<ruby>虫<rt>むし</rt></ruby>"] },
+      { q: "「情（なさ）けは ○のためならず」。人に やさしくしておくと、めぐりめぐって 自分（じぶん）にいいことが返ってくるよ。", a: ["<ruby>人<rt>ひと</rt></ruby>", "<ruby>友<rt>とも</rt></ruby>", "<ruby>親<rt>おや</rt></ruby>", "<ruby>神<rt>かみ</rt></ruby>"] },
+      { q: "「○の上の <ruby>三年<rt>さんねん</rt></ruby>」。つらくても がまんして つづければ、いつか うまくいくよという意味だよ。", a: ["<ruby>石<rt>いし</rt></ruby>", "<ruby>木<rt>き</rt></ruby>", "<ruby>山<rt>やま</rt></ruby>", "<ruby>椅子<rt>いす</rt></ruby>"] },
+      { q: "「聞（き）くは <ruby>一時<rt>いっとき</rt></ruby>の <ruby>恥<rt>はじ</rt></ruby>、聞（き）かぬは ○の <ruby>恥<rt>はじ</rt></ruby>」。知らないことは はずかしがらずに 聞こうねということだよ。", a: ["<ruby>一生<rt>いっしょう</rt></ruby>", "<ruby>一年<rt>いちねん</rt></ruby>", "<ruby>一日<rt>いちにち</rt></ruby>", "<ruby>十回<rt>じっかい</rt></ruby>"] },
+      { q: "「エビで ○を つる」。すこしの プレゼントで、ものすごく 大きなものを 手（て）にいれることだよ。", a: ["<ruby>鯛<rt>たい</rt></ruby>", "<ruby>クジラ</rt></ruby>", "<ruby>サメ<rt>さめ</rt></ruby>", "<ruby>マグロ<rt>まぐろ</rt></ruby>"] }
     ];
 
     let correctStreak = 0;
+    let bestStreak = 0;
     let currentAnswer = "";
 
     const Buzzer = {
@@ -138,11 +167,19 @@
       }
     };
 
+    // ハイスコアの読み込み
+    function loadHighScore() {
+      const savedBest = localStorage.getItem("kotowaza_best_streak");
+      if (savedBest !== null) {
+        bestStreak = parseInt(savedBest, 10);
+      }
+      document.getElementById("best-display").innerText = `👑 さいこう: ${bestStreak} もん`;
+    }
+
     async function generateQuiz() {
       document.getElementById("result").textContent = "";
       document.getElementById("next-button").style.display = "none";
       document.body.style.backgroundColor = "#f3e5f5";
-      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
 
       const qData = wordQuestions[Math.floor(Math.random() * wordQuestions.length)];
       document.getElementById("question-text").innerHTML = qData.q;
@@ -175,17 +212,28 @@
         else Buzzer.play('correct');
         resArea.textContent = "✨ せいかい！";
         document.body.style.backgroundColor = "#f1f8e9";
+
+        // 最高連続記録の更新
+        if (correctStreak > bestStreak) {
+          bestStreak = correctStreak;
+          localStorage.setItem("kotowaza_best_streak", bestStreak);
+          document.getElementById("best-display").innerText = `👑 さいこう: ${bestStreak} もん`;
+        }
       } else {
         correctStreak = 0;
         Buzzer.play('wrong');
         resArea.innerHTML = `❌ こたえは「${currentAnswer}」だよ`;
         document.body.style.backgroundColor = "#ffebee";
       }
-      document.getElementById("status").textContent = `ただいま ${correctStreak}もん れんぞくせいかい！`;
+      
+      document.getElementById("combo-display").innerText = `れんぞくせいかい: ${correctStreak} もん`;
       document.getElementById("next-button").style.display = "inline-block";
     }
 
-    window.onload = generateQuiz;
+    window.onload = () => {
+      loadHighScore();
+      generateQuiz();
+    };
   </script>
 </body>
 </html>
