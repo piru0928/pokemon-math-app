@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ピカチュウのプログラミングめいろ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kosugi Maru', sans-serif;
+            background-color: #f7fafc;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        h1 {
+            font-size: 1.2rem;
+            color: #1a365d;
+            margin: 5px 0;
+        }
+        .subtitle {
+            font-size: 0.8rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        /* メインレイアウト */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+        /* ステージ（迷路） */
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            background-color: #cbd5e0;
+            border: 4px solid #4a5568;
+            border-radius: 8px;
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .cell {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            position: relative;
+        }
+        .cell.start { background-color: #fed7d7; }
+        .cell.goal { background-color: #c6f6d5; }
+        .cell.hole { background-color: #edf2f7; }
+        .cell.hole::after { content: "🕳️"; font-size: 1.2rem; }
+        
+        /* 動くプレイヤー */
+        #player {
+            position: absolute;
+            width: 22%;
+            height: 22%;
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        #player img {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            transition: transform 0.2s;
+        }
+        
+        /* コマンド倉庫 */
+        .command-palette {
+            display: flex;
+            justify-content: space-around;
+            background-color: #edf2f7;
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e0;
+        }
+        .btn-cmd {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #2b6cb0;
+        }
+        .btn-cmd:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+        
+        /* 組み立てエリア */
+        .program-area {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            min-height: 50px;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-content: flex-start;
+        }
+        .block {
+            background-color: #ed8936;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 0 #c05621;
+            animation: pop 0.2s ease-out;
+        }
+        .block .remove-x {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 10px;
+        }
+        
+        /* コントロールボタン */
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-main {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+        }
+        #btn-run { background-color: #48bb78; box-shadow: 0 4px 0 #2f855a; }
+        #btn-clear { background-color: #e53e3e; box-shadow: 0 4px 0 #9b2c2c; }
+        .btn-main:active { transform: translateY(4px); box-shadow: none; }
+        
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ピカチュウの めいれい迷路 ⚡️</h1>
+    <div class="subtitle">めいれいブロックを えらんで、きのみを たべながら ゴール（ひみつきち）へ いこう！</div>
+
+    <div class="game-container">
+        <div class="map-grid" id="map">
+            <div id="player">
+                <img id="pika-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="pikachu">
+            </div>
+            </div>
+
+        <div class="command-palette">
+            <button class="btn-cmd" onclick="addCommand('↑')">↑ まえ</button>
+            <button class="btn-cmd" onclick="addCommand('↓')">↓ うしろ</button>
+            <button class="btn-cmd" onclick="addCommand('←')">← ひだり</button>
+            <button class="btn-cmd" onclick="addCommand('→')">→ みぎ</button>
+        </div>
+
+        <div class="program-area" id="program" placeholder="ここに めいれいが ならぶよ"></div>
+
+        <div class="controls">
+            <button id="btn-run" class="btn-main" onclick="runProgram()">▶ しゅっぱつ！</button>
+            <button id="btn-clear" class="btn-main" onclick="clearProgram()">🛑 くりあ</button>
+        </div>
+    </div>
+
+    <script>
+        // マップデータ (4x4) 0:通常, 1:スタート, 2:ゴール, 3:落とし穴, 4:きのみ
+        const mapData = [
+            [1, 0, 4, 0],
+            [0, 3, 0, 0],
+            [4, 0, 3, 4],
+            [0, 0, 0, 2]
+        ];
+
+        let playerPos = { r: 0, c: 0 };
+        let startPos = { r: 0, c: 0 };
+        let commands = [];
+        let isRunning = false;
+
+        // マップの初期生成
+        const mapEl = document.getElementById('map');
+        function initMap() {
+            // 既存のセルを削除（プレイヤー以外）
+            const cells = mapEl.querySelectorAll('.cell');
+            cells.forEach(c => c.remove());
+
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${r}-${c}`;
+                    
+                    if (mapData[r][c] === 1) { cell.classList.add('start'); playerPos = {r, c}; startPos = {r, c}; }
+                    if (mapData[r][c] === 2) { cell.classList.add('goal'); cell.innerText = "⛺"; }
+                    if (mapData[r][c] === 3) { cell.classList.add('hole'); }
+                    if (mapData[r][c] === 4) { cell.innerText = "🍒"; }
+                    
+                    mapEl.appendChild(cell);
+                }
+            }
+            updatePlayerTransform();
+        }
+
+        // プレイヤーの位置を画面に反映
+        function updatePlayerTransform() {
+            const player = document.getElementById('player');
+            // 4x4なので 25% ずつ動かす
+            player.style.top = (playerPos.r * 25) + '%';
+            player.style.left = (playerPos.c * 25) + '%';
+        }
+
+        // コマンド（命令）を追加
+        function addCommand(dir) {
+            if (isRunning) return;
+            commands.push(dir);
+            renderBlocks();
+        }
+
+        // ブロックの描画リフレッシュ
+        function renderBlocks() {
+            const progArea = document.getElementById('program');
+            progArea.innerHTML = '';
+            commands.forEach((cmd, idx) => {
+                const block = document.createElement('div');
+                block.className = 'block';
+                block.innerHTML = `<span>${idx + 1}: 【${cmd}】</span>`;
+                
+                const removeX = document.createElement('span');
+                removeX.className = 'remove-x';
+                removeX.innerText = '✕';
+                removeX.onclick = (e) => {
+                    e.stopPropagation();
+                    commands.splice(idx, 1);
+                    renderBlocks();
+                };
+                block.appendChild(removeX);
+                progArea.appendChild(block);
+            });
+        }
+
+        // プログラムのクリア
+        function clearProgram() {
+            if (isRunning) return;
+            commands = [];
+            renderBlocks();
+            playerPos = { ...startPos };
+            initMap();
+            document.getElementById('pika-img').style.transform = 'scale(1)';
+        }
+
+        // プログラムを1ステップずつ実行（Webならではのアニメーション処理）
+        async function runProgram() {
+            if (isRunning || commands.length === 0) return;
+            isRunning = true;
+            
+            // スタート位置に戻す
+            playerPos = { ...startPos };
+            initMap();
+
+            for (let i = 0; i < commands.length; i++) {
+                const cmd = commands[i];
+                
+                // 1マス進むロジック
+                if (cmd === '↑' && playerPos.r > 0) playerPos.r--;
+                else if (cmd === '↓' && playerPos.r < 3) playerPos.r++;
+                else if (cmd === '←' && playerPos.c > 0) playerPos.c--;
+                else if (cmd === '→' && playerPos.c < 3) playerPos.c++;
+                
+                updatePlayerTransform();
+                
+                // アニメーションを待つ（0.4秒）
+                await new Promise(resolve => setTimeout(resolve, 400));
+
+                // イベント判定
+                const currentTile = mapData[playerPos.r][playerPos.c];
+                const currentCell = document.getElementById(`cell-${playerPos.r}-${playerPos.c}`);
+
+                if (currentTile === 4 && currentCell.innerText === "🍒") {
+                    // きのみを食べたら文字を消す（Webならではのインタラクション）
+                    currentCell.innerText = "";
+                    document.getElementById('pika-img').style.transform = 'scale(1.3)';
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    document.getElementById('pika-img').style.transform = 'scale(1)';
+                } else if (currentTile === 3) {
+                    // 穴に落ちた
+                    alert("あーっ！ おとしあなに おちちゃった！ 🌀");
+                    isRunning = false;
+                    clearProgram();
+                    return;
+                }
+            }
+
+            // ゴール判定
+            if (mapData[playerPos.r][playerPos.c] === 2) {
+                alert("ゴール！ ひみつきちに とうちゃく！ おめでとう！ 🎉⚡️");
+            } else {
+                alert("ゴールに たどりつけなかったよ。もういちど かんがえてみてね！ 🤔");
+            }
+            isRunning = false;
+        }
+
+        // 起動
+        initMap();
+    </script>
+</body>
+</html>
