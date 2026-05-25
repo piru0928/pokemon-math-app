@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ピカチュウのプログラミングめいろ</title>
+    <title>ポケモン めいれい迷路 ⚡️</title>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     <style>
         body {
@@ -17,17 +17,54 @@
             user-select: none;
             -webkit-user-select: none;
         }
+        
+        /* トップページへもどるボタン */
+        .nav-header {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 5px;
+        }
+        .btn-back {
+            background-color: #718096;
+            color: white;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            box-shadow: 0 2px 0 #4a5568;
+        }
+        .btn-back:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
         h1 {
             font-size: 1.2rem;
             color: #1a365d;
-            margin: 5px 0;
+            margin: 5px 0 2px 0;
         }
-        .subtitle {
+        
+        /* 一言ルール解説 */
+        .rule-badge {
+            background-color: #ffeb3b;
+            color: #1a365d;
+            font-weight: bold;
             font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
             color: #4a5568;
             margin-bottom: 10px;
             text-align: center;
         }
+
         /* メインレイアウト */
         .game-container {
             display: flex;
@@ -36,6 +73,7 @@
             width: 100%;
             max-width: 400px;
         }
+
         /* ステージ（迷路） */
         .map-grid {
             display: grid;
@@ -49,6 +87,7 @@
             width: 100%;
             box-sizing: border-box;
             position: relative;
+            overflow: hidden;
         }
         .cell {
             background-color: #ffffff;
@@ -57,26 +96,27 @@
             align-items: center;
             font-size: 1.5rem;
             position: relative;
+            box-sizing: border-box;
         }
         .cell.start { background-color: #fed7d7; }
         .cell.goal { background-color: #c6f6d5; }
-        .cell.hole { background-color: #edf2f7; }
         .cell.hole::after { content: "🕳️"; font-size: 1.2rem; }
         
-        /* 動くプレイヤー */
+        /* 動くキャラクター（マスの中央にピタッと寄せる修正） */
         #player {
             position: absolute;
-            width: 22%;
-            height: 22%;
+            width: 25%;
+            height: 25%;
             transition: all 0.3s ease-in-out;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10;
+            box-sizing: border-box;
         }
         #player img {
-            width: 90%;
-            height: 90%;
+            width: 85%;
+            height: 85%;
             object-fit: contain;
             transition: transform 0.2s;
         }
@@ -161,6 +201,15 @@
         #btn-clear { background-color: #e53e3e; box-shadow: 0 4px 0 #9b2c2c; }
         .btn-main:active { transform: translateY(4px); box-shadow: none; }
         
+        /* フッター（バージョン情報） */
+        .footer {
+            margin-top: 20px;
+            font-size: 0.65rem;
+            color: #a0aec0;
+            text-align: center;
+            line-height: 1.4;
+        }
+
         @keyframes pop {
             0% { transform: scale(0.8); }
             100% { transform: scale(1); }
@@ -169,24 +218,30 @@
 </head>
 <body>
 
-    <h1>ピカチュウの めいれい迷路 ⚡️</h1>
-    <div class="subtitle">めいれいブロックを えらんで、きのみを たべながら ゴール（ひみつきち）へ いこう！</div>
+    <div class="nav-header">
+        <a href="index.html" class="btn-back">⬅ つぎのドリル / もどる</a>
+    </div>
+
+    <h1 id="game-title">ポケモン めいれい迷路</h1>
+    
+    <div class="rule-badge">ルール：おとしあなを よけて ⛺ に いこう！</div>
+    <div class="subtitle">めいれいブロックを えらんで、🍒を たべながら ゴールへ すすめ！</div>
 
     <div class="game-container">
         <div class="map-grid" id="map">
             <div id="player">
-                <img id="pika-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" alt="pikachu">
+                <img id="char-img" src="" alt="pokemon">
             </div>
-            </div>
+        </div>
 
         <div class="command-palette">
-            <button class="btn-cmd" onclick="addCommand('↑')">↑ まえ</button>
-            <button class="btn-cmd" onclick="addCommand('↓')">↓ うしろ</button>
+            <button class="btn-cmd" onclick="addCommand('↑')">↑ うえ</button>
+            <button class="btn-cmd" onclick="addCommand('↓')">↓ した</button>
             <button class="btn-cmd" onclick="addCommand('←')">← ひだり</button>
             <button class="btn-cmd" onclick="addCommand('→')">→ みぎ</button>
         </div>
 
-        <div class="program-area" id="program" placeholder="ここに めいれいが ならぶよ"></div>
+        <div class="program-area" id="program"></div>
 
         <div class="controls">
             <button id="btn-run" class="btn-main" onclick="runProgram()">▶ しゅっぱつ！</button>
@@ -194,24 +249,68 @@
         </div>
     </div>
 
+    <div class="footer">
+        ポケモン めいれい迷路 アプリ<br>
+        Version 1.0.0 | こうしん：2026/05/26
+    </div>
+
     <script>
-        // マップデータ (4x4) 0:通常, 1:スタート, 2:ゴール, 3:落とし穴, 4:きのみ
-        const mapData = [
-            [1, 0, 4, 0],
-            [0, 3, 0, 0],
-            [4, 0, 3, 4],
-            [0, 0, 0, 2]
+        // ランダムキャラクターデータベース（世代別アニメーションドット絵）
+        const charDb = [
+            { name: "ピカチュウ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" },
+            { name: "イーブイ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" },
+            { name: "ポッチャマ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/393.gif" },
+            { name: "アチャモ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/255.gif" },
+            { name: "モクロー", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/722.png" },
+            { name: "ニャオハ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/906.png" }
         ];
 
+        let currentTileMap = [];
         let playerPos = { r: 0, c: 0 };
         let startPos = { r: 0, c: 0 };
         let commands = [];
         let isRunning = false;
+        let selectedChar = charDb[0];
 
-        // マップの初期生成
+        // ページ読み込み時にキャラクターとマップを完全ランダム化
+        function setupRandomGame() {
+            // 1. キャラクターのランダム選択
+            selectedChar = charDb[Math.floor(Math.random() * charDb.length)];
+            document.getElementById('char-img').src = selectedChar.url;
+            document.getElementById('game-title').innerText = `${selectedChar.name}の めいれい迷路 ⚡️`;
+
+            // 2. マップのランダムルート生成 (0:空, 1:スタート, 2:ゴール, 3:穴, 4:きのみ)
+            // 4x4の二次元配列をリセット
+            currentTileMap = Array.from({ length: 4 }, () => Array(4).fill(0));
+
+            // スタートとゴールを離れた位置に配置（例：スタートは左側、ゴールは右下付近）
+            startPos = { r: Math.floor(Math.random() * 2), c: 0 }; // 1列目のどこか
+            let goalR = 2 + Math.floor(Math.random() * 2);
+            let goalC = 2 + Math.floor(Math.random() * 2); // 3〜4列目のどこか
+            
+            currentTileMap[startPos.r][startPos.c] = 1;
+            currentTileMap[goalR][goalC] = 2;
+
+            // 残りのマスに「きのみ(4)」と「落とし穴(3)」をランダム配置
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (currentTileMap[r][c] !== 0) continue;
+                    
+                    let rand = Math.random();
+                    if (rand < 0.20) {
+                        currentTileMap[r][c] = 3; // 20%で落とし穴
+                    } else if (rand < 0.45) {
+                        currentTileMap[r][c] = 4; // 25%できのみ
+                    }
+                }
+            }
+            playerPos = { ...startPos };
+        }
+
+        // 画面のタイルとドット絵をレンダリング
         const mapEl = document.getElementById('map');
-        function initMap() {
-            // 既存のセルを削除（プレイヤー以外）
+        function drawMap() {
+            // 既存のセルをすべて消去（プレイヤー以外）
             const cells = mapEl.querySelectorAll('.cell');
             cells.forEach(c => c.remove());
 
@@ -221,10 +320,11 @@
                     cell.className = 'cell';
                     cell.id = `cell-${r}-${c}`;
                     
-                    if (mapData[r][c] === 1) { cell.classList.add('start'); playerPos = {r, c}; startPos = {r, c}; }
-                    if (mapData[r][c] === 2) { cell.classList.add('goal'); cell.innerText = "⛺"; }
-                    if (mapData[r][c] === 3) { cell.classList.add('hole'); }
-                    if (mapData[r][c] === 4) { cell.innerText = "🍒"; }
+                    let tile = currentTileMap[r][c];
+                    if (tile === 1) cell.classList.add('start');
+                    if (tile === 2) { cell.classList.add('goal'); cell.innerText = "⛺"; }
+                    if (tile === 3) cell.classList.add('hole');
+                    if (tile === 4) cell.innerText = "🍒";
                     
                     mapEl.appendChild(cell);
                 }
@@ -232,22 +332,20 @@
             updatePlayerTransform();
         }
 
-        // プレイヤーの位置を画面に反映
+        // マス目ぴったり（中央寄せ）に座標を動かす
         function updatePlayerTransform() {
             const player = document.getElementById('player');
-            // 4x4なので 25% ずつ動かす
+            // ぴったり25%刻みにすることでマスの真ん中に配置
             player.style.top = (playerPos.r * 25) + '%';
             player.style.left = (playerPos.c * 25) + '%';
         }
 
-        // コマンド（命令）を追加
         function addCommand(dir) {
             if (isRunning) return;
             commands.push(dir);
             renderBlocks();
         }
 
-        // ブロックの描画リフレッシュ
         function renderBlocks() {
             const progArea = document.getElementById('program');
             progArea.innerHTML = '';
@@ -269,69 +367,61 @@
             });
         }
 
-        // プログラムのクリア
         function clearProgram() {
             if (isRunning) return;
             commands = [];
             renderBlocks();
             playerPos = { ...startPos };
-            initMap();
-            document.getElementById('pika-img').style.transform = 'scale(1)';
+            drawMap();
+            document.getElementById('char-img').style.transform = 'scale(1)';
         }
 
-        // プログラムを1ステップずつ実行（Webならではのアニメーション処理）
+        // プログラムのステップ実行
         async function runProgram() {
             if (isRunning || commands.length === 0) return;
             isRunning = true;
             
-            // スタート位置に戻す
             playerPos = { ...startPos };
-            initMap();
+            drawMap();
 
             for (let i = 0; i < commands.length; i++) {
                 const cmd = commands[i];
                 
-                // 1マス進むロジック
                 if (cmd === '↑' && playerPos.r > 0) playerPos.r--;
                 else if (cmd === '↓' && playerPos.r < 3) playerPos.r++;
                 else if (cmd === '←' && playerPos.c > 0) playerPos.c--;
                 else if (cmd === '→' && playerPos.c < 3) playerPos.c++;
                 
                 updatePlayerTransform();
-                
-                // アニメーションを待つ（0.4秒）
                 await new Promise(resolve => setTimeout(resolve, 400));
 
-                // イベント判定
-                const currentTile = mapData[playerPos.r][playerPos.c];
+                const currentTile = currentTileMap[playerPos.r][playerPos.c];
                 const currentCell = document.getElementById(`cell-${playerPos.r}-${playerPos.c}`);
 
                 if (currentTile === 4 && currentCell.innerText === "🍒") {
-                    // きのみを食べたら文字を消す（Webならではのインタラクション）
-                    currentCell.innerText = "";
-                    document.getElementById('pika-img').style.transform = 'scale(1.3)';
+                    currentCell.innerText = ""; // きのみをパクッ
+                    document.getElementById('char-img').style.transform = 'scale(1.3)';
                     await new Promise(resolve => setTimeout(resolve, 200));
-                    document.getElementById('pika-img').style.transform = 'scale(1)';
+                    document.getElementById('char-img').style.transform = 'scale(1)';
                 } else if (currentTile === 3) {
-                    // 穴に落ちた
-                    alert("あーっ！ おとしあなに おちちゃった！ 🌀");
+                    alert(`あーっ！ ${selectedChar.name}が おとしあなに おちちゃった！ 🌀`);
                     isRunning = false;
                     clearProgram();
                     return;
                 }
             }
 
-            // ゴール判定
-            if (mapData[playerPos.r][playerPos.c] === 2) {
-                alert("ゴール！ ひみつきちに とうちゃく！ おめでとう！ 🎉⚡️");
+            if (currentTileMap[playerPos.r][playerPos.c] === 2) {
+                alert(`おめでとう！ 🎉\n${selectedChar.name}を ぶじに ⛺ まで みちびけたよ！`);
             } else {
                 alert("ゴールに たどりつけなかったよ。もういちど かんがえてみてね！ 🤔");
             }
             isRunning = false;
         }
 
-        // 起動
-        initMap();
+        // 初期起動処理
+        setupRandomGame();
+        drawMap();
     </script>
 </body>
 </html>
