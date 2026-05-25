@@ -18,12 +18,12 @@
             -webkit-user-select: none;
         }
         
-        /* トップページへもどるボタン */
         .nav-header {
             width: 100%;
             max-width: 400px;
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 5px;
         }
         .btn-back {
@@ -31,13 +31,20 @@
             color: white;
             text-decoration: none;
             font-size: 0.8rem;
-            padding: 5px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
             box-shadow: 0 2px 0 #4a5568;
         }
-        .btn-back:active {
-            transform: translateY(2px);
-            box-shadow: none;
+        .btn-back:active { transform: translateY(2px); box-shadow: none; }
+
+        /* レベル表示バッジ */
+        .level-badge {
+            background-color: #319795;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 6px;
         }
 
         h1 {
@@ -46,7 +53,6 @@
             margin: 5px 0 2px 0;
         }
         
-        /* 一言ルール解説 */
         .rule-badge {
             background-color: #ffeb3b;
             color: #1a365d;
@@ -65,7 +71,6 @@
             text-align: center;
         }
 
-        /* メインレイアウト */
         .game-container {
             display: flex;
             flex-direction: column;
@@ -74,7 +79,6 @@
             max-width: 400px;
         }
 
-        /* ステージ（迷路） */
         .map-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -102,7 +106,7 @@
         .cell.goal { background-color: #c6f6d5; }
         .cell.hole::after { content: "🕳️"; font-size: 1.2rem; }
         
-        /* 動くキャラクター（マスの中央にピタッと寄せる修正） */
+        /* 動くキャラクター設定 */
         #player {
             position: absolute;
             width: 25%;
@@ -121,7 +125,15 @@
             transition: transform 0.2s;
         }
         
-        /* コマンド倉庫 */
+        /* 進化エフェクト用フラッシュ */
+        .evolve-flash {
+            animation: flashEffect 0.3s ease-out 2;
+        }
+        /* ゴール時の大喜びジャンプ */
+        .happy-jump {
+            animation: jumpEffect 0.4s ease-in-out infinite alternate;
+        }
+
         .command-palette {
             display: flex;
             justify-content: space-around;
@@ -141,12 +153,8 @@
             cursor: pointer;
             box-shadow: 0 3px 0 #2b6cb0;
         }
-        .btn-cmd:active {
-            transform: translateY(3px);
-            box-shadow: none;
-        }
+        .btn-cmd:active { transform: translateY(3px); box-shadow: none; }
         
-        /* 組み立てエリア */
         .program-area {
             background-color: #ffffff;
             border: 2px solid #e2e8f0;
@@ -182,7 +190,6 @@
             font-size: 10px;
         }
         
-        /* コントロールボタン */
         .controls {
             display: flex;
             gap: 10px;
@@ -198,10 +205,10 @@
             cursor: pointer;
         }
         #btn-run { background-color: #48bb78; box-shadow: 0 4px 0 #2f855a; }
-        #btn-clear { background-color: #e53e3e; box-shadow: 0 4px 0 #9b2c2c; }
+        #btn-clear { background-color: #e53e3e; box-shadow: 0 4px 0 #9b2c2c; } /* 「けす」ボタン */
+        #btn-next { background-color: #3182ce; box-shadow: 0 4px 0 #2b6cb0; display: none; } /* 次へ進むボタン */
         .btn-main:active { transform: translateY(4px); box-shadow: none; }
         
-        /* フッター（バージョン情報） */
         .footer {
             margin-top: 20px;
             font-size: 0.65rem;
@@ -210,22 +217,33 @@
             line-height: 1.4;
         }
 
+        /* 各種アニメーション */
         @keyframes pop {
             0% { transform: scale(0.8); }
             100% { transform: scale(1); }
+        }
+        @keyframes flashEffect {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(3) saturate(1.5); transform: scale(1.4); }
+            100% { filter: brightness(1); }
+        }
+        @keyframes jumpEffect {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-15px) scaleY(1.05); }
         }
     </style>
 </head>
 <body>
 
     <div class="nav-header">
-        <a href="index.html" class="btn-back">⬅ つぎのドリル / もどる</a>
+        <a href="index.html" class="btn-back">⬅ もどる</a>
+        <div class="level-badge" id="current-lv">ゲームのレベル: 1</div>
     </div>
 
     <h1 id="game-title">ポケモン めいれい迷路</h1>
     
     <div class="rule-badge">ルール：おとしあなを よけて ⛺ に いこう！</div>
-    <div class="subtitle">めいれいブロックを えらんで、🍒を たべながら ゴールへ すすめ！</div>
+    <div class="subtitle">🍒をたべると ポケモンが しんか するよ！</div>
 
     <div class="game-container">
         <div class="map-grid" id="map">
@@ -245,72 +263,160 @@
 
         <div class="controls">
             <button id="btn-run" class="btn-main" onclick="runProgram()">▶ しゅっぱつ！</button>
-            <button id="btn-clear" class="btn-main" onclick="clearProgram()">🛑 くりあ</button>
+            <button id="btn-clear" class="btn-main" onclick="clearProgram()">🛑 けす</button>
+            <button id="btn-next" class="btn-main" onclick="nextLevelStage()">🎉 つぎのもんだいへ！</button>
         </div>
     </div>
 
     <div class="footer">
         ポケモン めいれい迷路 アプリ<br>
-        Version 1.0.0 | こうしん：2026/05/26
+        Version 2.0.0 | こうしん：2026/05/26
     </div>
 
     <script>
-        // ランダムキャラクターデータベース（世代別アニメーションドット絵）
-        const charDb = [
-            { name: "ピカチュウ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" },
-            { name: "イーブイ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" },
-            { name: "ポッチャマ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/393.gif" },
-            { name: "アチャモ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/255.gif" },
-            { name: "モクロー", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/722.png" },
-            { name: "ニャオハ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/906.png" }
+        // ポケモンの進化ラインデータ（レベルに応じた選出枠、きのみによる進化ルート）
+        const evolutionLines = [
+            // レベル1枠（たねポケモン3すくみ）
+            [
+                { name: "ポッチャマ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/393.gif" },
+                { name: "ポッタイシ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/394.gif" },
+                { name: "エンペルト", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/395.gif" }
+            ],
+            [
+                { name: "アチャモ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/255.gif" },
+                { name: "ワカシャモ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/256.gif" },
+                { name: "バシャーモ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/257.gif" }
+            ],
+            [
+                { name: "ツタージャ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/495.gif" },
+                { name: "ジャノビー", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/496.gif" },
+                { name: "ジャローダ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/497.gif" }
+            ],
+            // レベル2枠（中堅・人気枠）
+            [
+                { name: "リオル", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/447.gif" },
+                { name: "ルカリオ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/448.gif" },
+                { name: "メガルカリオ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/93.png" }
+            ],
+            [
+                { name: "ココドラ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/304.gif" },
+                { name: "コドラ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/305.gif" },
+                { name: "ボスゴドラ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/306.gif" }
+            ],
+            // レベル3枠（伝説のポケモン・超強力枠）
+            [
+                { name: "コスモッグ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/789.png" },
+                { name: "コスモウム", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/790.png" },
+                { name: "ソルガレオ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/791.png" }
+            ],
+            [
+                { name: "コスモッグ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/789.png" },
+                { name: "コスモウム", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/790.png" },
+                { name: "ルナアーラ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/792.png" }
+            ]
         ];
+
+        let gameLevel = 1;
+        let currentLine = [];
+        let evolveStage = 0; // 0:未進化, 1:第1進化, 2:最終進化
 
         let currentTileMap = [];
         let playerPos = { r: 0, c: 0 };
         let startPos = { r: 0, c: 0 };
         let commands = [];
         let isRunning = false;
-        let selectedChar = charDb[0];
 
-        // ページ読み込み時にキャラクターとマップを完全ランダム化
-        function setupRandomGame() {
-            // 1. キャラクターのランダム選択
-            selectedChar = charDb[Math.floor(Math.random() * charDb.length)];
-            document.getElementById('char-img').src = selectedChar.url;
-            document.getElementById('game-title').innerText = `${selectedChar.name}の めいれい迷路 ⚡️`;
+        // 【最強のバグ対策】幅優先探索(BFS)で解くことができるかチェックする関数
+        function isSolvable(map, sPos) {
+            let queue = [sPos];
+            let visited = Array.from({ length: 4 }, () => Array(4).fill(false));
+            visited[sPos.r][sPos.c] = true;
 
-            // 2. マップのランダムルート生成 (0:空, 1:スタート, 2:ゴール, 3:穴, 4:きのみ)
-            // 4x4の二次元配列をリセット
-            currentTileMap = Array.from({ length: 4 }, () => Array(4).fill(0));
+            while (queue.length > 0) {
+                let curr = queue.shift();
+                if (map[curr.r][curr.c] === 2) return true; // ゴールに到達可能！
 
-            // スタートとゴールを離れた位置に配置（例：スタートは左側、ゴールは右下付近）
-            startPos = { r: Math.floor(Math.random() * 2), c: 0 }; // 1列目のどこか
-            let goalR = 2 + Math.floor(Math.random() * 2);
-            let goalC = 2 + Math.floor(Math.random() * 2); // 3〜4列目のどこか
-            
-            currentTileMap[startPos.r][startPos.c] = 1;
-            currentTileMap[goalR][goalC] = 2;
+                // 4方向の移動先候補
+                let dirs = [{r:-1, c:0}, {r:1, c:0}, {r:0, c:-1}, {r:0, c:1}];
+                for (let d of dirs) {
+                    let nr = curr.r + d.r;
+                    let nc = curr.c + d.c;
 
-            // 残りのマスに「きのみ(4)」と「落とし穴(3)」をランダム配置
-            for (let r = 0; r < 4; r++) {
-                for (let c = 0; c < 4; c++) {
-                    if (currentTileMap[r][c] !== 0) continue;
-                    
-                    let rand = Math.random();
-                    if (rand < 0.20) {
-                        currentTileMap[r][c] = 3; // 20%で落とし穴
-                    } else if (rand < 0.45) {
-                        currentTileMap[r][c] = 4; // 25%できのみ
+                    // 範囲内かつ、未訪問かつ、落とし穴(3)ではない床なら進む
+                    if (nr >= 0 && nr < 4 && nc >= 0 && nc < 4) {
+                        if (!visited[nr][nc] && map[nr][nc] !== 3) {
+                            visited[nr][nc] = true;
+                            queue.push({r: nr, c: nc});
+                        }
                     }
                 }
             }
+            return false; // ゴールに到達できない詰みマップ
+        }
+
+        // レベルとクリア状況に応じたゲームセットアップ
+        function setupRandomGame() {
+            document.getElementById('current-lv').innerText = `ゲームのレベル: ${gameLevel}`;
+            evolveStage = 0;
+
+            // 1. レベルに基づいたポケモンの進化ラインの決定
+            let availableLines = [];
+            if (gameLevel === 1) availableLines = evolutionLines.slice(0, 3); // ポッチャマ、アチャモ、ツタージャ
+            else if (gameLevel === 2) availableLines = evolutionLines.slice(3, 5); // ルカリオ、ボスゴドラライン
+            else availableLines = evolutionLines.slice(5, 7); // 伝説ライン
+
+            currentLine = availableLines[Math.floor(Math.random() * availableLines.length)];
+            updateCharacterDisplay();
+
+            // 2. 【絶対クリア可能保証】解けるマップができるまでループ生成
+            let validMap = false;
+            let attempts = 0;
+
+            while (!validMap && attempts < 100) {
+                attempts++;
+                currentTileMap = Array.from({ length: 4 }, () => Array(4).fill(0));
+
+                // スタートとゴールの配置
+                startPos = { r: Math.floor(Math.random() * 2), c: 0 }; 
+                let goalR = 2 + Math.floor(Math.random() * 2);
+                let goalC = 2 + Math.floor(Math.random() * 2);
+                currentTileMap[startPos.r][startPos.c] = 1;
+                currentTileMap[goalR][goalC] = 2;
+
+                // 障害物と果物の配置（レベルが上がるごとに穴の確率を微増させて手応えを出す）
+                let holeChance = gameLevel === 1 ? 0.15 : (gameLevel === 2 ? 0.22 : 0.28);
+
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 4; r++, c++) { // ※ typo修正用の正しい入れ子ループ
+                    }
+                }
+                // ループ書き直し
+                for(let r=0; r<4; r++){
+                    for(let c=0; c<4; c++){
+                        if (currentTileMap[r][c] !== 0) continue;
+                        let rand = Math.random();
+                        if (rand < holeChance) currentTileMap[r][c] = 3; // 落とし穴
+                        else if (rand < 0.50) currentTileMap[r][c] = 4;  // きのみ
+                    }
+                }
+
+                // BFSアルゴリズムで「正解ルートが1つでもあるか」確認
+                if (isSolvable(currentTileMap, startPos)) {
+                    validMap = true;
+                }
+            }
+            
             playerPos = { ...startPos };
         }
 
-        // 画面のタイルとドット絵をレンダリング
+        function updateCharacterDisplay() {
+            let char = currentLine[evolveStage];
+            document.getElementById('char-img').src = char.url;
+            document.getElementById('game-title').innerText = `${char.name}の めいれい迷路 ⚡️`;
+        }
+
         const mapEl = document.getElementById('map');
         function drawMap() {
-            // 既存のセルをすべて消去（プレイヤー以外）
             const cells = mapEl.querySelectorAll('.cell');
             cells.forEach(c => c.remove());
 
@@ -332,10 +438,8 @@
             updatePlayerTransform();
         }
 
-        // マス目ぴったり（中央寄せ）に座標を動かす
         function updatePlayerTransform() {
             const player = document.getElementById('player');
-            // ぴったり25%刻みにすることでマスの真ん中に配置
             player.style.top = (playerPos.r * 25) + '%';
             player.style.left = (playerPos.c * 25) + '%';
         }
@@ -367,22 +471,44 @@
             });
         }
 
+        // 「けす」ボタンの挙動
         function clearProgram() {
             if (isRunning) return;
             commands = [];
             renderBlocks();
             playerPos = { ...startPos };
+            evolveStage = 0;
+            updateCharacterDisplay();
+            document.getElementById('char-img').classList.remove('happy-jump');
             drawMap();
-            document.getElementById('char-img').style.transform = 'scale(1)';
+            document.getElementById('btn-run').style.display = 'inline-block';
+            document.getElementById('btn-clear').style.display = 'inline-block';
+            document.getElementById('btn-next').style.display = 'none';
         }
 
-        // プログラムのステップ実行
+        // 次の問題（レベル）へ進む処理
+        function nextLevelStage() {
+            gameLevel++;
+            commands = [];
+            renderBlocks();
+            document.getElementById('char-img').classList.remove('happy-jump');
+            document.getElementById('btn-run').style.display = 'inline-block';
+            document.getElementById('btn-clear').style.display = 'inline-block';
+            document.getElementById('btn-next').style.display = 'none';
+            setupRandomGame();
+            drawMap();
+        }
+
         async function runProgram() {
             if (isRunning || commands.length === 0) return;
             isRunning = true;
             
             playerPos = { ...startPos };
+            evolveStage = 0;
+            updateCharacterDisplay();
             drawMap();
+
+            const charImg = document.getElementById('char-img');
 
             for (let i = 0; i < commands.length; i++) {
                 const cmd = commands[i];
@@ -398,28 +524,43 @@
                 const currentTile = currentTileMap[playerPos.r][playerPos.c];
                 const currentCell = document.getElementById(`cell-${playerPos.r}-${playerPos.c}`);
 
+                // きのみを踏んだら進化！
                 if (currentTile === 4 && currentCell.innerText === "🍒") {
-                    currentCell.innerText = ""; // きのみをパクッ
-                    document.getElementById('char-img').style.transform = 'scale(1.3)';
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                    document.getElementById('char-img').style.transform = 'scale(1)';
+                    currentCell.innerText = ""; 
+                    
+                    if (evolveStage < 2) {
+                        evolveStage++;
+                        // 進化時のフラッシュエフェクト
+                        charImg.classList.add('evolve-flash');
+                        updateCharacterDisplay();
+                        await new Promise(resolve => setTimeout(resolve, 600));
+                        charImg.classList.remove('evolve-flash');
+                    }
                 } else if (currentTile === 3) {
-                    alert(`あーっ！ ${selectedChar.name}が おとしあなに おちちゃった！ 🌀`);
+                    alert(`あーっ！ おとしあなに おちちゃった！ 🌀`);
                     isRunning = false;
                     clearProgram();
                     return;
                 }
             }
 
+            // ゴール判定
             if (currentTileMap[playerPos.r][playerPos.c] === 2) {
-                alert(`おめでとう！ 🎉\n${selectedChar.name}を ぶじに ⛺ まで みちびけたよ！`);
+                // ゴール時の大喜びジャンプ開始
+                charImg.classList.add('happy-jump');
+                alert(`おめでとう！ 🎉\n⛺ に とうちゃくしたよ！ ポケモンも だいよろこび！`);
+                
+                // 「出発・消す」を隠して「つぎのもんだいへ」を出す
+                document.getElementById('btn-run').style.display = 'none';
+                document.getElementById('btn-clear').style.display = 'none';
+                document.getElementById('btn-next').style.display = 'inline-block';
             } else {
                 alert("ゴールに たどりつけなかったよ。もういちど かんがえてみてね！ 🤔");
             }
             isRunning = false;
         }
 
-        // 初期起動処理
+        // 初回スタート
         setupRandomGame();
         drawMap();
     </script>
