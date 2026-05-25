@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ポケモン もしもバトル ⚡️</title>
+    <title>ポケモン ループ・マスター ⚡️</title>
     <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     <style>
         body {
@@ -20,7 +20,7 @@
         
         .nav-header {
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -61,114 +61,130 @@
             border-radius: 15px;
             margin-bottom: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+            text-align: center;
         }
 
         .game-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
-            max-width: 400px;
+            max-width: 440px;
         }
 
-        /* バトル画面エリア */
-        .battle-screen {
-            background: linear-gradient(to bottom, #63b3ed, #b2f5ea);
+        /* お題表示ボード */
+        .problem-board {
+            background-color: #ffffff;
             border: 4px solid #4a5568;
             border-radius: 8px;
-            height: 180px;
-            position: relative;
+            padding: 12px;
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
-            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .poke-box {
+        .poke-visual {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 40%;
-            position: relative;
+            width: 30%;
         }
-        .poke-box img {
-            width: 80px;
-            height: 80px;
+        .poke-visual img {
+            width: 75px;
+            height: 75px;
             object-fit: contain;
-            transition: transform 0.2s;
         }
         .poke-name {
-            background-color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-top: 4px;
+        }
+
+        .log-area {
+            width: 65%;
+            background-color: #1a202c;
+            color: #63b3ed;
+            border-radius: 6px;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 0.85rem;
+            height: 125px;
+            overflow-y: auto;
+            border: 2px solid #4a5568;
+        }
+        .log-title {
+            color: #e2e8f0;
             font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 10px;
+            border-bottom: 1px dashed #4a5568;
+            padding-bottom: 3px;
+            margin-bottom: 5px;
             font-weight: bold;
-            margin-top: 5px;
         }
-        .type-badge {
-            font-size: 0.7rem;
-            padding: 1px 6px;
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-            margin-top: 2px;
-        }
-        
-        /* タイプ別カラー */
-        .type-ほのお { background-color: #f56565; }
-        .type-みず { background-color: #4299e1; }
-        .type-くさ { background-color: #48bb78; }
-
-        /* VSマーク */
-        .vs-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #e53e3e;
-            font-style: italic;
+        .log-line {
+            margin: 2px 0;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* 技エフェクトアニメーション */
-        .attack-eff {
-            position: absolute;
-            font-size: 2rem;
-            display: none;
-            z-index: 20;
-            animation: attackHit 0.5s ease-out;
-        }
-
-        /* プログラミング（もしも）エリア */
-        .code-builder {
-            background-color: #ffffff;
-            border: 2px solid #cbd5e0;
+        /* ループコード組み立てエリア */
+        .code-editor {
+            background-color: #ebf8ff;
+            border: 2px dashed #4299e1;
             border-radius: 8px;
-            padding: 12px;
+            padding: 15px;
+        }
+
+        .loop-block {
+            background-color: #ffffff;
+            border: 2px solid #4299e1;
+            border-left: 8px solid #4299e1;
+            border-radius: 6px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .if-line {
+        .loop-header {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #2b6cb0;
+        }
+
+        .loop-body {
+            margin-left: 15px;
+            border-left: 3px dashed #cbd5e0;
+            padding-left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .action-row {
+            display: flex;
             align-items: center;
             gap: 5px;
             font-size: 0.85rem;
-            background-color: #edf2f7;
-            padding: 8px;
-            border-radius: 6px;
-            border-left: 5px solid #4299e1;
-        }
-
-        .if-line.else-line {
-            border-left: 5px solid #718096;
-            background-color: #f7fafc;
+            color: #4a5568;
         }
 
         select {
             font-family: 'Kosugi Maru', sans-serif;
-            padding: 4px 8px;
+            padding: 4px 6px;
             font-size: 0.85rem;
             border-radius: 4px;
             border: 2px solid #cbd5e0;
@@ -196,18 +212,6 @@
         #btn-next { background-color: #3182ce; box-shadow: 0 4px 0 #2b6cb0; display: none; }
         .btn-main:active { transform: translateY(4px); box-shadow: none; }
 
-        /* アニメーション定義 */
-        @keyframes attackHit {
-            0% { transform: scale(0.3) rotate(0deg); opacity: 0; }
-            50% { transform: scale(1.5) rotate(20deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0deg); opacity: 0; }
-        }
-        .shake { animation: shakeEff 0.4s ease-in-out; }
-        @keyframes shakeEff {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
         .jump { animation: jumpEff 0.4s ease-in-out infinite alternate; }
         @keyframes jumpEff {
             0% { transform: translateY(0); }
@@ -226,123 +230,143 @@
 
     <div class="nav-header">
         <a href="index.html" class="btn-back">⬅ もどる</a>
-        <div class="level-badge" id="current-lv">バトルレベル: 1</div>
+        <div class="level-badge" id="current-lv">ループレベル: 1</div>
     </div>
 
-    <h1 id="game-title">ポケモン もしもバトル ⚔️</h1>
-    <div class="rule-badge">ルール：あいての じゃくてんを つく 「もしも」 を つくろう！</div>
+    <h1 id="game-title">ポケモン ループ・マスター 🔄</h1>
+    <div class="rule-badge">ルール：くりかえしの パターンと かいすうを みつけよう！</div>
+    <div class="subtitle">ながい めいれいを、プログラミングで みじかく まとめてね！</div>
 
     <div class="game-container">
-        <div class="battle-screen">
-            <div class="poke-box" id="my-poke-box">
-                <img id="my-img" src="" alt="my pokemon">
-                <div class="poke-name" id="my-name">---</div>
-                <div class="type-badge" id="my-type">---</div>
+        <div class="problem-board">
+            <div class="poke-visual">
+                <img id="poke-img" src="" alt="pokemon">
+                <div class="poke-name" id="poke-name">---</div>
             </div>
-
-            <div class="vs-text">VS</div>
-
-            <div class="poke-box" id="enemy-poke-box">
-                <img id="enemy-img" src="" alt="enemy pokemon">
-                <div class="poke-name" id="enemy-name">---</div>
-                <div class="type-badge" id="enemy-type">---</div>
+            <div class="log-area">
+                <div class="log-title">▼ ながーいわざの れんぞくログ</div>
+                <div id="log-content"></div>
             </div>
-
-            <div class="attack-eff" id="eff-element">💥</div>
         </div>
 
-        <div class="code-builder">
-            <div class="if-line">
-                <span>🤔 <b>もしも</b> あいての タイプが</span>
-                <select id="cond-type">
-                    <option value="ほのお">🔥 ほのお</option>
-                    <option value="みず">💧 みず</option>
-                    <option value="くさ">🍃 くさ</option>
-                </select>
-                <span>なら ➔</span>
-                <select id="cond-move">
-                    <option value="みずでっぽう">💧 みずでっぽう をだす</option>
-                    <option value="ひのこ">🔥 ひのこ をだす</option>
-                    <option value="つるのむち">🍃 つるのむち をだす</option>
-                </select>
-            </div>
-
-            <div class="if-line else-line">
-                <span>😮 <b>それ以外（ちがったら）</b> なら ➔</span>
-                <select id="else-move">
-                    <option value="たいあたり">⚪ たいあたり をだす</option>
-                    <option value="みずでっぽう">💧 みずでっぽう をだす</option>
-                    <option value="ひのこ">🔥 ひのこ をだす</option>
-                    <option value="つるのむち">🍃 つるのむち をだす</option>
-                </select>
+        <div class="code-editor">
+            <div class="loop-block">
+                <div class="loop-header">
+                    <span>🔄 くりかえす回数：</span>
+                    <select id="loop-count">
+                        <option value="2">2 かい</option>
+                        <option value="3">3 かい</option>
+                        <option value="4">4 かい</option>
+                        <option value="5">5 かい</option>
+                    </select>
+                </div>
+                
+                <div class="loop-body" id="loop-body-content">
+                    </div>
+                
+                <div class="loop-header" style="color: #a0aec0; font-size: 0.8rem;">
+                    【 くりかえし おわり 】
+                </div>
             </div>
         </div>
 
         <div class="controls">
-            <button id="btn-run" class="btn-main" onclick="startBattle()">▶ バトルしゅっぱつ！</button>
+            <button id="btn-run" class="btn-main" onclick="checkAnswer()">▶ テストを はじめる！</button>
             <button id="btn-clear" class="btn-main" onclick="resetStage()">🛑 けす</button>
-            <button id="btn-next" class="btn-main" onclick="nextLevel()">🎉 つぎのバトルへ！</button>
+            <button id="btn-next" class="btn-main" onclick="nextLevel()">🎉 つぎのもんだいへ！</button>
         </div>
     </div>
 
     <div class="footer">
-        ポケモン もしもバトル アプリ<br>
+        ポケモン ループ・マスター アプリ<br>
         Version 1.0.0 | こうしん：2026/05/26
     </div>
 
     <script>
-        // ポケモンデータ
-        const myPokemonList = [
-            // レベル1：たね
-            { name: "ゼニガメ", type: "みず", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif" },
-            // レベル2：進化系
-            { name: "カメール", type: "みず", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/8.gif" },
-            // レベル3：最終進化・伝説級
-            { name: "カメックス", type: "みず", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/9.gif" }
-        ];
-
-        const enemyList = [
-            { name: "ヒトカゲ", type: "ほのお", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif" },
-            { name: "フシギダネ", type: "くさ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif" },
-            { name: "ナエトル", type: "くさ", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/387.gif" },
-            { name: "ヒコザル", type: "ほのお", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/390.gif" }
-        ];
-
-        // 相性表（何を出せば効果抜群か）
-        const weakness = {
-            "ほのお": "みずでっぽう",
-            "くさ": "ひのこ",
-            "みず": "つるのむち"
+        // 各ポケモンの設定と、彼らが本当に覚える技の一覧
+        const pokemonPool = {
+            1: [ // レベル1: たねポケモン (2択ループ)
+                { name: "ヒノアラシ", moves: ["ひのこ", "たいあたり"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/155.gif" },
+                { name: "フシギダネ", moves: ["つるのむち", "たいあたり"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif" },
+                { name: "ゼニガメ", moves: ["みずでっぽう", "たいあたり"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif" }
+            ],
+            2: [ // レベル2: 進化系 (3択ループ)
+                { name: "マグマラシ", moves: ["ひのこ", "えんまく", "スピードスター"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/156.gif" },
+                { name: "フシギソウ", moves: ["つるのむち", "はっぱカッター", "なきごえ"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/2.gif" },
+                { name: "カメール", moves: ["みずでっぽう", "からにこもる", "あわ"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/8.gif" }
+            ],
+            3: [ // レベル3: 最終進化・伝説 (変則パターンや高回数)
+                { name: "バクフーン", moves: ["かえんほうしゃ", "ふんえん", "スピードスター"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/157.gif" },
+                { name: "フシギバナ", moves: ["ソーラービーム", "はっぱカッター", "すてみタックル"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/3.gif" },
+                { name: "リザードン", moves: ["かえんほうしゃ", "エアスラッシュ", "ドラゴンクロー"], url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" }
+            ]
         };
 
         let currentLevel = 1;
-        let myPoke, enemyPoke;
+        let currentPoke;
+        let targetPattern = []; // 正解のわざパターン
+        let targetCount = 3;    // 正解のループ回数
+        let fullLog = [];       // 画面に表示される長いログ
         let isRunning = false;
 
         function initStage() {
-            document.getElementById('current-lv').innerText = `バトルレベル: ${currentLevel}`;
+            document.getElementById('current-lv').innerText = `ループレベル: ${currentLevel}`;
             
-            // 自分のポケモンをレベルに応じて決定
-            let idx = Math.min(currentLevel - 1, myPokemonList.length - 1);
-            myPoke = myPokemonList[idx];
+            // ポケモンの決定
+            const pool = pokemonPool[Math.min(currentLevel, 3)];
+            currentPoke = pool[Math.floor(Math.random() * pool.length)];
             
-            // 相手のポケモンをランダム決定
-            enemyPoke = enemyList[Math.floor(Math.random() * enemyList.length)];
+            document.getElementById('poke-img').src = currentPoke.url;
+            document.getElementById('poke-name').innerText = currentPoke.name;
+            document.getElementById('poke-img').classList.remove('jump');
 
-            // 画面表示反映
-            document.getElementById('my-img').src = myPoke.url;
-            document.getElementById('my-name').innerText = myPoke.name;
-            document.getElementById('my-type').innerText = myPoke.type;
-            document.getElementById('my-type').className = `type-badge type-${myPoke.type}`;
+            // 問題（ループの正解データ）をランダム作成
+            targetCount = [2, 3, 4][Math.floor(Math.random() * 3)]; // 2~4回
+            let patternLength = currentLevel === 1 ? 2 : 3;        // レベル1は2つの技、それ以上は3つの技
+            
+            targetPattern = [];
+            let availableMoves = [...currentPoke.moves];
+            
+            // ランダムに技の順序セットを組み立てる
+            for(let i=0; i<patternLength; i++) {
+                // 同じ技が連続しすぎないように選択
+                let moveIdx = Math.floor(Math.random() * availableMoves.length);
+                targetPattern.push(availableMoves[moveIdx]);
+            }
 
-            document.getElementById('enemy-img').src = enemyPoke.url;
-            document.getElementById('enemy-name').innerText = enemyPoke.name;
-            document.getElementById('enemy-type').innerText = enemyPoke.type;
-            document.getElementById('enemy-type').className = `type-badge type-${enemyPoke.type}`;
+            // ながーいログ（正解パターン×回数）を生成
+            fullLog = [];
+            for(let i=0; i<targetCount; i++) {
+                fullLog = fullLog.concat(targetPattern);
+            }
 
-            // アニメーションリセット
-            document.getElementById('my-img').classList.remove('jump');
-            document.getElementById('enemy-img').classList.remove('shake');
+            // ログの画面描画
+            const logContent = document.getElementById('log-content');
+            logContent.innerHTML = "";
+            fullLog.forEach((move, index) => {
+                const line = document.createElement('div');
+                line.className = 'log-line';
+                line.innerText = `① ${currentPoke.name}の ${move}！`;
+                logContent.appendChild(line);
+            });
+
+            // 組み立てエリアのセレクトボックスを動的生成（そのポケモンの持ち技だけにする）
+            const bodyContent = document.getElementById('loop-body-content');
+            bodyContent.innerHTML = "";
+            
+            for(let i=0; i<patternLength; i++) {
+                const row = document.createElement('div');
+                row.className = 'action-row';
+                
+                let optionsHtml = currentPoke.moves.map(m => `<option value="${m}">${m}</option>`).join('');
+                row.innerHTML = `
+                    <span>${i + 1}番目のわざ ➔</span>
+                    <select class="user-pattern-select">
+                        ${optionsHtml}
+                    </select>
+                `;
+                bodyContent.appendChild(row);
+            }
         }
 
         function resetStage() {
@@ -361,65 +385,47 @@
             initStage();
         }
 
-        async function startBattle() {
+        function checkAnswer() {
             if (isRunning) return;
-            isRunning = true;
-
-            const condType = document.getElementById('cond-type').value;
-            const condMove = document.getElementById('cond-move').value;
-            const elseMove = document.getElementById('else-move').value;
-
-            // プログラミングのIF文判定ロジック
-            let chosenMove = "";
-            if (enemyPoke.type === condType) {
-                chosenMove = condMove; // 条件一致
-            } else {
-                chosenMove = elseMove; // それ以外
-            }
-
-            // 1. じぶんのポケモンの攻撃モーション
-            const myImg = document.getElementById('my-img');
-            const enemyImg = document.getElementById('enemy-img');
-            const eff = document.getElementById('eff-element');
-
-            myImg.style.transform = 'translateX(30px) scale(1.1)';
-            await new Promise(r => setTimeout(r, 200));
-            myImg.style.transform = 'translateX(0) scale(1)';
-
-            // 2. 技エフェクトと判定表示
-            eff.style.display = 'block';
             
-            // 正解判定（相手の弱点を突く技を出せたか）
-            const correctMove = weakness[enemyPoke.type];
-            let isCorrect = (chosenMove === correctMove);
+            // ユーザーが選択した回数
+            const userCount = parseInt(document.getElementById('loop-count').value);
+            
+            // ユーザーが選択した技のパターンを取得
+            const selects = document.querySelectorAll('.user-pattern-select');
+            let userPattern = [];
+            selects.forEach(sel => userPattern.push(sel.value));
 
-            if (isCorrect) {
-                eff.innerText = "💥 こうかは ばつぐんだ！";
-                enemyImg.classList.add('shake');
-            } else {
-                eff.innerText = "☁️ ざんねん！ こうかはいまひとつ…";
+            // 判定ロジック
+            let countCorrect = (userCount === targetCount);
+            let patternCorrect = true;
+            for(let i=0; i<targetPattern.length; i++) {
+                if(targetPattern[i] !== userPattern[i]) {
+                    patternCorrect = false;
+                }
             }
 
-            await new Promise(r => setTimeout(r, 800));
-            eff.style.display = 'none';
-            enemyImg.classList.remove('shake');
-
-            // 3. 結果発表
-            if (isCorrect) {
-                myImg.classList.add('jump'); // 喜ぶアニメーション
-                alert(`せいかい！ 🎉\n「もしも」の 条件を 正しく組み立てて ${enemyPoke.name} を たおしたよ！`);
+            if (countCorrect && patternCorrect) {
+                // 大正解
+                document.getElementById('poke-img').classList.add('jump');
+                alert(`せいかい！ 🎉\n【${userPattern.join(' ➔ ')}】の セットが【${userCount}回】 くり返されているのを見つけたよ！\nプログラムが スッキリきれいに なりました！`);
                 
                 document.getElementById('btn-run').style.display = 'none';
                 document.getElementById('btn-clear').style.display = 'none';
                 document.getElementById('btn-next').style.display = 'inline-block';
             } else {
-                alert(`おしい！ ${enemyPoke.name}の タイプは 「${enemyPoke.type}」 だよ。\nもう一度「もしも」のルールを かんがえてなおしてみよう！ 🤔`);
+                // 不正解時のヒント
+                if (!patternCorrect && !countCorrect) {
+                    alert(`おしい！ わざの じゅんばん も、くりかえしの 回数 も ちがうみたい。\nログを 上から よくみて パターンをさがそう！ 🤔`);
+                } else if (!patternCorrect) {
+                    alert(`回数は あってるよ！ 😮\nでも、わざの じゅんばん が ちがうみたい。ログの 最初のほうを よくみてね！`);
+                } else {
+                    alert(`わざの じゅんばん は 大せいかい！ 👏\nでも、くりかえしの 回数 が ちがうみたい。なんセット あるか 数えてみよう！`);
+                }
             }
-
-            isRunning = false;
         }
 
-        // スタート
+        // 初回ロード
         initStage();
     </script>
 </body>
