@@ -73,7 +73,7 @@
             max-width: 420px;
         }
 
-        /* メイン画面ボード */
+        /* 表示ボード */
         .display-board {
             background-color: #ffffff;
             border: 4px solid #4a5568;
@@ -114,7 +114,7 @@
         .target-title { font-size: 0.75rem; color: #e53e3e; font-weight: bold; }
         .target-num { font-size: 1.6rem; font-weight: bold; color: #e53e3e; margin-bottom: 5px; }
         .current-title { font-size: 0.75rem; color: #2b6cb0; font-weight: bold; border-top: 1px dashed #cbd5e0; padding-top: 5px; }
-        .current-num { font-size: 1.8rem; font-weight: bold; color: #2b6cb0; transition: transform 0.1s; }
+        .current-num { font-size: 1.8rem; font-weight: bold; color: #2b6cb0; transition: transform 0.15s ease; }
 
         /* わざカード */
         .cards-section-title {
@@ -171,11 +171,22 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            border: 2px solid transparent;
+            transition: all 0.15s ease;
             animation: pop 0.15s ease-out;
         }
         .flow-block.f-ほのお { background-color: #e53e3e; }
         .flow-block.f-みず { background-color: #3182ce; }
         .flow-block.f-でんき { background-color: #d69e2e; }
+        
+        /* 計算中のアニメーション用クラス */
+        .flow-block.active-block {
+            transform: scale(1.25);
+            border-color: #ffeb3b;
+            box-shadow: 0 0 12px #ffeb3b;
+            z-index: 5;
+        }
+
         .flow-block .remove-x {
             background-color: rgba(0,0,0,0.3);
             border-radius: 50%;
@@ -225,7 +236,6 @@
     </div>
 
     <div class="game-container">
-        <!-- 表示ボード -->
         <div class="display-board">
             <div class="poke-box">
                 <img id="poke-img" src="" alt="pokemon">
@@ -239,19 +249,16 @@
             </div>
         </div>
 
-        <!-- わざ選択欄 -->
         <div class="cards-section-title">
             ▼ つかう わざカードを えらぼう（<ruby>何回<rt>なんかい</rt></ruby>でも<ruby>選<rt>えら</rt></ruby>べるよ）
         </div>
         <div class="cards-grid" id="cards-container"></div>
 
-        <!-- 組み立てたプログラムの流れ -->
         <div class="cards-section-title">
             ▼ 組み立てた <ruby>計算順序<rt>けいさんじゅんじょ</rt></ruby>（プログラム）
         </div>
         <div class="program-flow" id="program-flow-area"></div>
 
-        <!-- ボタン -->
         <div class="controls">
             <button id="btn-run" class="btn-main" onclick="runCalculation()">
                 ▶ <ruby>計算開始<rt>けいさんかいし</rt></ruby>！
@@ -267,7 +274,7 @@
 
     <div style="margin-top: 25px; font-size: 0.65rem; color: #a0aec0; text-align: center; line-height: 1.4;">
         ポケモン わざパワー<ruby>計算<rt>けいさん</rt></ruby>マシン<br>
-        Version 1.1.0 | <ruby>更新<rt>こうしん</rt></ruby>：2026/05/27
+        Version 1.2.0 | <ruby>更新<rt>こうしん</rt></ruby>：2026/05/27
     </div>
 
     <script>
@@ -277,7 +284,6 @@
             { name: "ピカチュウ", type: "でんき", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" }
         ];
 
-        // 各タイプの技テンプレート
         const moveTemplates = {
             "ほのお": [
                 { name: "ひのこ", type: "ほのお", op: "add" },
@@ -306,44 +312,38 @@
         function setupStage() {
             document.getElementById('current-lv').innerText = `計算レベル: ${gameLevel}`;
             
-            // ポケモンをランダム、またはレベル順に選択
             currentPoke = pokePool[(gameLevel - 1) % pokePool.length];
             document.getElementById('poke-img').src = currentPoke.url;
             document.getElementById('poke-name').innerText = currentPoke.name;
             document.getElementById('poke-img').classList.remove('jump');
             document.getElementById('current-val').innerText = "0";
 
-            // 技カードの数値を完全ランダム生成 (毎回違う問題にする)
+            // 技カードの数値を完全ランダム生成
             const baseMoves = moveTemplates[currentPoke.type];
             currentMoves = [
-                { ...baseMoves[0], val: Math.floor(Math.random() * 4) + 2 }, // 2〜5のランダム加算
-                { ...baseMoves[1], val: Math.floor(Math.random() * 6) + 7 }, // 7〜12のランダム加算
-                { ...baseMoves[2] } // ×2 固定
+                { ...baseMoves[0], val: Math.floor(Math.random() * 4) + 2 }, // 2〜5
+                { ...baseMoves[1], val: Math.floor(Math.random() * 6) + 7 }, // 7〜12
+                { ...baseMoves[2] } // ×2
             ];
             
-            // ディスプレイ表示用の文字列をセット
             currentMoves[0].display = `＋${currentMoves[0].val}`;
             currentMoves[1].display = `＋${currentMoves[1].val}`;
 
-            // --- ★目標数値(答え)の自動シミュレーション生成 ---
-            // プレイヤーがいくつかのカードを組み合わせて作れる現実的な数値をランダムに算出
+            // 目標数値をランダムシミュレーション生成
             let simulatedScore = 0;
-            let stepCount = gameLevel === 1 ? 3 : 4; // レベルが上がるとステップ数を増やす
+            let stepCount = gameLevel === 1 ? 3 : 4;
             
             for(let i = 0; i < stepCount; i++) {
-                // レベル1は足し算カードメイン、レベル2以上は掛け算も混ぜる
                 let allowedCardIdx = (gameLevel === 1) ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 3);
                 let move = currentMoves[allowedCardIdx];
-                
                 if (move.op === "add") simulatedScore += move.val;
                 else if (move.op === "mul") simulatedScore *= move.val;
             }
             
-            // 万が一0になった場合は一律で調整
             targetValue = simulatedScore === 0 ? currentMoves[1].val * 2 : simulatedScore;
             document.getElementById('target-val').innerText = targetValue;
 
-            // 技カードボタンのレンダリング
+            // 技カードボタンの生成
             const cardContainer = document.getElementById('cards-container');
             cardContainer.innerHTML = "";
             currentMoves.forEach((move, idx) => {
@@ -363,7 +363,7 @@
 
         function addMove(idx) {
             if (isRunning) return;
-            selectedMoves.push(currentMoves[idx]);
+            selectedMoves.push({ ...currentMoves[idx], id: 'block-' + Date.now() + '-' + Math.random() });
             renderFlow();
         }
 
@@ -372,6 +372,8 @@
             area.innerHTML = "";
             selectedMoves.forEach((move, idx) => {
                 const block = document.createElement('div');
+                // 動的ハイライト用に固有のid属性をDOMに付与
+                block.id = move.id;
                 block.className = `flow-block f-${move.type}`;
                 block.innerHTML = `<span>${idx + 1}: ${move.name} (${move.display})</span>`;
                 
@@ -388,6 +390,7 @@
             });
         }
 
+        // ★修正ポイント：「けす」ボタンでは、プログラムをクリアするだけで問題は変えない
         function clearProgram() {
             if (isRunning) return;
             selectedMoves = [];
@@ -396,13 +399,13 @@
             document.getElementById('btn-run').style.display = 'inline-block';
             document.getElementById('btn-clear').style.display = 'inline-block';
             document.getElementById('btn-next').style.display = 'none';
-            // 同じ問題がずっと出ないように、「けす」を押したタイミングでも問題を再シャッフルする
-            setupStage();
         }
 
+        // 次の問題に進むときに、初めて新しい数値をシャッフルする
         function nextLevelStage() {
             gameLevel++;
             clearProgram();
+            setupStage();
         }
 
         async function runCalculation() {
@@ -413,17 +416,35 @@
             const displayVal = document.getElementById('current-val');
             displayVal.innerText = currentValue;
 
-            // プログラム順に上から計算
+            // プログラムを上から順番に実行
             for (let i = 0; i < selectedMoves.length; i++) {
                 let move = selectedMoves[i];
                 
+                // ★追加アニメーション：現在処理しているコマンドブロックをハイライト取得
+                const currentBlockDom = document.getElementById(move.id);
+                if (currentBlockDom) {
+                    currentBlockDom.classList.add('active-block'); // 大きくして光らせる
+                }
+                
+                // 150ms後に計算結果を反映させる（動きに時間差をつける）
+                await new Promise(r => setTimeout(r, 150));
+
                 if (move.op === "add") currentValue += move.val;
                 else if (move.op === "mul") currentValue *= move.val;
                 
+                // 数値ディスプレイのポップアップ
                 displayVal.innerText = currentValue;
-                displayVal.style.transform = 'scale(1.2)';
+                displayVal.style.transform = 'scale(1.25)';
+                
+                // 400ms間、大きくした状態をキープ
                 await new Promise(r => setTimeout(r, 400));
+                
+                // アニメーション効果を元に戻して次のステップへ
                 displayVal.style.transform = 'scale(1)';
+                if (currentBlockDom) {
+                    currentBlockDom.classList.remove('active-block');
+                }
+                await new Promise(r => setTimeout(r, 100));
             }
 
             // 判定
@@ -434,7 +455,7 @@
                 document.getElementById('btn-clear').style.display = 'none';
                 document.getElementById('btn-next').style.display = 'inline-block';
             } else {
-                alert(`ざんねん！ 計算結果は【${currentValue}】でした。\n目標の【${targetValue}】になるように、組み合わせや順番をかえてみよう！ 🤔`);
+                alert(`ざんねん！ 計算結果は【${currentValue}】でした。\n目標の【${targetValue}】になるように、組み合わせや順番をかえてもう一度チャレンジしてみよう！ 🤔`);
             }
             isRunning = false;
         }
