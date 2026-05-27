@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ポケモン わざパワー計算マシン 🔢</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kosugi Maru', sans-serif;
+            background-color: #f7fafc;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .nav-header {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .btn-back {
+            background-color: #718096;
+            color: white;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 0 #4a5568;
+        }
+        .btn-back:active { transform: translateY(2px); box-shadow: none; }
+
+        .level-badge {
+            background-color: #319795;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            color: #1a365d;
+            margin: 5px 0 2px 0;
+        }
+        
+        .rule-badge {
+            background-color: #ffeb3b;
+            color: #1a365d;
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* ターゲット・変数モニター（メイン画面） */
+        .display-board {
+            background-color: #ffffff;
+            border: 4px solid #4a5568;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .poke-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 35%;
+        }
+        .poke-box img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        .poke-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-top: 5px;
+        }
+
+        .value-box {
+            text-align: center;
+            background-color: #edf2f7;
+            padding: 10px;
+            border-radius: 8px;
+            width: 55%;
+            box-sizing: border-box;
+        }
+        .target-title { font-size: 0.75rem; color: #e53e3e; font-weight: bold; }
+        .target-num { font-size: 1.6rem; font-weight: bold; color: #e53e3e; margin-bottom: 5px; }
+        .current-title { font-size: 0.75rem; color: #2b6cb0; font-weight: bold; border-top: 1px dashed #cbd5e0; padding-top: 5px; }
+        .current-num { font-size: 1.8rem; font-weight: bold; color: #2b6cb0; }
+
+        /* わざカード（命令の選択肢） */
+        .cards-section-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: -5px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .move-card {
+            background-color: #ffffff;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #cbd5e0;
+            transition: all 0.1s;
+        }
+        .move-card:active { transform: translateY(3px); box-shadow: none; }
+        .move-card .m-name { font-size: 0.75rem; font-weight: bold; color: #2d3748; }
+        .move-card .m-effect { font-size: 1rem; font-weight: bold; margin-top: 4px; }
+        
+        /* タイプ別カード色 */
+        .card-ほのお { border-color: #fc8181; box-shadow: 0 3px 0 #f56565; }
+        .card-ほのお .m-effect { color: #e53e3e; }
+        .card-みず { border-color: #90cdf4; box-shadow: 0 3px 0 #4299e1; }
+        .card-みず .m-effect { color: #2b6cb0; }
+        .card-でんき { border-color: #faf089; box-shadow: 0 3px 0 #ecc94b; }
+        .card-でんき .m-effect { color: #b7791f; }
+
+        /* プログラム（組み立てた計算順序）エリア */
+        .program-flow {
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            min-height: 55px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+        }
+        .flow-block {
+            background-color: #4a5568;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: pop 0.15s ease-out;
+        }
+        .flow-block.f-ほのお { background-color: #e53e3e; }
+        .flow-block.f-みず { background-color: #3182ce; }
+        .flow-block.f-でんき { background-color: #d69e2e; }
+        .flow-block .remove-x {
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 9px;
+        }
+
+        .controls { display: flex; gap: 10px; }
+        .btn-main {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+        }
+        #btn-run { background-color: #48bb78; box-shadow: 0 4px 0 #2f855a; }
+        #btn-clear { background-color: #e53e3e; box-shadow: 0 4px 0 #9b2c2c; }
+        #btn-next { background-color: #3182ce; box-shadow: 0 4px 0 #2b6cb0; display: none; }
+        .btn-main:active { transform: translateY(4px); box-shadow: none; }
+
+        .jump { animation: jumpEff 0.4s ease-in-out infinite alternate; }
+        @keyframes jumpEff { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        @keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="nav-header">
+        <a href="index.html" class="btn-back">⬅ もどる</a>
+        <div class="level-badge" id="current-lv">計算レベル: 1</div>
+    </div>
+
+    <h1>わざパワー計算マシン 🔢</h1>
+    <div class="rule-badge">ルール：わざを選んで、パワーを目標ぴったりにしよう！</div>
+
+    <div class="game-container">
+        <div class="display-board">
+            <div class="poke-box">
+                <img id="poke-img" src="" alt="pokemon">
+                <div class="poke-name" id="poke-name">---</div>
+            </div>
+            <div class="value-box">
+                <div class="target-title">🎯 もくひょうのパワー</div>
+                <div class="target-num" id="target-val">0</div>
+                <div class="current-title">🤖 いまのパワー (変数)</div>
+                <div class="current-num" id="current-val">0</div>
+            </div>
+        </div>
+
+        <div class="cards-section-title">▼ つかう わざカードを えらぼう（何回でも選べるよ）</div>
+        <div class="cards-grid" id="cards-container">
+            </div>
+
+        <div class="cards-section-title">▼ 組み立てた けいさん順じ（プログラム）</div>
+        <div class="program-flow" id="program-flow-area"></div>
+
+        <div class="controls">
+            <button id="btn-run" class="btn-main" onclick="runCalculation()">▶ けいさん開始！</button>
+            <button id="btn-clear" class="btn-main" onclick="clearProgram()">🛑 けす</button>
+            <button id="btn-next" class="btn-main" onclick="nextLevelStage()">🎉 つぎのもんだいへ！</button>
+        </div>
+    </div>
+
+    <script>
+        // ポケモンと、そのタイプに紐づくリアルな技・計算式
+        const pokePool = [
+            { name: "アチャモ", type: "ほのお", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/255.gif" },
+            { name: "ミズゴロウ", type: "みず", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/258.gif" },
+            { name: "ピカチュウ", type: "でんき", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" }
+        ];
+
+        const moveTemplates = {
+            "ほのお": [
+                { name: "ひのこ", type: "ほのお", display: "＋5", calc: (v) => v + 5 },
+                { name: "かえんぐるま", type: "ほのお", display: "＋10", calc: (v) => v + 10 },
+                { name: "ビルドアップ", type: "ほのお", display: "×2", calc: (v) => v * 2 }
+            ],
+            "みず": [
+                { name: "あわ", type: "みず", display: "＋4", calc: (v) => v + 4 },
+                { name: "みずでっぽう", type: "みず", display: "＋12", calc: (v) => v + 12 },
+                { name: "あまごい", type: "みず", display: "×2", calc: (v) => v * 2 }
+            ],
+            "でんき": [
+                { name: "でんきショック", type: "でんき", display: "＋3", calc: (v) => v + 3 },
+                { name: "10万ボルト", type: "でんき", display: "＋15", calc: (v) => v + 15 },
+                { name: "じゅうでん", type: "でんき", display: "×2", calc: (v) => v * 2 }
+            ]
+        };
+
+        let gameLevel = 1;
+        let currentPoke;
+        let currentMoves = [];
+        let selectedMoves = [];
+        let targetValue = 0;
+        let isRunning = false;
+
+        function setupStage() {
+            document.getElementById('current-lv').innerText = `計算レベル: ${gameLevel}`;
+            currentPoke = pokePool[(gameLevel - 1) % pokePool.length];
+            
+            document.getElementById('poke-img').src = currentPoke.url;
+            document.getElementById('poke-name').innerText = currentPoke.name;
+            document.getElementById('poke-img').classList.remove('jump');
+            document.getElementById('current-val').innerText = "0";
+
+            currentMoves = moveTemplates[currentPoke.type];
+
+            // レベルに応じて解ける目標数値を自動ロジック生成
+            // (必ず用意されたカードの組み合わせで作れる数値にする)
+            if (gameLevel === 1) {
+                // 例: 技Aを2回、技Bを1回使う数値
+                targetValue = currentMoves[0].calc(currentMoves[0].calc(0)) + currentMoves[1].calc(0);
+            } else {
+                // 足してからかける（順序が大事な問題）
+                let step1 = currentMoves[0].calc(0) + currentMoves[1].calc(0);
+                targetValue = step1 * 2; 
+            }
+            
+            document.getElementById('target-val').innerText = targetValue;
+
+            // カード選択肢の描画
+            const cardContainer = document.getElementById('cards-container');
+            cardContainer.innerHTML = "";
+            currentMoves.forEach((move, idx) => {
+                const card = document.createElement('div');
+                card.className = `move-card card-${move.type}`;
+                card.onclick = () => addMove(idx);
+                card.innerHTML = `
+                    <div class="m-name">${move.name}</div>
+                    <div class="m-effect">${move.display}</div>
+                `;
+                cardContainer.appendChild(card);
+            });
+
+            selectedMoves = [];
+            renderFlow();
+        }
+
+        function addMove(idx) {
+            if (isRunning) return;
+            selectedMoves.push(currentMoves[idx]);
+            renderFlow();
+        }
+
+        function renderFlow() {
+            const area = document.getElementById('program-flow-area');
+            area.innerHTML = "";
+            selectedMoves.forEach((move, idx) => {
+                const block = document.createElement('div');
+                block.className = `flow-block f-${move.type}`;
+                block.innerHTML = `<span>${idx + 1}: ${move.name} (${move.display})</span>`;
+                
+                const x = document.createElement('span');
+                x.className = 'remove-x';
+                x.innerText = '✕';
+                x.onclick = (e) => {
+                    e.stopPropagation();
+                    selectedMoves.splice(idx, 1);
+                    renderFlow();
+                };
+                block.appendChild(x);
+                area.appendChild(block);
+            });
+        }
+
+        function clearProgram() {
+            if (isRunning) return;
+            selectedMoves = [];
+            renderFlow();
+            document.getElementById('current-val').innerText = "0";
+            document.getElementById('btn-run').style.display = 'inline-block';
+            document.getElementById('btn-clear').style.display = 'inline-block';
+            document.getElementById('btn-next').style.display = 'none';
+        }
+
+        function nextLevelStage() {
+            gameLevel++;
+            clearProgram();
+            setupStage();
+        }
+
+        async function runCalculation() {
+            if (isRunning || selectedMoves.length === 0) return;
+            isRunning = true;
+
+            let currentValue = 0;
+            const displayVal = document.getElementById('current-val');
+            displayVal.innerText = currentValue;
+
+            // プログラム順に上から変数(currentValue)を計算・更新していくループ
+            for (let i = 0; i < selectedMoves.length; i++) {
+                let move = selectedMoves[i];
+                
+                // カードの持っている数理プログラムを実行して変数を書き換える
+                currentValue = move.calc(currentValue);
+                
+                displayVal.innerText = currentValue;
+                displayVal.style.transform = 'scale(1.2)';
+                await new Promise(r => setTimeout(r, 400));
+                displayVal.style.transform = 'scale(1)';
+            }
+
+            // 判定
+            if (currentValue === targetValue) {
+                document.getElementById('poke-img').classList.add('jump');
+                alert(`大せいかい！ 🎉\n目標のパワー【${targetValue}】に ぴったりになりました！\n計算の順じ（アルゴリズム）の組み立て成功です！`);
+                document.getElementById('btn-run').style.display = 'none';
+                document.getElementById('btn-clear').style.display = 'none';
+                document.getElementById('btn-next').style.display = 'inline-block';
+            } else {
+                alert(`ざんねん！ 計算結果は【${currentValue}】でした。\n目標の【${targetValue}】になるように、選ぶわざの順番を かえてみよう！ 🤔`);
+            }
+            isRunning = false;
+        }
+
+        // 初回起動
+        setupStage();
+    </script>
+</body>
+</html>
