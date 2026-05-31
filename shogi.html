@@ -63,14 +63,9 @@
         }
         .info-bar.check {
             background: #cc0000;
-            animation: blink 1s infinite alternate;
-        }
-        @keyframes blink {
-            0% { opacity: 0.8; }
-            100% { opacity: 1; }
         }
 
-        /* 盤面とサイドのレイアウト（マスコット用スペース） */
+        /* 盤面とサイドのレイアウト */
         .board-area {
             position: relative;
             width: 100%;
@@ -80,34 +75,36 @@
             justify-content: center;
         }
 
-        /* 常駐する動くポケモンマスコット */
-        .pokemon-mascot {
+        /* 【修正】教材用ポケモングラフィック配置エリア（盤面には絶対に被らない位置） */
+        .pokemon-graphic {
             position: absolute;
-            font-size: 40px;
+            width: 50px;  /* 必要に応じて画像のサイズを調整してください */
+            height: 50px;
+            object-fit: contain;
             pointer-events: none;
             z-index: 2;
         }
-        /* イーブイ側（上側・逆向き） */
-        #mascot-gote {
-            top: -25px;
-            left: 15px;
+        /* 上側プレイヤー用（180度回転してゆっくり浮遊） */
+        #pokemon-gote {
+            top: -55px;
+            left: 10px;
             transform: rotate(180deg);
-            animation: floatGote 3s ease-in-out infinite alternate;
+            animation: floatGote 4s ease-in-out infinite alternate;
         }
-        /* ピカチュウ側（下側・正向き） */
-        #mascot-sente {
-            bottom: -25px;
-            right: 15px;
-            animation: floatSente 3s ease-in-out infinite alternate;
+        /* 下側プレイヤー用（正位置でゆっくり浮遊） */
+        #pokemon-sente {
+            bottom: -55px;
+            right: 10px;
+            animation: floatSente 4s ease-in-out infinite alternate;
         }
 
         @keyframes floatSente {
-            0% { transform: translateY(0) translateX(0); }
-            100% { transform: translateY(-8px) translateX(4px); }
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-6px); }
         }
         @keyframes floatGote {
-            0% { transform: rotate(180deg) translateY(0) translateX(0); }
-            100% { transform: rotate(180deg) translateY(-8px) translateX(4px); }
+            0% { transform: rotate(180deg) translateY(0); }
+            100% { transform: rotate(180deg) translateY(-6px); }
         }
 
         /* 将棋盤 */
@@ -182,27 +179,26 @@
             justify-content: center;
         }
 
-        /* コントロールエリア（戻るボタンなど） */
-        .control-panel {
+        /* 【修正】最下部のナビゲーションエリア（戻るボタン配置） */
+        .nav-panel {
             width: 100%;
             display: flex;
             justify-content: center;
-            padding: 2px 0;
+            padding: 4px 0;
         }
-        .btn-undo {
-            background-color: #fdd835;
-            border: 2px solid #f57f17;
-            color: #3e2723;
+        .btn-back {
+            background-color: #e0e0e0;
+            border: 1px solid #9e9e9e;
+            color: #424242;
             font-weight: bold;
-            font-size: 14px;
-            padding: 6px 24px;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 13px;
+            padding: 5px 20px;
+            border-radius: 15px;
             cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .btn-undo:active {
-            transform: scale(0.95);
-            background-color: #fbc02d;
+        .btn-back:active {
+            background-color: #bdbdbd;
         }
 
         /* ダイアログ */
@@ -222,7 +218,6 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
         }
         .dialog button {
             padding: 10px 20px;
@@ -235,31 +230,6 @@
         }
         #btn-promote { background: #ffdbdb; color: #cc0000; }
         #btn-restart { background: #e0f7fa; color: #006064; display: none; }
-
-        /* 特殊演出（王手等の一時エフェクト） */
-        .effect-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pokemon-effect {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            animation: pokemonPop 1.5s ease-in-out forwards;
-        }
-        .pokemon-pop-face { font-size: 60px; }
-        @keyframes pokemonPop {
-            0% { transform: scale(0); opacity: 0; }
-            20% { transform: scale(1.3); opacity: 1; }
-            35% { transform: scale(1); }
-            80% { opacity: 1; }
-            100% { transform: scale(0.5) translateY(-100px); opacity: 0; }
-        }
     </style>
 </head>
 <body>
@@ -270,14 +240,18 @@
     <div class="info-bar" id="turn-info">ピカチュウ側（下側）の番です</div>
 
     <div class="board-area">
-        <div class="pokemon-mascot" id="mascot-gote">🦊🤎</div> <div class="board" id="shogi-board"></div>
-        <div class="pokemon-mascot" id="mascot-sente">⚡️🐭</div> </div>
-
-    <div class="control-panel">
-        <button class="btn-undo" id="btn-undo">🔄 1手戻る</button>
+        <img src="gote-pokemon.gif" alt="" class="pokemon-graphic" id="pokemon-gote" onerror="this.style.display='none';">
+        
+        <div class="board" id="shogi-board"></div>
+        
+        <img src="sente-pokemon.gif" alt="" class="pokemon-graphic" id="pokemon-sente" onerror="this.style.display='none';">
     </div>
 
     <div class="piece-box" id="sente-box"></div>
+
+    <div class="nav-panel">
+        <button class="btn-back" id="btn-page-back">⬅ メニューに戻る</button>
+    </div>
 </div>
 
 <div class="dialog-overlay" id="game-dialog">
@@ -290,8 +264,6 @@
         <button id="btn-restart">もう一度遊ぶ</button>
     </div>
 </div>
-
-<div class="effect-overlay" id="effect-container"></div>
 
 <script>
     const PIECES = {
@@ -306,12 +278,7 @@
     };
 
     let boardState, hands, currentTurn, selected, movableSquares, pendingPromotion, gameOver;
-    
-    // 履歴保存用（待った機能用スタック）
-    let history = [];
-
     const boardEl = document.getElementById('shogi-board');
-    const effectContainer = document.getElementById('effect-container');
 
     function init() {
         boardState = [
@@ -334,7 +301,6 @@
         movableSquares = [];
         pendingPromotion = null;
         gameOver = false;
-        history = [];
 
         createBoard();
         updateUI();
@@ -344,31 +310,6 @@
         if (e.touches.length > 1 || e.scale !== 1) return;
         e.preventDefault();
     }, { passive: false });
-
-    // 局面履歴をディープコピーして保存
-    function saveHistory() {
-        const boardCopy = boardState.map(row => row.map(cell => cell ? { ...cell } : null));
-        const handsCopy = hands.map(hand => ({ ...hand }));
-        history.push({
-            boardState: boardCopy,
-            hands: handsCopy,
-            currentTurn: currentTurn
-        });
-    }
-
-    // 1手戻る（待った）の実行
-    function undoMove() {
-        if (history.length === 0 || gameOver) return;
-        
-        const prevState = history.pop();
-        boardState = prevState.boardState;
-        hands = prevState.hands;
-        currentTurn = prevState.currentTurn;
-        
-        selected = null;
-        movableSquares = [];
-        updateUI();
-    }
 
     function createBoard() {
         boardEl.innerHTML = '';
@@ -418,7 +359,6 @@
         const infoBar = document.getElementById('turn-info');
         if (gameOver) return;
 
-        // 表記をポケモン準拠に修正
         const turnText = currentTurn === 1 ? "ピカチュウ側（下側）の番です" : "イーブイ側（上側）の番です";
         
         if (checkKingThreat(currentTurn)) {
@@ -498,9 +438,6 @@
     }
 
     function executeMove(toR, toC) {
-        // 動かす前に現在の盤面状態を履歴に保存
-        saveHistory();
-
         if (selected.type === 'board') {
             const fromR = selected.r;
             const fromC = selected.c;
@@ -538,42 +475,13 @@
                     return;
                 }
             } else {
-                checkAndTriggerCheckEffect();
                 endTurn();
             }
         } else if (selected.type === 'hand') {
             boardState[toR][toC] = { p: selected.p, o: currentTurn, isProm: false };
             hands[currentTurn][selected.p]--;
-            
-            checkAndTriggerCheckEffect();
             endTurn();
         }
-    }
-
-    // 王手がかかった時のエフェクトトリガー
-    function checkAndTriggerCheckEffect() {
-        const nextTurn = currentTurn === 1 ? 0 : 1;
-        if (checkKingThreat(nextTurn)) {
-            triggerCheckPopEffect();
-        }
-    }
-
-    function triggerCheckPopEffect() {
-        const wrapper = document.createElement('div');
-        wrapper.classList.add('pokemon-effect');
-
-        const face = document.createElement('div');
-        face.classList.add('pokemon-pop-face');
-        // 王手をかけたプレイヤー側のアイコンを表示
-        face.innerText = currentTurn === 1 ? "⚡️" : "💥";
-
-        wrapper.appendChild(face);
-        
-        if (currentTurn === 0) {
-            wrapper.style.transform = 'rotate(180deg)';
-        }
-        effectContainer.appendChild(wrapper);
-        setTimeout(() => wrapper.remove(), 1500);
     }
 
     function showPromotionDialog() {
@@ -655,13 +563,15 @@
         document.getElementById('game-dialog').style.visibility = 'hidden';
         init();
     });
-    // 戻るボタンのイベント登録
-    document.getElementById('btn-undo').addEventListener('click', undoMove);
+
+    // 【修正】前のページ（メニュー画面など）にブラウザバックする処理
+    document.getElementById('btn-page-back').addEventListener('click', () => {
+        window.history.back();
+    });
 
     function closeDialog() {
         document.getElementById('game-dialog').style.visibility = 'hidden';
         pendingPromotion = null;
-        checkAndTriggerCheckEffect();
         endTurn();
     }
 
