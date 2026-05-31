@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>対面スマホ将棋</title>
+    <title>対面スマホ将棋 - 完全版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         
@@ -22,18 +22,18 @@
             justify-content: center;
         }
 
-        /* 全体コンテナ：svhを使うことでブラウザのバーを回避 */
+        /* 全体コンテナ */
         .game-container {
             display: flex;
             flex-direction: column;
             width: 100%;
             max-width: 450px;
-            height: 100svh; /* スマホのバーを除いた実際の表示エリアに合わせる */
+            height: 100svh;
             justify-content: space-between;
             padding: 10px 8px;
         }
 
-        /* 駒箱（持ち駒エリア）：縦幅を少しコンパクトにして盤面を圧迫しないように変更 */
+        /* 駒箱 */
         .piece-box {
             background-color: #d2b48c;
             border: 2px solid #8b5a2b;
@@ -45,7 +45,6 @@
             gap: 5px;
             overflow-x: auto;
         }
-        /* 後手（上側）の駒箱は180度回転 */
         #gote-box { transform: rotate(180deg); }
 
         /* インフォメーションバー */
@@ -54,12 +53,21 @@
             font-weight: bold;
             background: #8b5a2b;
             color: white;
-            padding: 4px;
+            padding: 6px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        .info-bar.check {
+            background: #cc0000;
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
         }
 
-        /* 将棋盤：画面の幅いっぱいに収まるよう、aspect-ratioを維持 */
+        /* 将棋盤 */
         .board {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
@@ -77,7 +85,6 @@
             align-items: center;
             justify-content: center;
         }
-        /* 選択中・移動可能先のハイライト */
         .square.selected { background-color: rgba(255, 69, 0, 0.4); }
         .square.movable::after {
             content: '';
@@ -88,7 +95,7 @@
             position: absolute;
         }
 
-        /* 駒のデザイン */
+        /* 駒 */
         .piece {
             width: 90%;
             height: 90%;
@@ -107,13 +114,11 @@
         }
         @media (min-width: 450px) { .piece { font-size: 21px; } }
         
-        /* 後手の駒は180度回転 */
         .piece.gote { transform: rotate(180deg); color: #000; }
-        /* 成駒は赤文字 */
         .piece.promoted { color: #cc0000; }
         .piece.gote.promoted { color: #aa0000; }
 
-        /* 持ち駒自体のスタイル */
+        /* 持ち駒スタイル */
         .hand-piece {
             position: relative;
             width: 40px;
@@ -134,7 +139,7 @@
             justify-content: center;
         }
 
-        /* ダイアログ（成る・成らない） */
+        /* ダイアログ（成る選択・ゲーム終了用） */
         .dialog-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -151,6 +156,7 @@
             border-radius: 8px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
         }
         .dialog button {
             padding: 10px 20px;
@@ -162,6 +168,7 @@
             border: 1px solid #ccc;
         }
         #btn-promote { background: #ffdbdb; color: #cc0000; }
+        #btn-restart { background: #e0f7fa; color: #006064; display: none; }
     </style>
 </head>
 <body>
@@ -176,11 +183,14 @@
     <div class="piece-box" id="sente-box"></div>
 </div>
 
-<div class="dialog-overlay" id="promote-dialog">
-    <div class="dialog">
-        <p style="font-weight: bold; margin-bottom: 10px;">駒を成りますか？</p>
-        <button id="btn-promote">成る</button>
-        <button id="btn-not-promote">成らない</button>
+<div class="dialog-overlay" id="game-dialog">
+    <div class="dialog" id="dialog-body">
+        <p id="dialog-text" style="font-weight: bold; margin-bottom: 10px; font-size: 18px;"></p>
+        <div id="dialog-buttons">
+            <button id="btn-promote">成る</button>
+            <button id="btn-not-promote">成らない</button>
+        </div>
+        <button id="btn-restart">もう一度遊ぶ</button>
     </div>
 </div>
 
@@ -196,39 +206,41 @@
         OU: { name: '玉', prom: null, text: '玉' }
     };
 
-    let boardState = [
-        [{p:'KY',o:0},{p:'KE',o:0},{p:'GI',o:0},{p:'KI',o:0},{p:'OU',o:0},{p:'KI',o:0},{p:'GI',o:0},{p:'KE',o:0},{p:'KY',o:0}],
-        [null,{p:'HI',o:0},null,null,null,null,null,{p:'KA',o:0},null],
-        [{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0}],
-        [null,null,null,null,null,null,null,null,null],
-        [null,null,null,null,null,null,null,null,null],
-        [null,null,null,null,null,null,null,null,null],
-        [{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1}],
-        [null,{p:'KA',o:1},null,null,null,null,null,{p:'HI',o:1},null],
-        [{p:'KY',o:1},{p:'KE',o:1},{p:'GI',o:1},{p:'KI',o:1},{p:'OU',o:1},{p:'KI',o:1},{p:'GI',o:1},{p:'KE',o:1},{p:'KY',o:1}]
-    ];
-
-    let hands = [
-        { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 },
-        { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 }
-    ];
-
-    let currentTurn = 1; 
-    let selected = null; 
-    let movableSquares = [];
-    let pendingPromotion = null; 
+    let boardState, hands, currentTurn, selected, movableSquares, pendingPromotion, gameOver;
 
     const boardEl = document.getElementById('shogi-board');
 
     function init() {
+        boardState = [
+            [{p:'KY',o:0},{p:'KE',o:0},{p:'GI',o:0},{p:'KI',o:0},{p:'OU',o:0},{p:'KI',o:0},{p:'GI',o:0},{p:'KE',o:0},{p:'KY',o:0}],
+            [null,{p:'HI',o:0},null,null,null,null,null,{p:'KA',o:0},null],
+            [{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0},{p:'FU',o:0}],
+            [null,null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null,null],
+            [{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1},{p:'FU',o:1}],
+            [null,{p:'KA',o:1},null,null,null,null,null,{p:'HI',o:1},null],
+            [{p:'KY',o:1},{p:'KE',o:1},{p:'GI',o:1},{p:'KI',o:1},{p:'OU',o:1},{p:'KI',o:1},{p:'GI',o:1},{p:'KE',o:1},{p:'KY',o:1}]
+        ];
+        hands = [
+            { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 },
+            { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 }
+        ];
+        currentTurn = 1; 
+        selected = null; 
+        movableSquares = [];
+        pendingPromotion = null;
+        gameOver = false;
+
         createBoard();
         updateUI();
-        // スマホのダブルタップズームやスクロールを無効化する補助処理
-        document.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 1 || e.scale !== 1) return;
-            e.preventDefault();
-        }, { passive: false });
     }
+
+    // スマホ用スクロール防止
+    document.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 1 || e.scale !== 1) return;
+        e.preventDefault();
+    }, { passive: false });
 
     function createBoard() {
         boardEl.innerHTML = '';
@@ -275,7 +287,19 @@
         renderHand('sente-box', 1);
         renderHand('gote-box', 0);
 
-        document.getElementById('turn-info').innerText = currentTurn === 1 ? "先手（下側）の番です" : "後手（上側）の番です";
+        // 手番と王手表示の更新
+        const infoBar = document.getElementById('turn-info');
+        if (gameOver) return;
+
+        const turnText = currentTurn === 1 ? "先手（下側）の番です" : "後手（上側）の番です";
+        if (checkKingThreat(currentTurn)) {
+            infoBar.innerText = `⚠️ 王手！ ⚠️ ${turnText}`;
+            infoBar.classList.add('check');
+        } else {
+            infoBar.innerText = turnText;
+            infoBar.classList.add('info-bar');
+            infoBar.classList.remove('check');
+        }
     }
 
     function renderHand(boxId, owner) {
@@ -314,6 +338,7 @@
     }
 
     function onSquareClick(r, c) {
+        if (gameOver) return;
         const cell = boardState[r][c];
 
         if (movableSquares.some(m => m.r === r && m.c === c)) {
@@ -323,7 +348,7 @@
 
         if (cell && cell.o === currentTurn) {
             selected = { type: 'board', r, c };
-            movableSquares = getMoves(r, c, cell);
+            movableSquares = getMoves(r, c, boardState);
         } else {
             selected = null;
             movableSquares = [];
@@ -332,7 +357,7 @@
     }
 
     function onHandClick(p, owner) {
-        if (owner !== currentTurn) return;
+        if (gameOver || owner !== currentTurn) return;
 
         if (selected && selected.type === 'hand' && selected.p === p) {
             selected = null;
@@ -351,9 +376,17 @@
             const cell = boardState[fromR][fromC];
             const target = boardState[toR][toC];
 
+            // 王（玉）を取った場合の勝敗判定
+            if (target && target.p === 'OU') {
+                boardState[toR][toC] = cell;
+                boardState[fromR][fromC] = null;
+                updateUI();
+                endGame(currentTurn);
+                return;
+            }
+
             if (target) {
-                let basePiece = target.p;
-                hands[currentTurn][basePiece]++;
+                hands[currentTurn][target.p]++;
             }
 
             boardState[toR][toC] = cell;
@@ -371,7 +404,7 @@
                     endTurn();
                 } else {
                     pendingPromotion = { r: toR, c: toC };
-                    document.getElementById('promote-dialog').style.visibility = 'visible';
+                    showPromotionDialog();
                     return;
                 }
             } else {
@@ -384,11 +417,80 @@
         }
     }
 
+    // 成るダイアログの表示（手番に合わせて180度反転させる）
+    function showPromotionDialog() {
+        const overlay = document.getElementById('game-dialog');
+        const dialog = document.getElementById('dialog-body');
+        document.getElementById('dialog-text').innerText = "駒を成りますか？";
+        document.getElementById('dialog-buttons').style.display = 'block';
+        document.getElementById('btn-restart').style.display = 'none';
+
+        // 後手番ならダイアログをひっくり返す
+        if (currentTurn === 0) {
+            dialog.style.transform = 'rotate(180deg)';
+        } else {
+            dialog.style.transform = 'rotate(0deg)';
+        }
+
+        overlay.style.visibility = 'visible';
+    }
+
+    // ゲーム終了処理
+    function endGame(winner) {
+        gameOver = true;
+        const overlay = document.getElementById('game-dialog');
+        const dialog = document.getElementById('dialog-body');
+        const infoBar = document.getElementById('turn-info');
+        
+        const winText = winner === 1 ? "先手（下側）の勝ちです！" : "後手（上側）の勝ちです！";
+        infoBar.innerText = winText;
+        infoBar.style.background = "#ffd700";
+        infoBar.style.color = "#000";
+
+        document.getElementById('dialog-text').innerText = winText;
+        document.getElementById('dialog-buttons').style.display = 'none';
+        document.getElementById('btn-restart').style.display = 'inline-block';
+        
+        // 勝ったプレイヤーの向きにダイアログを合わせる
+        dialog.style.transform = winner === 0 ? 'rotate(180deg)' : 'rotate(0deg)';
+        overlay.style.visibility = 'visible';
+    }
+
     function endTurn() {
         selected = null;
         movableSquares = [];
         currentTurn = currentTurn === 1 ? 0 : 1;
         updateUI();
+    }
+
+    // 王手されているかどうかのチェック
+    function checkKingThreat(targetPlayer) {
+        let kingPos = null;
+        // まず王の位置を探す
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (boardState[r][c] && boardState[r][c].p === 'OU' && boardState[r][c].o === targetPlayer) {
+                    kingPos = { r, c };
+                    break;
+                }
+            }
+            if (kingPos) break;
+        }
+        if (!kingPos) return false;
+
+        // 相手の全ての駒の移動範囲に王が含まれるか調べる
+        const opponent = targetPlayer === 1 ? 0 : 1;
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                if (boardState[r][c] && boardState[r][c].o === opponent) {
+                    const moves = getMoves(r, c, boardState);
+                    if (moves.some(m => m.r === kingPos.r && m.c === kingPos.c)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     document.getElementById('btn-promote').addEventListener('click', () => {
@@ -398,8 +500,13 @@
     document.getElementById('btn-not-promote').addEventListener('click', () => {
         closeDialog();
     });
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        document.getElementById('game-dialog').style.visibility = 'hidden';
+        init();
+    });
+
     function closeDialog() {
-        document.getElementById('promote-dialog').style.visibility = 'hidden';
+        document.getElementById('game-dialog').style.visibility = 'hidden';
         pendingPromotion = null;
         endTurn();
     }
@@ -424,8 +531,9 @@
         return moves;
     }
 
-    function getMoves(r, c, cell) {
+    function getMoves(r, c, currentBoard) {
         let moves = [];
+        const cell = currentBoard[r][c];
         const dir = cell.o === 1 ? -1 : 1; 
         const pType = cell.isProm ? PIECES[cell.p].prom : cell.p;
         let relMoves = [];
@@ -444,7 +552,7 @@
         relMoves.forEach(([dr, dc]) => {
             let nr = r + dr, nc = c + dc;
             if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) {
-                if (boardState[nr][nc] === null || boardState[nr][nc].o !== cell.o) {
+                if (currentBoard[nr][nc] === null || currentBoard[nr][nc].o !== cell.o) {
                     moves.push({ r: nr, c: nc });
                 }
             }
@@ -454,10 +562,10 @@
             directions.forEach(([dr, dc]) => {
                 let nr = r + dr, nc = c + dc;
                 while (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) {
-                    if (boardState[nr][nc] === null) {
+                    if (currentBoard[nr][nc] === null) {
                         moves.push({ r: nr, c: nc });
                     } else {
-                        if (boardState[nr][nc].o !== cell.o) moves.push({ r: nr, c: nc });
+                        if (currentBoard[nr][nc].o !== cell.o) moves.push({ r: nr, c: nc });
                         break;
                     }
                     nr += dr; nc += dc;
@@ -474,14 +582,14 @@
                 addSlideMoves([[1,1],[1,-1],[-1,1],[-1,-1]]);
                 [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc]) => {
                     let nr = r+dr, nc = c+dc;
-                    if(nr>=0 && nr<9 && nc>=0 && nc<9 && (boardState[nr][nc]===null || boardState[nr][nc].o!==cell.o)) moves.push({r:nr, c:nc});
+                    if(nr>=0 && nr<9 && nc>=0 && nc<9 && (currentBoard[nr][nc]===null || currentBoard[nr][nc].o!==cell.o)) moves.push({r:nr, c:nc});
                 });
             }
             if (cell.p === 'HI') { 
                 addSlideMoves([[1,0],[-1,0],[0,1],[0,-1]]);
                 [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => {
                     let nr = r+dr, nc = c+dc;
-                    if(nr>=0 && nr<9 && nc>=0 && nc<9 && (boardState[nr][nc]===null || boardState[nr][nc].o!==cell.o)) moves.push({r:nr, c:nc});
+                    if(nr>=0 && nr<9 && nc>=0 && nc<9 && (currentBoard[nr][nc]===null || currentBoard[nr][nc].o!==cell.o)) moves.push({r:nr, c:nc});
                 });
             }
         }
