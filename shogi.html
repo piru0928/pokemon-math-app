@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>対面スマホ将棋 - 完全版</title>
+    <title>対面スマホ将棋 - 究極版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         
@@ -20,9 +20,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
-        /* 全体コンテナ */
         .game-container {
             display: flex;
             flex-direction: column;
@@ -31,6 +31,8 @@
             height: 100svh;
             justify-content: space-between;
             padding: 10px 8px;
+            position: relative;
+            z-index: 1;
         }
 
         /* 駒箱 */
@@ -46,6 +48,41 @@
             overflow-x: auto;
         }
         #gote-box { transform: rotate(180deg); }
+
+        /* 上部・下部のバー構成 */
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+        }
+
+        /* 形勢判断バー */
+        .eval-bar {
+            width: 100%;
+            background: #e0e0e0;
+            height: 18px;
+            border-radius: 9px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #8b5a2b;
+        }
+        .eval-progress {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #2196f3, #4caf50);
+            transition: width 0.5s ease;
+        }
+        .eval-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 16px;
+            color: #333;
+            top: 0;
+        }
 
         /* インフォメーションバー */
         .info-bar {
@@ -118,7 +155,7 @@
         .piece.promoted { color: #cc0000; }
         .piece.gote.promoted { color: #aa0000; }
 
-        /* 持ち駒スタイル */
+        /* 持ち駒 */
         .hand-piece {
             position: relative;
             width: 40px;
@@ -139,7 +176,7 @@
             justify-content: center;
         }
 
-        /* ダイアログ（成る選択・ゲーム終了用） */
+        /* 汎用ダイアログ */
         .dialog-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -169,6 +206,62 @@
         }
         #btn-promote { background: #ffdbdb; color: #cc0000; }
         #btn-restart { background: #e0f7fa; color: #006064; display: none; }
+
+        /* 特殊演出用レイヤー */
+        .effect-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 決まり手（戦法）エフェクト */
+        .move-effect {
+            font-size: 48px;
+            font-weight: italic;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ff4500, 2px 2px 2px #000;
+            opacity: 0;
+            transform: scale(0.3);
+            animation: tacticeffect 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes tacticeffect {
+            0% { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+            30% { opacity: 1; transform: scale(1.1) rotate(5deg); }
+            40% { transform: scale(1) rotate(0deg); }
+            80% { opacity: 1; transform: scale(1) translateY(0); }
+            100% { opacity: 0; transform: scale(1.5) translateY(-50px); }
+        }
+
+        /* ポケモン風ハッピーエフェクト */
+        .pokemon-effect {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: pokemonPop 1.8s ease-in-out forwards;
+        }
+        .pokemon-face { font-size: 70px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
+        .pokemon-msg {
+            background: rgba(255, 235, 59, 0.95);
+            color: #333;
+            border: 3px solid #ff9800;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        @keyframes pokemonPop {
+            0% { transform: scale(0) translateY(100px); opacity: 0; }
+            20% { transform: scale(1.2) translateY(-20px); opacity: 1; }
+            35% { transform: scale(1) translateY(0); }
+            75% { transform: scale(1) translateY(0); opacity: 1; }
+            100% { transform: scale(0.8) translateY(-150px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -176,7 +269,13 @@
 <div class="game-container">
     <div class="piece-box" id="gote-box"></div>
 
-    <div class="info-bar" id="turn-info">先手（下側）の番です</div>
+    <div class="bar-container">
+        <div class="eval-bar">
+            <div class="eval-progress" id="eval-progress"></div>
+            <div class="eval-text" id="eval-text">互角 +0</div>
+        </div>
+        <div class="info-bar" id="turn-info">先手（下側）の番です</div>
+    </div>
 
     <div class="board" id="shogi-board"></div>
 
@@ -194,21 +293,24 @@
     </div>
 </div>
 
+<div class="effect-overlay" id="effect-container"></div>
+
 <script>
     const PIECES = {
-        FU: { name: '歩', prom: 'と', text: '歩' },
-        KY: { name: '香', prom: '杏', text: '香' },
-        KE: { name: '桂', prom: '圭', text: '桂' },
-        GI: { name: '銀', prom: '全', text: '銀' },
-        KI: { name: '金', prom: null, text: '金' },
-        KA: { name: '角', prom: '馬', text: '角' },
-        HI: { name: '飛', prom: '竜', text: '飛' },
-        OU: { name: '玉', prom: null, text: '玉' }
+        FU: { name: '歩', prom: 'と', text: '歩', value: 100 },
+        KY: { name: '香', prom: '杏', text: '香', value: 430 },
+        KE: { name: '桂', prom: '圭', text: '桂', value: 450 },
+        GI: { name: '銀', prom: '全', text: '銀', value: 640 },
+        KI: { name: '金', prom: null, text: '金', value: 690 },
+        KA: { name: '角', prom: '馬', text: '角', value: 890 },
+        HI: { name: '飛', prom: '竜', text: '飛', value: 1040 },
+        OU: { name: '玉', prom: null, text: '玉', value: 15000 }
     };
 
-    let boardState, hands, currentTurn, selected, movableSquares, pendingPromotion, gameOver;
+    let boardState, hands, currentTurn, selected, movableSquares, pendingPromotion, gameOver, lastEvalScore = 0;
 
     const boardEl = document.getElementById('shogi-board');
+    const effectContainer = document.getElementById('effect-container');
 
     function init() {
         boardState = [
@@ -231,12 +333,12 @@
         movableSquares = [];
         pendingPromotion = null;
         gameOver = false;
+        lastEvalScore = 0;
 
         createBoard();
         updateUI();
     }
 
-    // スマホ用スクロール防止
     document.addEventListener('touchmove', (e) => {
         if (e.touches.length > 1 || e.scale !== 1) return;
         e.preventDefault();
@@ -287,18 +389,20 @@
         renderHand('sente-box', 1);
         renderHand('gote-box', 0);
 
-        // 手番と王手表示の更新
+        calculateEvaluation();
+
         const infoBar = document.getElementById('turn-info');
         if (gameOver) return;
 
         const turnText = currentTurn === 1 ? "先手（下側）の番です" : "後手（上側）の番です";
+        
+        // 修正：手番側の玉が相手の駒に狙われているかを正しく判定
         if (checkKingThreat(currentTurn)) {
             infoBar.innerText = `⚠️ 王手！ ⚠️ ${turnText}`;
-            infoBar.classList.add('check');
+            infoBar.className = 'info-bar check';
         } else {
             infoBar.innerText = turnText;
-            infoBar.classList.add('info-bar');
-            infoBar.classList.remove('check');
+            infoBar.className = 'info-bar';
         }
     }
 
@@ -335,6 +439,100 @@
                 box.appendChild(container);
             }
         }
+    }
+
+    // 形勢判断ロジック（簡易駒得計算モデル）
+    function calculateEvaluation() {
+        let score = 0;
+        for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+                const cell = boardState[r][c];
+                if (cell) {
+                    let val = PIECES[cell.p].value;
+                    if (cell.isProm) val += 200; // 成ると少し価値アップ
+                    score += (cell.o === 1) ? val : -val;
+                }
+            }
+        }
+        for (let p in hands[1]) score += hands[1][p] * PIECES[p].value;
+        for (let p in hands[0]) score -= hands[0][p] * PIECES[p].value;
+
+        // UIへの反映
+        const progress = document.getElementById('eval-progress');
+        const text = document.getElementById('eval-text');
+        
+        // 限界値を±3000に設定してパーセンテージ化
+        let displayPercent = 50 + (score / 60);
+        displayPercent = Math.max(5, Math.min(95, displayPercent));
+        progress.style.width = `${displayPercent}%`;
+
+        if (Math.abs(score) < 150) {
+            text.innerText = `互角 (${score > 0 ? '+' : ''}${score})`;
+        } else if (score > 0) {
+            text.innerText = `先手有利 +${score}`;
+        } else {
+            text.innerText = `後手有利 ${score}`;
+        }
+
+        // ポケモン演出トリガー：手番が移った時に、前より形勢が好転していたらニコニコ
+        if (!gameOver) {
+            if ((currentTurn === 1 && score > lastEvalScore + 300) || (currentTurn === 0 && score < lastEvalScore - 300)) {
+                triggerPokemonCelebration("いい手だ！");
+            }
+        }
+        lastEvalScore = score;
+    }
+
+    // 決まり手（戦法・囲い）の簡易簡易検知
+    function checkTactics() {
+        // 1. 先手棒銀 (銀が2六 or 2五にいる)
+        if (boardState[3][2] && boardState[3][2].p === 'GI' && boardState[3][2].o === 1) return "棒銀！";
+        if (boardState[4][2] && boardState[4][2].p === 'GI' && boardState[4][2].o === 1) return "棒銀！";
+
+        // 2. 先手美濃囲い (玉が7八、銀が7一、金が6七・5八など簡略配置)
+        if (boardState[8][7] && boardState[8][7].p === 'OU' && boardState[7][7].p === 'GI' && boardState[1].o === 1) return "美濃囲い！";
+
+        // 3. 先手穴熊 (玉が9九の隅っこに籠もる)
+        if (boardState[8][8] && boardState[8][8].p === 'OU' && boardState[8][8].o === 1) return "穴熊！";
+        if (boardState[0][0] && boardState[0][0].p === 'OU' && boardState[0][0].o === 0) return "後手穴熊！";
+
+        return null;
+    }
+
+    function triggerTacticEffect(tacticName) {
+        effectContainer.innerHTML = '';
+        const el = document.createElement('div');
+        el.classList.add('move-effect');
+        el.innerText = tacticName;
+        effectContainer.appendChild(el);
+    }
+
+    function triggerPokemonCelebration(msg) {
+        // すでに演出中ならスキップ
+        if (document.querySelector('.pokemon-effect')) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('pokemon-effect');
+
+        const face = document.createElement('div');
+        face.classList.add('pokemon-face');
+        face.innerText = "⚡️🐭🐾"; // ピカチュウ風ニコニコ絵文字
+
+        const txt = document.createElement('div');
+        txt.classList.add('pokemon-msg');
+        txt.innerText = msg;
+
+        wrapper.appendChild(face);
+        wrapper.appendChild(txt);
+        
+        // 後手側の気分の時は演出をひっくり返す
+        if (currentTurn === 0) {
+            wrapper.style.transform = 'rotate(180deg)';
+        }
+
+        effectContainer.appendChild(wrapper);
+
+        setTimeout(() => wrapper.remove(), 1800);
     }
 
     function onSquareClick(r, c) {
@@ -376,7 +574,6 @@
             const cell = boardState[fromR][fromC];
             const target = boardState[toR][toC];
 
-            // 王（玉）を取った場合の勝敗判定
             if (target && target.p === 'OU') {
                 boardState[toR][toC] = cell;
                 boardState[fromR][fromC] = null;
@@ -391,6 +588,10 @@
 
             boardState[toR][toC] = cell;
             boardState[fromR][fromC] = null;
+
+            // 戦法・囲いチェック
+            const tactic = checkTactics();
+            if (tactic) triggerTacticEffect(tactic);
 
             const isSenteZone = (currentTurn === 1 && (fromR <= 2 || toR <= 2));
             const isGoteZone = (currentTurn === 0 && (fromR >= 6 || toR >= 6));
@@ -408,16 +609,25 @@
                     return;
                 }
             } else {
+                // 王手をかけた側にポケモンニコニコ演出
+                const nextTurn = currentTurn === 1 ? 0 : 1;
+                if (checkKingThreat(nextTurn)) {
+                    triggerPokemonCelebration("王手！ピカッ！");
+                }
                 endTurn();
             }
         } else if (selected.type === 'hand') {
             boardState[toR][toC] = { p: selected.p, o: currentTurn, isProm: false };
             hands[currentTurn][selected.p]--;
+            
+            const nextTurn = currentTurn === 1 ? 0 : 1;
+            if (checkKingThreat(nextTurn)) {
+                triggerPokemonCelebration("王手！ピカッ！");
+            }
             endTurn();
         }
     }
 
-    // 成るダイアログの表示（手番に合わせて180度反転させる）
     function showPromotionDialog() {
         const overlay = document.getElementById('game-dialog');
         const dialog = document.getElementById('dialog-body');
@@ -425,17 +635,14 @@
         document.getElementById('dialog-buttons').style.display = 'block';
         document.getElementById('btn-restart').style.display = 'none';
 
-        // 後手番ならダイアログをひっくり返す
         if (currentTurn === 0) {
             dialog.style.transform = 'rotate(180deg)';
         } else {
             dialog.style.transform = 'rotate(0deg)';
         }
-
         overlay.style.visibility = 'visible';
     }
 
-    // ゲーム終了処理
     function endGame(winner) {
         gameOver = true;
         const overlay = document.getElementById('game-dialog');
@@ -451,7 +658,6 @@
         document.getElementById('dialog-buttons').style.display = 'none';
         document.getElementById('btn-restart').style.display = 'inline-block';
         
-        // 勝ったプレイヤーの向きにダイアログを合わせる
         dialog.style.transform = winner === 0 ? 'rotate(180deg)' : 'rotate(0deg)';
         overlay.style.visibility = 'visible';
     }
@@ -463,10 +669,9 @@
         updateUI();
     }
 
-    // 王手されているかどうかのチェック
+    // 王手検知ロジックの修正
     function checkKingThreat(targetPlayer) {
         let kingPos = null;
-        // まず王の位置を探す
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 if (boardState[r][c] && boardState[r][c].p === 'OU' && boardState[r][c].o === targetPlayer) {
@@ -478,13 +683,13 @@
         }
         if (!kingPos) return false;
 
-        // 相手の全ての駒の移動範囲に王が含まれるか調べる
         const opponent = targetPlayer === 1 ? 0 : 1;
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 if (boardState[r][c] && boardState[r][c].o === opponent) {
-                    const moves = getMoves(r, c, boardState);
-                    if (moves.some(m => m.r === kingPos.r && m.c === kingPos.c)) {
+                    // 各駒の移動先リストを取得
+                    const opponentMoves = getMoves(r, c, boardState);
+                    if (opponentMoves.some(m => m.r === kingPos.r && m.c === kingPos.c)) {
                         return true;
                     }
                 }
@@ -534,6 +739,8 @@
     function getMoves(r, c, currentBoard) {
         let moves = [];
         const cell = currentBoard[r][c];
+        if (!cell) return moves;
+        
         const dir = cell.o === 1 ? -1 : 1; 
         const pType = cell.isProm ? PIECES[cell.p].prom : cell.p;
         let relMoves = [];
