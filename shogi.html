@@ -2,46 +2,64 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>対面スマホ将棋</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f0e6d2;
+        }
+
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0e6d2;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
         }
-        /* 全体コンテナ */
+
+        /* 全体コンテナ：svhを使うことでブラウザのバーを回避 */
         .game-container {
             display: flex;
             flex-direction: column;
             width: 100%;
             max-width: 450px;
-            height: 100vh;
+            height: 100svh; /* スマホのバーを除いた実際の表示エリアに合わせる */
             justify-content: space-between;
-            padding: 10px 5px;
+            padding: 10px 8px;
         }
-        /* 駒箱（持ち駒エリア） */
+
+        /* 駒箱（持ち駒エリア）：縦幅を少しコンパクトにして盤面を圧迫しないように変更 */
         .piece-box {
             background-color: #d2b48c;
             border: 2px solid #8b5a2b;
             border-radius: 5px;
-            height: 60px;
+            height: 52px;
             display: flex;
             align-items: center;
-            padding: 0 10px;
+            padding: 0 8px;
             gap: 5px;
             overflow-x: auto;
         }
         /* 後手（上側）の駒箱は180度回転 */
         #gote-box { transform: rotate(180deg); }
 
-        /* 将棋盤 */
+        /* インフォメーションバー */
+        .info-bar {
+            text-align: center;
+            font-weight: bold;
+            background: #8b5a2b;
+            color: white;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        /* 将棋盤：画面の幅いっぱいに収まるよう、aspect-ratioを維持 */
         .board {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
@@ -82,12 +100,12 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 4.5vw;
+            font-size: 4.8vw;
             color: #333;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        @media (min-width: 450px) { .piece { font-size: 20px; } }
+        @media (min-width: 450px) { .piece { font-size: 21px; } }
         
         /* 後手の駒は180度回転 */
         .piece.gote { transform: rotate(180deg); color: #000; }
@@ -98,8 +116,8 @@
         /* 持ち駒自体のスタイル */
         .hand-piece {
             position: relative;
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
         }
         .hand-count {
             position: absolute;
@@ -108,9 +126,9 @@
             background: #8b5a2b;
             color: white;
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            font-size: 10px;
+            width: 15px;
+            height: 15px;
+            font-size: 9px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -144,17 +162,6 @@
             border: 1px solid #ccc;
         }
         #btn-promote { background: #ffdbdb; color: #cc0000; }
-
-        /* インフォメーションバー */
-        .info-bar {
-            text-align: center;
-            font-weight: bold;
-            background: #8b5a2b;
-            color: white;
-            padding: 5px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -178,7 +185,6 @@
 </div>
 
 <script>
-    // 駒の定義
     const PIECES = {
         FU: { name: '歩', prom: 'と', text: '歩' },
         KY: { name: '香', prom: '杏', text: '香' },
@@ -190,7 +196,6 @@
         OU: { name: '玉', prom: null, text: '玉' }
     };
 
-    // 初期配置 (上が後手:0, 下が先手:1)
     let boardState = [
         [{p:'KY',o:0},{p:'KE',o:0},{p:'GI',o:0},{p:'KI',o:0},{p:'OU',o:0},{p:'KI',o:0},{p:'GI',o:0},{p:'KE',o:0},{p:'KY',o:0}],
         [null,{p:'HI',o:0},null,null,null,null,null,{p:'KA',o:0},null],
@@ -204,24 +209,27 @@
     ];
 
     let hands = [
-        { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 }, // 後手の持ち駒
-        { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 }  // 先手の持ち駒
+        { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 },
+        { FU:0, KY:0, KE:0, GI:0, KI:0, KA:0, HI:0 }
     ];
 
-    let currentTurn = 1; // 1: 先手, 0: 後手
-    let selected = null; // { type: 'board', r, c } または { type: 'hand', p }
+    let currentTurn = 1; 
+    let selected = null; 
     let movableSquares = [];
-    let pendingPromotion = null; // 成る判定一時保存用
+    let pendingPromotion = null; 
 
     const boardEl = document.getElementById('shogi-board');
 
-    // 初期化
     function init() {
         createBoard();
         updateUI();
+        // スマホのダブルタップズームやスクロールを無効化する補助処理
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 1 || e.scale !== 1) return;
+            e.preventDefault();
+        }, { passive: false });
     }
 
-    // 盤面描画
     function createBoard() {
         boardEl.innerHTML = '';
         for (let r = 0; r < 9; r++) {
@@ -236,9 +244,7 @@
         }
     }
 
-    // UI全体更新
     function updateUI() {
-        // 盤面更新
         const squares = boardEl.children;
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
@@ -247,7 +253,6 @@
                 sq.innerHTML = '';
                 sq.className = 'square';
 
-                // ハイライト処理
                 if (selected && selected.type === 'board' && selected.r === r && selected.c === c) {
                     sq.classList.add('selected');
                 }
@@ -267,15 +272,12 @@
             }
         }
 
-        // 持ち駒更新
         renderHand('sente-box', 1);
         renderHand('gote-box', 0);
 
-        // 手番表示
         document.getElementById('turn-info').innerText = currentTurn === 1 ? "先手（下側）の番です" : "後手（上側）の番です";
     }
 
-    // 持ち駒エリアの描画
     function renderHand(boxId, owner) {
         const box = document.getElementById(boxId);
         box.innerHTML = '';
@@ -311,17 +313,14 @@
         }
     }
 
-    // 盤面タップ時の処理
     function onSquareClick(r, c) {
         const cell = boardState[r][c];
 
-        // 移動可能先をタップした場合（移動実行）
         if (movableSquares.some(m => m.r === r && m.c === c)) {
             executeMove(r, c);
             return;
         }
 
-        // 自分の駒を選択
         if (cell && cell.o === currentTurn) {
             selected = { type: 'board', r, c };
             movableSquares = getMoves(r, c, cell);
@@ -332,7 +331,6 @@
         updateUI();
     }
 
-    // 持ち駒タップ時の処理
     function onHandClick(p, owner) {
         if (owner !== currentTurn) return;
 
@@ -346,7 +344,6 @@
         updateUI();
     }
 
-    // 駒の移動ロジックの実行
     function executeMove(toR, toC) {
         if (selected.type === 'board') {
             const fromR = selected.r;
@@ -354,7 +351,6 @@
             const cell = boardState[fromR][fromC];
             const target = boardState[toR][toC];
 
-            // 相手の駒を取る
             if (target) {
                 let basePiece = target.p;
                 hands[currentTurn][basePiece]++;
@@ -363,12 +359,10 @@
             boardState[toR][toC] = cell;
             boardState[fromR][fromC] = null;
 
-            // 成りの判定 (先手は2行目以内、後手は6行目以降で成れる)
             const isSenteZone = (currentTurn === 1 && (fromR <= 2 || toR <= 2));
             const isGoteZone = (currentTurn === 0 && (fromR >= 6 || toR >= 6));
             
             if (PIECES[cell.p].prom && !cell.isProm && (isSenteZone || isGoteZone)) {
-                // 強制的に成る必要があるか（歩・香が最奥に達した時など）
                 if ((cell.p === 'FU' || cell.p === 'KY') && ((currentTurn === 1 && toR === 0) || (currentTurn === 0 && toR === 8))) {
                     boardState[toR][toC].isProm = true;
                     endTurn();
@@ -376,7 +370,6 @@
                     boardState[toR][toC].isProm = true;
                     endTurn();
                 } else {
-                    // ダイアログを表示して選ばせる
                     pendingPromotion = { r: toR, c: toC };
                     document.getElementById('promote-dialog').style.visibility = 'visible';
                     return;
@@ -385,14 +378,12 @@
                 endTurn();
             }
         } else if (selected.type === 'hand') {
-            // 持ち駒を打つ
             boardState[toR][toC] = { p: selected.p, o: currentTurn, isProm: false };
             hands[currentTurn][selected.p]--;
             endTurn();
         }
     }
 
-    // ターン終了処理
     function endTurn() {
         selected = null;
         movableSquares = [];
@@ -400,7 +391,6 @@
         updateUI();
     }
 
-    // 成る・成らないボタンのイベント
     document.getElementById('btn-promote').addEventListener('click', () => {
         if (pendingPromotion) boardState[pendingPromotion.r][pendingPromotion.c].isProm = true;
         closeDialog();
@@ -414,13 +404,11 @@
         endTurn();
     }
 
-    // 持ち駒を打てる場所の取得
     function getDropMoves(p) {
         let moves = [];
         for (let r = 0; r < 9; r++) {
             for (let c = 0; c < 9; c++) {
                 if (boardState[r][c] === null) {
-                    // 行き所のない場所への禁止判定
                     if (p === 'FU' || p === 'KY') {
                         if (currentTurn === 1 && r === 0) continue;
                         if (currentTurn === 0 && r === 8) continue;
@@ -436,17 +424,13 @@
         return moves;
     }
 
-    // 盤面上の駒の移動可能範囲計算 (簡易実装)
     function getMoves(r, c, cell) {
         let moves = [];
-        const dir = cell.o === 1 ? -1 : 1; // 1:先手(上へ進む), 0:後手(下へ進む)
+        const dir = cell.o === 1 ? -1 : 1; 
         const pType = cell.isProm ? PIECES[cell.p].prom : cell.p;
-
-        // 相対座標による動きの定義
         let relMoves = [];
 
         if (cell.isProm || cell.p === 'KI') {
-            // 金・成駒の動き
             relMoves = [[dir, -1], [dir, 0], [dir, 1], [0, -1], [0, 1], [-dir, 0]];
         } else {
             switch(pType) {
@@ -457,7 +441,6 @@
             }
         }
 
-        // 基本的なステップ移動の判定
         relMoves.forEach(([dr, dc]) => {
             let nr = r + dr, nc = c + dc;
             if (nr >= 0 && nr < 9 && nc >= 0 && nc < 9) {
@@ -467,7 +450,6 @@
             }
         });
 
-        // スライド移動（香、角、飛、馬、竜）の判定
         const addSlideMoves = (directions) => {
             directions.forEach(([dr, dc]) => {
                 let nr = r + dr, nc = c + dc;
@@ -488,15 +470,14 @@
             if (pType === 'KA') addSlideMoves([[1,1],[1,-1],[-1,1],[-1,-1]]);
             if (pType === 'HI') addSlideMoves([[1,0],[-1,0],[0,1],[0,-1]]);
         } else {
-            // 馬・竜の追加1マス移動
-            if (cell.p === 'KA') { // 馬
+            if (cell.p === 'KA') { 
                 addSlideMoves([[1,1],[1,-1],[-1,1],[-1,-1]]);
                 [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc]) => {
                     let nr = r+dr, nc = c+dc;
                     if(nr>=0 && nr<9 && nc>=0 && nc<9 && (boardState[nr][nc]===null || boardState[nr][nc].o!==cell.o)) moves.push({r:nr, c:nc});
                 });
             }
-            if (cell.p === 'HI') { // 竜
+            if (cell.p === 'HI') { 
                 addSlideMoves([[1,0],[-1,0],[0,1],[0,-1]]);
                 [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc]) => {
                     let nr = r+dr, nc = c+dc;
@@ -504,7 +485,6 @@
                 });
             }
         }
-
         return moves;
     }
 
