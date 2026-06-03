@@ -11,8 +11,6 @@
         .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; }
         .pokemon-item { width: 60px; cursor: grab; }
         .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; line-height: 2.2; font-weight: bold; }
-        .jump { animation: jumpEff 0.4s ease-in-out infinite alternate; }
-        @keyframes jumpEff { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
     </style>
 </head>
 <body>
@@ -49,12 +47,13 @@
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         document.getElementById('giveup-area').innerHTML = '';
         
-        // 漢字にルビを振る
+        // 問題文とルビ生成
         document.getElementById('clue').innerHTML = `
             ヒント：<br>
             ・${currentOrder[0].name}は${currentOrder[1].name}の<ruby>左<rt>ひだり</rt></ruby>にいるよ。<br>
             ・${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>にいるよ。<br>
-            ・${currentOrder[1].name}は${currentOrder[2].name}の<ruby>隣<rt>となり</rt></ruby>にいるよ。
+            ・${currentOrder[1].name}は${currentOrder[2].name}の<ruby>隣<rt>となり</rt></ruby>にいるよ。<br>
+            ・${currentOrder[num-2].name}は${currentOrder[num-1].name}の<ruby>左<rt>ひだり</rt></ruby>にいるよ。
         `;
         render();
     }
@@ -62,9 +61,10 @@
     function render() {
         const dropZone = document.getElementById('drop-zone');
         dropZone.innerHTML = '';
-        currentOrder.forEach(() => {
+        currentOrder.forEach((_, i) => {
             const slot = document.createElement('div');
             slot.className = 'slot';
+            slot.dataset.index = i;
             slot.ondragover = e => e.preventDefault();
             slot.ondrop = drop;
             dropZone.appendChild(slot);
@@ -82,11 +82,19 @@
 
     function drop(e) {
         e.preventDefault();
-        const el = document.getElementById(e.dataTransfer.getData("text"));
-        if (e.target.classList.contains('slot')) {
-            if (e.target.firstChild) document.getElementById('choices').appendChild(e.target.firstChild);
-            el.classList.add('jump');
-            e.target.appendChild(el);
+        const draggedId = e.dataTransfer.getData("text");
+        const draggedEl = document.getElementById(draggedId);
+        const targetSlot = e.target.closest('.slot');
+        
+        if (targetSlot) {
+            if (targetSlot.firstChild) {
+                // すでにポケモンがいればスワップ（入れ替え）
+                const existingEl = targetSlot.firstChild;
+                const choices = document.getElementById('choices');
+                // 元の場所へ戻すか、ドラッグ元と交換
+                draggedEl.parentNode.appendChild(existingEl);
+            }
+            targetSlot.appendChild(draggedEl);
         }
     }
 
@@ -106,14 +114,12 @@
             alert("ちがうみたい…");
             if(mistakes >= 3) {
                 document.getElementById('giveup-area').innerHTML = 
-                    `<button onclick="reveal()" style="background:#718096; color:white; padding:10px; border:none; border-radius:5px;">答(こた)えを見(み)る</button>`;
+                    `<button onclick="reveal()" style="background:#718096; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer;">答(こた)えを見(み)る</button>`;
             }
         }
     }
 
-    function reveal() {
-        alert("正解は: " + currentOrder.map(p => p.name).join(" → "));
-    }
+    function reveal() { alert("正解: " + currentOrder.map(p => p.name).join(" → ")); }
 
     initGame();
 </script>
