@@ -2,105 +2,97 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ポケモン論理配置パズル</title>
+    <title>ポケモン<ruby>論理<rt>ろんり</rt></ruby><ruby>配置<rt>はいち</rt></ruby>パズル</title>
     <style>
-        body { font-family: sans-serif; background: #f0f7ff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .game-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        .level-info { font-weight: bold; color: #3182ce; margin-bottom: 10px; }
-        .stairs-container { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 120px; margin: 20px 0; border-bottom: 2px solid #333; }
-        .slot { width: 60px; height: 60px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .stairs-1 { height: 30px; width: 60px; background: #d69e2e; }
-        .stairs-2 { height: 60px; width: 60px; background: #d69e2e; }
-        .stairs-3 { height: 90px; width: 60px; background: #d69e2e; }
-        .clue { background: #eef; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 0.9rem; }
+        body { font-family: 'Kosugi Maru', sans-serif; background: #f0f7ff; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        .game-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .stairs-container { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 150px; margin: 20px 0; border-bottom: 4px solid #333; }
+        .slot { width: 50px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 5px; }
+        .clue { background: #eef; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 0.9rem; line-height: 1.6; }
         .btn-poke { background: #3182ce; color: white; border: none; padding: 10px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        .controls { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="game-card">
-    <div id="level-info" class="level-info">Level 1</div>
+    <div id="level-info" style="font-weight: bold; color: #3182ce;">Level 1</div>
     <div id="stairs" class="stairs-container"></div>
     <div id="clue" class="clue"></div>
     <div id="choices"></div>
-    <div id="msg"></div>
+    <div class="controls">
+        <button onclick="resetAnswer()" style="background:#e53e3e; color:white; border:none; padding:10px; border-radius:5px;">やりなおす</button>
+        <button onclick="checkAnswer()" style="background:#48bb78; color:white; border:none; padding:10px; border-radius:5px;">ていしゅつ！</button>
+    </div>
+    <div id="msg" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
 </div>
 
 <script>
-    const pokemon = [
+    const pokemonList = [
         {name: "ピカチュウ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"},
         {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
-        {name: "ミュウ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png"}
+        {name: "ミュウ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png"},
+        {name: "リザードン", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"},
+        {name: "カメックス", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png"}
     ];
 
     let currentLevel = 1;
+    let numSlots = 5;
     let correctAnswer = [];
     let playerAnswer = [];
 
-    function generateProblem() {
-        // ランダムに配置を決定
-        correctAnswer = [...pokemon].sort(() => Math.random() - 0.5);
-        
-        // ヒントの生成 (論理ロジック)
-        const c1 = `${correctAnswer[0].name}は${correctAnswer[1].name}より左にいるよ。`;
-        const c2 = `${correctAnswer[2].name}は一番右にいるよ。`;
-        document.getElementById('clue').innerText = `ヒント: ${c1} ${c2}`;
+    function initGame() {
+        numSlots = Math.min(5 + Math.floor((currentLevel-1)/2), 8);
+        correctAnswer = [...pokemonList].sort(() => Math.random() - 0.5).slice(0, numSlots);
+        playerAnswer = Array(numSlots).fill(null);
         
         document.getElementById('level-info').innerText = currentLevel <= 5 ? `Level ${currentLevel}` : "エクストリームモード！";
+        document.getElementById('clue').innerHTML = `<ruby>ヒント<rt>ひんと</rt></ruby>：${correctAnswer[0].name}は${correctAnswer[1].name}より<ruby>左<rt>ひだり</rt></ruby>にあるよ。${correctAnswer[numSlots-1].name}は一番<ruby>右<rt>みぎ</rt></ruby>だよ。`;
         
-        renderGame();
+        render();
     }
 
-    function renderGame() {
+    function render() {
         const stairs = document.getElementById('stairs');
         stairs.innerHTML = '';
-        correctAnswer.forEach((_, i) => {
+        playerAnswer.forEach((p, i) => {
             const div = document.createElement('div');
-            div.className = `stairs-${i + 1} slot`;
-            div.onclick = () => removeAnswer(i);
-            div.innerHTML = playerAnswer[i] ? `<img src="${playerAnswer[i].img}" width="50">` : "?";
+            div.className = 'slot';
+            div.style.height = (30 + (i * 10)) + 'px';
+            div.onclick = () => { playerAnswer[i] = null; render(); };
+            div.innerHTML = p ? `<img src="${p.img}" width="40">` : "?";
             stairs.appendChild(div);
         });
 
         const choices = document.getElementById('choices');
         choices.innerHTML = '';
-        pokemon.forEach(p => {
+        pokemonList.forEach(p => {
             const btn = document.createElement('button');
             btn.className = 'btn-poke';
             btn.innerText = p.name;
-            btn.onclick = () => addAnswer(p);
+            btn.onclick = () => {
+                const idx = playerAnswer.indexOf(null);
+                if(idx !== -1) { playerAnswer[idx] = p; render(); }
+            };
             choices.appendChild(btn);
         });
     }
 
-    function addAnswer(p) {
-        if(playerAnswer.length < 3) {
-            playerAnswer.push(p);
-            renderGame();
-            if(playerAnswer.length === 3) check();
-        }
-    }
+    function resetAnswer() { playerAnswer = Array(numSlots).fill(null); render(); }
 
-    function removeAnswer(i) {
-        playerAnswer.splice(i, 1);
-        renderGame();
-    }
-
-    function check() {
+    function checkAnswer() {
+        if(playerAnswer.includes(null)) { alert("まだ<ruby>空<rt>から</rt></ruby>の<ruby>場所<rt>ばしょ</rt></ruby>があるよ！"); return; }
         const isCorrect = playerAnswer.every((p, i) => p.name === correctAnswer[i].name);
         if(isCorrect) {
-            alert("せいかい！");
+            alert("せいかい！すごい！");
             currentLevel++;
-            playerAnswer = [];
-            generateProblem();
+            initGame();
         } else {
-            alert("ちがうみたい！もういちど！");
-            playerAnswer = [];
-            renderGame();
+            alert("もういちど かんがえてみよう！");
         }
     }
 
-    generateProblem();
+    initGame();
 </script>
 </body>
 </html>
