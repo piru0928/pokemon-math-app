@@ -2,40 +2,39 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ブイズのステップクイズ</title>
+    <title>ポケモン推理パズル Ver 1.5.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Kosugi Maru', sans-serif; background: #f0f7ff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { font-family: sans-serif; background: #f0f7ff; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .game-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
         .drop-zone { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 180px; margin: 30px 0; border-bottom: 6px solid #4a5568; }
-        .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; position: relative; }
-        .pokemon-item { width: 60px; cursor: grab; transition: transform 0.2s; }
+        .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; }
+        .pokemon-item { width: 60px; cursor: grab; }
         .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; line-height: 2.2; font-weight: bold; }
-        /* チェック済み項目のスタイル */
         .checked { color: #a0aec0; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
 <div class="game-card">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between;">
         <button onclick="history.back()">⬅ もどる</button>
-        <span style="color:#718096;">Ver 1.4.0</span>
+        <span style="color:#718096;">Ver 1.5.0</span>
     </div>
     <h2 id="level-title" style="text-align:center;">Level 1</h2>
     
     <div id="drop-zone" class="drop-zone"></div>
     <div id="clue" class="clue"></div>
-    <div id="choices" style="display:flex; justify-content:center; gap:10px; min-height:80px; padding: 10px;"></div>
+    <div id="choices" style="display:flex; justify-content:center; gap:10px; min-height:80px;"></div>
 
-    <div style="text-align:center; margin-top:20px; display: flex; gap: 10px; justify-content: center;">
+    <div style="text-align:center; margin-top:20px;">
         <button onclick="resetGame()" style="background:#e53e3e; color:white; padding:15px 30px; border:none; border-radius:10px; cursor:pointer;">やりなおす</button>
         <button onclick="checkAnswer()" style="background:#48bb78; color:white; padding:15px 30px; border:none; border-radius:10px; cursor:pointer;">ていしゅつ！</button>
     </div>
 </div>
 
 <script>
-    const pokemonPool = [
+    const pool = [
         {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
         {name: "シャワーズ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png"},
         {name: "サンダース", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png"},
@@ -49,17 +48,19 @@
 
     function initGame() {
         const num = Math.min(2 + currentLevel, 6);
-        currentOrder = [...pokemonPool].sort(() => Math.random() - 0.5).slice(0, num);
+        currentOrder = [...pool].sort(() => Math.random() - 0.5).slice(0, num);
         
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         
-        // 難易度に応じたヒント生成
-        let clues = [
-            `<ruby>左<rt>ひだり</rt></ruby>から${currentOrder[0].name}、${currentOrder[1].name}の<ruby>順番<rt>じゅんばん</rt></ruby>になることがあるよ。`,
-            `${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>にいるよ。`,
-            `${currentOrder[1].name}は${currentOrder[2].name}の<ruby>隣<rt>となり</rt></ruby>にいるよ。`
-        ];
-        // ランダム化
+        // 厳密な条件文を生成
+        let clues = [];
+        clues.push(`${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>にいるよ。`);
+        clues.push(`${currentOrder[0].name}は${currentOrder[1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>にいるよ。`);
+        for(let i = 1; i < num - 1; i++) {
+            clues.push(`${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>にいるよ。`);
+        }
+        
+        // シャッフルして表示
         clues.sort(() => Math.random() - 0.5);
 
         let clueHtml = "ヒント：<br>";
@@ -70,45 +71,36 @@
         render();
     }
 
-    function toggleCheck(checkbox) {
-        const span = checkbox.nextElementSibling;
-        span.classList.toggle('checked', checkbox.checked);
-    }
+    function toggleCheck(cb) { cb.nextElementSibling.classList.toggle('checked', cb.checked); }
 
     function render() {
-        const dropZone = document.getElementById('drop-zone');
-        dropZone.innerHTML = '';
+        const zone = document.getElementById('drop-zone');
+        zone.innerHTML = '';
         currentOrder.forEach(() => {
             const slot = document.createElement('div');
             slot.className = 'slot';
             slot.ondragover = e => e.preventDefault();
             slot.ondrop = drop;
-            dropZone.appendChild(slot);
+            zone.appendChild(slot);
         });
 
-        const choices = document.getElementById('choices');
-        choices.innerHTML = '';
+        const ch = document.getElementById('choices');
+        ch.innerHTML = '';
         [...currentOrder].sort(() => Math.random() - 0.5).forEach(p => {
             const img = document.createElement('img');
-            img.src = p.img;
-            img.className = 'pokemon-item';
-            img.draggable = true;
-            img.id = p.name;
-            img.ondragstart = e => e.dataTransfer.setData("text", e.target.id);
-            choices.appendChild(img);
+            img.src = p.img; img.className = 'pokemon-item'; img.draggable = true;
+            img.id = p.name; img.ondragstart = e => e.dataTransfer.setData("text", e.target.id);
+            ch.appendChild(img);
         });
     }
 
     function drop(e) {
         e.preventDefault();
-        const draggedId = e.dataTransfer.getData("text");
-        const draggedEl = document.getElementById(draggedId);
-        const targetSlot = e.target.closest('.slot');
-        if (targetSlot) {
-            if (targetSlot.firstChild) {
-                draggedEl.parentNode.appendChild(targetSlot.firstChild);
-            }
-            targetSlot.appendChild(draggedEl);
+        const dragged = document.getElementById(e.dataTransfer.getData("text"));
+        const target = e.target.closest('.slot');
+        if (target) {
+            if (target.firstChild) dragged.parentNode.appendChild(target.firstChild);
+            target.appendChild(dragged);
         }
     }
 
@@ -116,14 +108,13 @@
 
     function checkAnswer() {
         const slots = document.querySelectorAll('.slot');
-        let playerAns = Array.from(slots).map(s => s.querySelector('img')?.id);
-        if(playerAns.includes(undefined)) return alert("全部並べてね！");
-        
-        if(playerAns.every((name, i) => name === currentOrder[i].name)) {
+        const ans = Array.from(slots).map(s => s.querySelector('img')?.id);
+        if(ans.includes(undefined)) return alert("全部並べてね！");
+        if(ans.every((name, i) => name === currentOrder[i].name)) {
             confetti({ particleCount: 300, spread: 150 });
             setTimeout(() => { currentLevel++; initGame(); }, 1000);
         } else {
-            alert("ちがうみたい…もう一度考えてみよう！");
+            alert("ちがうみたい…ヒントをよく見て並び変えてみよう！");
         }
     }
 
