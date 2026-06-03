@@ -2,18 +2,16 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ポケモン<ruby>推理<rt>すいり</rt></ruby>パズル</title>
+    <title>ポケモン<ruby>論理<rt>ろんり</rt></ruby><ruby>推理<rt>すいり</rt></ruby>パズル</title>
     <style>
         body { font-family: 'Kosugi Maru', sans-serif; background: #f0f7ff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .game-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .game-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
         .stairs-container { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 160px; margin: 20px 0; border-bottom: 4px solid #333; }
-        .slot { width: 50px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 5px; }
+        .slot { width: 50px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 5px; background: #fff; }
         .slot img { width: 45px; height: 45px; object-fit: contain; }
-        .clue { background: #eef; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 0.95rem; line-height: 1.8; }
-        .btn-poke { background: #3182ce; color: white; border: none; padding: 10px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        .clue { background: #eef; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 0.95rem; line-height: 1.8; color: #2d3748; }
+        .btn-poke { background: #3182ce; color: white; border: none; padding: 8px 12px; margin: 4px; border-radius: 5px; cursor: pointer; font-size: 0.85rem; }
         .btn-poke:disabled { background: #cbd5e0; cursor: not-allowed; }
-        
-        /* ポケモンが動くアニメーション */
         .jump { animation: jumpEff 0.4s ease-in-out infinite alternate; }
         @keyframes jumpEff { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
     </style>
@@ -21,7 +19,7 @@
 <body>
 
 <div class="game-card">
-    <div id="level-info" style="font-weight: bold; color: #3182ce;">Level 1</div>
+    <div id="level-info" style="font-weight: bold; color: #3182ce; font-size: 1.2rem;">Level 1</div>
     <div id="stairs" class="stairs-container"></div>
     <div id="clue" class="clue"></div>
     <div id="choices"></div>
@@ -38,28 +36,36 @@
         {name: "サンダース", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png"},
         {name: "ブースター", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"},
         {name: "エーフィ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/196.png"},
-        {name: "ブラッキー", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png"}
+        {name: "ブラッキー", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png"},
+        {name: "グレイシア", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/471.png"},
+        {name: "ニンフィア", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/700.png"}
     ];
 
     let currentLevel = 1;
-    let correctAnswer, playerAnswer;
+    let correctAnswer, playerAnswer, numSlots;
 
     function initGame() {
-        const numSlots = 3; 
-        // 成立する問題を生成するまでループ
-        do {
-            correctAnswer = [...eeveeFamily].sort(() => Math.random() - 0.5).slice(0, numSlots);
-        } while (!isValidProblem(correctAnswer));
-
+        // レベルに応じて枠数を増やす（最大6）
+        numSlots = Math.min(3 + Math.floor((currentLevel - 1) / 2), 6);
+        correctAnswer = [...eeveeFamily].sort(() => Math.random() - 0.5).slice(0, numSlots);
         playerAnswer = Array(numSlots).fill(null);
+
         document.getElementById('level-info').innerText = `Level ${currentLevel}`;
-        document.getElementById('clue').innerHTML = `ヒント：${correctAnswer[0].name}は${correctAnswer[1].name}より<ruby>左<rt>ひだり</rt></ruby>にいるよ。${correctAnswer[2].name}は一番<ruby>右<rt>みぎ</rt></ruby>にいるよ。`;
+        generateComplexClues(correctAnswer);
         render();
     }
 
-    function isValidProblem(arr) {
-        // ヒントが論理的に一つに絞れるか単純検証（ここではデモとして基本の制約を満たすもの）
-        return arr.length === 3;
+    function generateComplexClues(ans) {
+        let clues = [];
+        // 複雑なヒントを生成
+        clues.push(`${ans[0].name}は${ans[1].name}より左にいるよ。`);
+        if(ans.length > 3) {
+            clues.push(`${ans[2].name}は${ans[3].name}の右隣にいるよ。`);
+        }
+        clues.push(`${ans[ans.length-1].name}は一番右ではない場所にいるよ。`); // 否定条件
+        clues.push(`${ans[ans.length-2].name}は一番右にいるよ。`);
+        
+        document.getElementById('clue').innerHTML = "ヒント：<br>" + clues.join("<br>");
     }
 
     function render() {
@@ -68,7 +74,7 @@
         playerAnswer.forEach((p, i) => {
             const div = document.createElement('div');
             div.className = 'slot';
-            div.style.height = (60 + (i * 20)) + 'px';
+            div.style.height = (60 + (i * 15)) + 'px';
             div.onclick = () => { playerAnswer[i] = null; render(); };
             div.innerHTML = p ? `<img src="${p.img}" class="jump">` : "?";
             stairs.appendChild(div);
@@ -89,7 +95,7 @@
         });
     }
 
-    function resetAnswer() { playerAnswer = Array(3).fill(null); render(); }
+    function resetAnswer() { playerAnswer = Array(numSlots).fill(null); render(); }
 
     function checkAnswer() {
         if(playerAnswer.includes(null)) { alert("まだ空の場所があるよ！"); return; }
@@ -99,7 +105,7 @@
             currentLevel++;
             initGame();
         } else {
-            alert("ちがうみたい…もういちど考えてみよう！");
+            alert("ちがうみたい…ヒントをよく読んで、もういちど考えてみよう！");
         }
     }
 
