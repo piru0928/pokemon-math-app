@@ -3,67 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポケモン推理パズル Ver 2.4.0</title>
+    <title>ポケモン推理パズル Ver 2.4.1</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --bg: #f0f7ff; --card: #ffffff; --accent: #3182ce; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 5px; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; }
-        .game-card { 
-            background: var(--card); 
-            padding: 10px; 
-            border-radius: 20px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 500px; 
-            height: 98vh; 
-            display: flex; 
-            flex-direction: column; 
-            box-sizing: border-box;
-        }
+        :root { --bg: #f0f7ff; --accent: #3182ce; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 5px; height: 100vh; overflow: hidden; }
+        .game-card { width: 100%; max-width: 500px; height: 98vh; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; flex-shrink: 0; }
-        h2 { text-align: center; margin: 5px 0; font-size: 1.2rem; flex-shrink: 0; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        #level-title { text-align: center; margin: 5px 0; }
         
-        /* 配置エリア：スロットのサイズを少し縮小して領域を確保 */
-        .drop-zone { display: flex; gap: 4px; justify-content: center; margin: 5px 0; flex-shrink: 0; }
+        .drop-zone { display: flex; gap: 4px; justify-content: center; margin: 5px 0; }
         .slot { width: 50px; height: 50px; border: 2px dashed #cbd5e0; border-radius: 10px; background: #fafafa; display: flex; justify-content: center; align-items: center; }
         .pokemon-item { width: 45px; height: 45px; cursor: grab; object-fit: contain; }
         
-        /* 修正箇所：ヒントエリアに高さを制限し、スクロール可能にする */
         #clue { 
-            background: #ebf8ff; 
-            border-left: 4px solid var(--accent); 
-            padding: 8px; 
-            font-size: 0.85rem; 
-            line-height: 1.4; 
-            flex-grow: 1; /* 残りのスペースを埋める */
-            overflow-y: auto; /* ここでスクロールさせる */
-            margin: 5px 0;
+            background: #ebf8ff; border-left: 4px solid var(--accent); 
+            padding: 10px; font-size: 0.9rem; line-height: 1.5; 
+            flex-grow: 1; overflow-y: auto; margin: 5px 0;
             border-radius: 0 10px 10px 0;
         }
         
-        /* 選択肢エリアとボタンを下に固定 */
-        #choices { display: flex; justify-content: center; gap: 5px; margin: 5px 0; flex-shrink: 0; }
-        .footer-buttons { display: flex; gap: 10px; flex-shrink: 0; margin-top: auto; padding-top: 5px; }
-        
-        button { padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1; }
+        #choices { display: flex; justify-content: center; gap: 5px; margin: 5px 0; height: 60px; align-items: center; }
+        .buttons { display: flex; gap: 10px; padding: 10px 0; }
+        button { padding: 15px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="game-card">
     <div class="header">
-        <button onclick="history.back()">⬅ もどる</button>
-        <span>Ver 2.4.0</span>
+        <button onclick="history.back()" style="background:#a0aec0;">⬅ もどる</button>
+        <span>Ver 2.4.1</span>
     </div>
     <h2 id="level-title">Level 1</h2>
     <div id="drop-zone" class="drop-zone"></div>
-    <div id="clue"></div>
+    <div id="clue">ヒントを読み込んでいます...</div>
     <div id="choices"></div>
-    <div class="footer-buttons">
-        <button onclick="initGame()" style="background:#e53e3e; color:white;">リセット</button>
-        <button onclick="checkAnswer()" style="background:#48bb78; color:white;">ていしゅつ！</button>
+    <div class="buttons">
+        <button onclick="initGame()" style="background:#e53e3e;">リセット</button>
+        <button onclick="checkAnswer()" style="background:#48bb78;">ていしゅつ！</button>
     </div>
 </div>
 
+<script>
+    const pool = [
+        {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
+        {name: "シャワーズ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png"},
+        {name: "サンダース", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png"},
+        {name: "ブースター", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"},
+        {name: "エーフィ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/196.png"},
+        {name: "ブラッキー", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png"}
+    ];
+
+    let currentLevel = 1, currentOrder = [], draggedItem = null;
+
+    function initGame() {
+        const num = Math.min(2 + currentLevel, 6);
+        currentOrder = [...pool].sort(() => Math.random() - 0.5).slice(0, num);
+        document.getElementById('level-title').innerText = `Level ${currentLevel}`;
+        
+        // ヒントの文字列生成を確実に実行
+        let html = "ヒント：<br>";
+        for(let i=0; i<num-1; i++) {
+            html += `<div>・${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>。</div>`;
+        }
+        html += `<div>・${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>。</div>`;
+        
+        document.getElementById('clue').innerHTML = html;
+        render();
+    }
+
+    function render() {
+        const zone = document.getElementById('drop-zone');
+        const ch = document.getElementById('choices');
+        zone.innerHTML = ''; ch.innerHTML = '';
+        
+        currentOrder.forEach(() => {
+            const s = document.createElement('div');
+            s.className = 'slot';
+            s.onpointerup = e => { if(draggedItem) { e.target.closest('.slot').appendChild(draggedItem); draggedItem = null; } };
+            zone.appendChild(s);
+        });
+        
+        [...currentOrder].sort(() => Math.random() - 0.5).forEach(p => {
+            const img = document.createElement('img');
+            img.src = p.img; img.className = 'pokemon-item'; img.id = p.name;
+            img.onpointerdown = e => { draggedItem = img; };
+            ch.appendChild(img);
+        });
+    }
+
+    function checkAnswer() {
+        const slots = document.querySelectorAll('.slot');
+        const ans = Array.from(slots).map(s => s.querySelector('img')?.id);
+        if(ans.every((name, i) => name === currentOrder[i].name)) {
+            confetti({ particleCount: 200 });
+            alert("大せいかい！");
+            currentLevel++;
+            initGame();
+        } else {
+            alert("もういちど かんがえてみてね！");
+        }
+    }
+
+    // 読み込み完了後に確実に実行
+    window.onload = initGame;
+</script>
 </body>
 </html>
