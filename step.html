@@ -3,30 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポケモン推理パズル Ver 2.4.1</title>
+    <title>ポケモン推理パズル Ver 2.5.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --bg: #f0f7ff; --accent: #3182ce; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 5px; height: 100vh; overflow: hidden; }
         .game-card { width: 100%; max-width: 500px; height: 98vh; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-        #level-title { text-align: center; margin: 5px 0; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; flex-shrink: 0; }
+        #level-title { text-align: center; margin: 5px 0; flex-shrink: 0; }
         
-        .drop-zone { display: flex; gap: 4px; justify-content: center; margin: 5px 0; }
+        .drop-zone { display: flex; gap: 4px; justify-content: center; margin: 5px 0; flex-shrink: 0; }
         .slot { width: 50px; height: 50px; border: 2px dashed #cbd5e0; border-radius: 10px; background: #fafafa; display: flex; justify-content: center; align-items: center; }
         .pokemon-item { width: 45px; height: 45px; cursor: grab; object-fit: contain; }
         
+        /* 修正：ヒントエリアの高さを制限してスクロールさせる */
         #clue { 
             background: #ebf8ff; border-left: 4px solid var(--accent); 
-            padding: 10px; font-size: 0.9rem; line-height: 1.5; 
-            flex-grow: 1; overflow-y: auto; margin: 5px 0;
+            padding: 8px; font-size: 0.85rem; line-height: 1.4; 
+            max-height: 150px; /* ★ここを固定してボタンが隠れないようにする */
+            overflow-y: auto; margin: 5px 0;
             border-radius: 0 10px 10px 0;
         }
         
-        #choices { display: flex; justify-content: center; gap: 5px; margin: 5px 0; height: 60px; align-items: center; }
-        .buttons { display: flex; gap: 10px; padding: 10px 0; }
-        button { padding: 15px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; }
+        #choices { display: flex; justify-content: center; gap: 5px; margin: 5px 0; flex-shrink: 0; height: 50px; align-items: center; }
+        .buttons { display: flex; gap: 10px; padding: 10px 0; flex-shrink: 0; }
+        button { padding: 12px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -34,11 +36,11 @@
 <div class="game-card">
     <div class="header">
         <button onclick="history.back()" style="background:#a0aec0;">⬅ もどる</button>
-        <span>Ver 2.4.1</span>
+        <span>Ver 2.5.0</span>
     </div>
     <h2 id="level-title">Level 1</h2>
     <div id="drop-zone" class="drop-zone"></div>
-    <div id="clue">ヒントを読み込んでいます...</div>
+    <div id="clue"></div>
     <div id="choices"></div>
     <div class="buttons">
         <button onclick="initGame()" style="background:#e53e3e;">リセット</button>
@@ -63,7 +65,6 @@
         currentOrder = [...pool].sort(() => Math.random() - 0.5).slice(0, num);
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         
-        // ヒントの文字列生成を確実に実行
         let html = "ヒント：<br>";
         for(let i=0; i<num-1; i++) {
             html += `<div>・${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>。</div>`;
@@ -82,14 +83,17 @@
         currentOrder.forEach(() => {
             const s = document.createElement('div');
             s.className = 'slot';
-            s.onpointerup = e => { if(draggedItem) { e.target.closest('.slot').appendChild(draggedItem); draggedItem = null; } };
+            s.onpointerup = e => { if(draggedItem) { e.target.closest('.slot').appendChild(draggedItem); draggedItem.style.opacity = '1'; draggedItem = null; } };
             zone.appendChild(s);
         });
         
         [...currentOrder].sort(() => Math.random() - 0.5).forEach(p => {
             const img = document.createElement('img');
             img.src = p.img; img.className = 'pokemon-item'; img.id = p.name;
-            img.onpointerdown = e => { draggedItem = img; };
+            img.onpointerdown = e => { 
+                draggedItem = img; 
+                img.style.opacity = '0.3'; // ★選択時に透明化
+            };
             ch.appendChild(img);
         });
     }
@@ -106,8 +110,6 @@
             alert("もういちど かんがえてみてね！");
         }
     }
-
-    // 読み込み完了後に確実に実行
     window.onload = initGame;
 </script>
 </body>
