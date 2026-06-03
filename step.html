@@ -2,28 +2,30 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポケモン推理パズル Ver 3.1.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ポケモン推理パズル Ver 3.2.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --bg: #f0f7ff; --accent: #3182ce; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        .container { max-width: 500px; margin: 0 auto; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; overflow-y: auto; }
+        .container { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; min-height: 90vh; }
         
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         #level-title { text-align: center; margin: 10px 0; }
         
-        .drop-zone { display: flex; gap: 4px; justify-content: center; margin-bottom: 20px; }
-        .slot { width: 18vw; height: 18vw; max-width: 70px; max-height: 70px; border: 2px dashed #cbd5e0; border-radius: 12px; background: #fafafa; display: flex; justify-content: center; align-items: center; }
+        /* スロット：幅に収まるよう自動調整 */
+        .drop-zone { display: flex; gap: 2vw; justify-content: center; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .slot { width: 15vw; height: 15vw; min-width: 50px; min-height: 50px; max-width: 70px; max-height: 70px; border: 2px dashed #cbd5e0; border-radius: 12px; background: #fafafa; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         
         #clue { background: #ebf8ff; border-left: 4px solid var(--accent); padding: 12px; font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px; border-radius: 0 10px 10px 0; }
         #choices { display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         
-        .pokemon-item { width: 20vw; height: 20vw; max-width: 80px; max-height: 80px; cursor: pointer; object-fit: contain; transition: 0.2s; }
+        /* 画像を小さくして全体に収まるように */
+        .pokemon-item { width: 18vw; height: 18vw; min-width: 50px; min-height: 50px; max-width: 80px; max-height: 80px; cursor: pointer; object-fit: contain; transition: 0.2s; }
         .selected { opacity: 0.3; transform: scale(0.9); }
         
-        .buttons { display: flex; gap: 10px; }
-        button { padding: 15px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; }
+        .buttons { display: flex; gap: 10px; margin-top: auto; }
+        button { padding: 15px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; font-size: 1rem; }
         
         #msg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; font-size: 2rem; color: white; font-weight: bold; }
     </style>
@@ -33,7 +35,7 @@
 <div class="container">
     <div class="header">
         <button onclick="history.back()" style="background:#a0aec0; padding: 8px;">⬅ もどる</button>
-        <span style="color:#718096; font-size: 0.8rem;">Ver 3.1.0</span>
+        <span style="color:#718096; font-size: 0.8rem;">Ver 3.2.0</span>
     </div>
     
     <h2 id="level-title">Level 1</h2>
@@ -48,86 +50,5 @@
 </div>
 
 <div id="msg">大せいかい！！</div>
-
-<script>
-    const pool = [
-        {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
-        {name: "シャワーズ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png"},
-        {name: "サンダース", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png"},
-        {name: "ブースター", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"},
-        {name: "エーフィ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/196.png"},
-        {name: "ブラッキー", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png"}
-    ];
-
-    let currentLevel = 1, currentOrder = [], selectedItem = null;
-
-    function initGame() {
-        const num = Math.min(2 + currentLevel, 6);
-        currentOrder = [...pool].sort(() => Math.random() - 0.5).slice(0, num);
-        document.getElementById('level-title').innerText = `Level ${currentLevel}`;
-        
-        let html = "ヒント：<br>";
-        for(let i=0; i<num-1; i++) html += `<div>・${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>。</div>`;
-        html += `<div>・${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>。</div>`;
-        document.getElementById('clue').innerHTML = html;
-        render();
-    }
-
-    function render() {
-        const zone = document.getElementById('drop-zone');
-        const ch = document.getElementById('choices');
-        zone.innerHTML = ''; ch.innerHTML = '';
-        currentOrder.forEach(() => {
-            const s = document.createElement('div');
-            s.className = 'slot';
-            s.onclick = () => handleTarget(s);
-            zone.appendChild(s);
-        });
-        [...currentOrder].sort(() => Math.random() - 0.5).forEach(p => {
-            const img = document.createElement('img');
-            img.src = p.img; img.className = 'pokemon-item'; img.id = p.name;
-            img.onclick = (e) => { e.stopPropagation(); handleSelect(img); };
-            ch.appendChild(img);
-        });
-    }
-
-    function handleSelect(img) {
-        if (selectedItem === img) { img.classList.remove('selected'); selectedItem = null; }
-        else { if (selectedItem) selectedItem.classList.remove('selected'); selectedItem = img; img.classList.add('selected'); }
-    }
-
-    function handleTarget(target) {
-        if (!selectedItem) return;
-        const existing = target.querySelector('img');
-        if (existing) { const parent = selectedItem.parentElement; parent.appendChild(existing); target.appendChild(selectedItem); }
-        else { target.appendChild(selectedItem); }
-        selectedItem.classList.remove('selected'); selectedItem = null;
-    }
-
-    document.querySelector('.container').onclick = function(e) {
-        if (selectedItem && e.target.classList.contains('container')) {
-            document.getElementById('choices').appendChild(selectedItem);
-            selectedItem.classList.remove('selected'); selectedItem = null;
-        }
-    };
-
-    async function checkAnswer() {
-        const slots = document.querySelectorAll('.slot');
-        const ans = Array.from(slots).map(s => s.querySelector('img')?.id);
-        if(ans.includes(undefined)) return alert("全部のポケモンを配置してね！");
-        
-        if(ans.every((name, i) => name === currentOrder[i].name)) {
-            // 紙吹雪を先に発射
-            confetti({ particleCount: 800, spread: 200, origin: { y: 0.5 } });
-            // ポップアップを表示
-            const msg = document.getElementById('msg');
-            msg.style.display = 'flex';
-            await new Promise(r => setTimeout(r, 1500));
-            msg.style.display = 'none';
-            currentLevel++; initGame();
-        } else { alert("ちがうみたい…入れ替えてみてね！"); }
-    }
-    window.onload = initGame;
-</script>
 </body>
 </html>
