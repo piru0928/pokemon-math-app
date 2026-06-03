@@ -2,34 +2,38 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ポケモン推理パズル Ver 1.5.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポケモン推理パズル Ver 1.6.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f7ff; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .game-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
-        .drop-zone { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 180px; margin: 30px 0; border-bottom: 6px solid #4a5568; }
-        .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; }
-        .pokemon-item { width: 60px; cursor: grab; }
-        .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; line-height: 2.2; font-weight: bold; }
+        body { font-family: sans-serif; background: #f0f7ff; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .game-card { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        /* ポケモンを大きく表示 */
+        .drop-zone { display: flex; align-items: center; justify-content: center; gap: 5px; height: 100px; margin: 20px 0; border-bottom: 4px solid #4a5568; }
+        .slot { width: 65px; height: 65px; border: 2px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; }
+        .pokemon-item { width: 55px; height: 55px; cursor: grab; }
+        #choices { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 15px; margin: 10px 0; line-height: 1.8; font-size: 0.95rem; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
         .checked { color: #a0aec0; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
 <div class="game-card">
-    <div style="display: flex; justify-content: space-between;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <button onclick="history.back()">⬅ もどる</button>
-        <span style="color:#718096;">Ver 1.5.0</span>
+        <span style="color:#718096; font-size: 0.8rem;">Ver 1.6.0</span>
     </div>
-    <h2 id="level-title" style="text-align:center;">Level 1</h2>
+    <h2 id="level-title" style="text-align:center; margin: 5px 0;">Level 1</h2>
     
     <div id="drop-zone" class="drop-zone"></div>
     <div id="clue" class="clue"></div>
-    <div id="choices" style="display:flex; justify-content:center; gap:10px; min-height:80px;"></div>
+    <div id="choices"></div>
 
-    <div style="text-align:center; margin-top:20px;">
-        <button onclick="resetGame()" style="background:#e53e3e; color:white; padding:15px 30px; border:none; border-radius:10px; cursor:pointer;">やりなおす</button>
-        <button onclick="checkAnswer()" style="background:#48bb78; color:white; padding:15px 30px; border:none; border-radius:10px; cursor:pointer;">ていしゅつ！</button>
+    <div style="text-align:center; display: flex; gap: 10px; justify-content: center;">
+        <button onclick="resetGame()" style="background:#e53e3e; color:white;">やりなおす</button>
+        <button onclick="checkAnswer()" style="background:#48bb78; color:white;">ていしゅつ！</button>
     </div>
 </div>
 
@@ -43,8 +47,7 @@
         {name: "ブラッキー", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png"}
     ];
 
-    let currentLevel = 1;
-    let currentOrder = [];
+    let currentLevel = 1, currentOrder = [];
 
     function initGame() {
         const num = Math.min(2 + currentLevel, 6);
@@ -52,26 +55,22 @@
         
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         
-        // 厳密な条件文を生成
+        // 厳密な条件文（ポケモンの数分作成）
         let clues = [];
-        clues.push(`${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>にいるよ。`);
-        clues.push(`${currentOrder[0].name}は${currentOrder[1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>にいるよ。`);
+        clues.push(`${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>にいる。`);
+        clues.push(`${currentOrder[0].name}は${currentOrder[1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>にいる。`);
         for(let i = 1; i < num - 1; i++) {
-            clues.push(`${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>にいるよ。`);
+            clues.push(`${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>にいる。`);
         }
-        
-        // シャッフルして表示
         clues.sort(() => Math.random() - 0.5);
 
         let clueHtml = "ヒント：<br>";
         clues.forEach((c, i) => {
-            clueHtml += `<input type="checkbox" onchange="toggleCheck(this)"> <span id="clue-${i}">${c}</span><br>`;
+            clueHtml += `<input type="checkbox" onchange="this.nextElementSibling.classList.toggle('checked', this.checked)"> <span>${c}</span><br>`;
         });
         document.getElementById('clue').innerHTML = clueHtml;
         render();
     }
-
-    function toggleCheck(cb) { cb.nextElementSibling.classList.toggle('checked', cb.checked); }
 
     function render() {
         const zone = document.getElementById('drop-zone');
