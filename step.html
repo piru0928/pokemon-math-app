@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ポケモン推理パズル Ver 3.6.0</title>
+    <title>ポケモン推理パズル Ver 3.7.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f7ff; margin: 0; padding: 5px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         .container { max-width: 500px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+        .header { text-align: center; padding: 5px 0; }
         .drop-zone { display: flex; gap: 2vw; justify-content: center; margin: 10px 0; }
         .slot { width: 15vw; height: 15vw; min-width: 45px; min-height: 45px; max-width: 65px; max-height: 65px; border: 2px dashed #3182ce; border-radius: 12px; background: #fff; display: flex; justify-content: center; align-items: center; }
         #clue { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 10px; font-size: 0.9rem; margin: 5px 0; border-radius: 0 10px 10px 0; overflow-y: auto; max-height: 140px; }
@@ -22,8 +22,8 @@
 <body>
 <div class="container">
     <div class="header">
-        <button onclick="history.back()" style="background:#a0aec0;">⬅ もどる</button>
-        <span>Ver 3.6.0</span>
+        <div style="font-size: 1.5rem; font-weight: bold;"><ruby>並<rt>なら</rt>べ<ruby>替<rt>か</rt></ruby>えクイズ</ruby></div>
+        <div style="font-size: 0.9rem; margin-top: 5px;"><ruby>ヒント<rt>ひんと</rt></ruby>の<ruby>通<rt>とお</rt></ruby>りにポケモンを<ruby>並<rt>なら</rt></ruby>び<ruby>替<rt>か</rt></ruby>えてね</div>
     </div>
     <h2 id="level-title" style="margin:5px auto;">Level 1</h2>
     <div id="drop-zone" class="drop-zone"></div>
@@ -31,7 +31,7 @@
     <div id="choices"></div>
     <div class="buttons">
         <button onclick="initGame()" style="background:#e53e3e;">リセット</button>
-        <button onclick="checkAnswer()" style="background:#48bb78;">ていしゅつ！</button>
+        <button onclick="checkAnswer()" style="background:#48bb78;"><ruby>提出<rt>ていしゅつ</rt></ruby>！</button>
     </div>
 </div>
 
@@ -53,17 +53,16 @@
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         
         let hints = [];
-        // ヒント生成ロジック（バリエーション豊富に）
         for(let i=0; i<num; i++) {
             let p = currentOrder[i];
             let type = Math.floor(Math.random() * 4);
-            if(type === 0 && i > 0) hints.push(`・${p.name}は${currentOrder[i-1].name}の右隣。`);
-            else if(type === 1 && i < num-1) hints.push(`・${p.name}は${currentOrder[i+1].name}の左隣。`);
-            else if(type === 2 && i > 1) hints.push(`・${p.name}は${currentOrder[0].name}より右側にいる。`);
-            else if(type === 3 && i > 0 && i < num-1) hints.push(`・${p.name}は${currentOrder[i-1].name}と${currentOrder[i+1].name}の間。`);
-            else hints.push(`・${currentOrder[num-1].name}は一番右。`);
+            if(type === 0 && i > 0) hints.push(`${p.name}は${currentOrder[i-1].name}の<ruby>右隣<rt>みぎどなり</rt></ruby>。`);
+            else if(type === 1 && i < num-1) hints.push(`${p.name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>。`);
+            else if(type === 2 && i > 1) hints.push(`${p.name}は${currentOrder[0].name}より<ruby>右側<rt>みぎがわ</rt></ruby>。`);
+            else if(type === 3 && i > 0 && i < num-1) hints.push(`${p.name}は${currentOrder[i-1].name}と${currentOrder[i+1].name}の<ruby>間<rt>あいだ</rt></ruby>。`);
+            else hints.push(`${currentOrder[num-1].name}は<ruby>一番右<rt>いちばんみぎ</rt></ruby>。`);
         }
-        document.getElementById('clue').innerHTML = "ヒント：<br>" + hints.join("<br>");
+        document.getElementById('clue').innerHTML = "ヒント：<br>・" + hints.join("<br>・");
         render();
     }
 
@@ -86,36 +85,26 @@
 
     function selectPokemon(img) {
         if (selectedItem) {
-            // 2回目タップが別のポケモンなら入れ替え
             if (selectedItem !== img) {
                 let p1 = selectedItem.parentElement, p2 = img.parentElement;
-                if (p1 !== p2) {
-                    p1.appendChild(img);
-                    p2.appendChild(selectedItem);
-                }
+                p1.appendChild(img); p2.appendChild(selectedItem);
             }
-            selectedItem.classList.remove('selected');
-            selectedItem = null;
+            selectedItem.classList.remove('selected'); selectedItem = null;
         } else {
-            selectedItem = img;
-            img.classList.add('selected');
+            selectedItem = img; img.classList.add('selected');
         }
     }
 
     function handleMove(slot) {
         if (!selectedItem) return;
         if (slot.querySelector('img')) {
-            // スロット同士の入れ替え
             let existing = slot.querySelector('img');
             let oldParent = selectedItem.parentElement;
             slot.appendChild(selectedItem);
             if (oldParent.className === 'slot') oldParent.appendChild(existing);
             else document.getElementById('choices').appendChild(existing);
-        } else {
-            slot.appendChild(selectedItem);
-        }
-        selectedItem.classList.remove('selected');
-        selectedItem = null;
+        } else { slot.appendChild(selectedItem); }
+        selectedItem.classList.remove('selected'); selectedItem = null;
     }
 
     async function checkAnswer() {
