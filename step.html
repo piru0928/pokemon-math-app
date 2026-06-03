@@ -11,6 +11,10 @@
         .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; }
         .pokemon-item { width: 60px; cursor: grab; }
         .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; line-height: 1.8; }
+        
+        /* ポケモンが動くアニメーション */
+        .jump { animation: jumpEff 0.4s ease-in-out infinite alternate; }
+        @keyframes jumpEff { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
     </style>
 </head>
 <body>
@@ -37,21 +41,18 @@
         {name: "ブースター", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"}
     ];
 
-    let currentOrder = []; // 正解データ
+    let currentOrder = [];
+    let currentLevel = 1;
 
     function initGame() {
-        // 4匹のランダムな並びを作成
         currentOrder = [...pool].sort(() => Math.random() - 0.5);
-        
-        // 4つの条件をヒントとして表示（論理的に一意に決まる組み合わせ）
+        document.getElementById('level-info').innerText = `Level ${currentLevel}`;
         document.getElementById('clue').innerHTML = `
             ヒント：<br>
             ・${currentOrder[0].name}は${currentOrder[1].name}より左にいるよ。<br>
-            ・${currentOrder[2].name}は一番右ではないよ。<br>
             ・${currentOrder[3].name}は一番右にいるよ。<br>
             ・${currentOrder[1].name}は${currentOrder[2].name}の左隣にいるよ。
         `;
-
         render();
     }
 
@@ -61,7 +62,6 @@
         for(let i=0; i<4; i++) {
             const slot = document.createElement('div');
             slot.className = 'slot';
-            slot.id = 'slot-' + i;
             slot.ondragover = e => e.preventDefault();
             slot.ondrop = drop;
             dropZone.appendChild(slot);
@@ -81,8 +81,10 @@
     }
 
     function drop(e) {
+        e.preventDefault();
         const id = e.dataTransfer.getData("text");
         const el = document.getElementById(id);
+        el.classList.add('jump'); // 配置されたら動く
         e.target.appendChild(el);
     }
 
@@ -98,8 +100,11 @@
         
         if(playerAns.every((name, i) => name === currentOrder[i].name)) {
             confetti({ particleCount: 300, spread: 150, origin: { y: 0.6 } });
-            alert("正解！すごい！");
-            initGame();
+            setTimeout(() => {
+                alert("正解！すごすぎる！");
+                currentLevel++;
+                initGame();
+            }, 500);
         } else {
             alert("もう一度考えてみよう！");
         }
