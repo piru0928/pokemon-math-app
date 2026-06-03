@@ -3,57 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポケモン・ロジックパズル</title>
+    <title>ポケモン 論理パズル ⚡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #fdf6e3; padding: 10px; text-align: center; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .nav-bar { display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; }
-        .options button { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 10px; background: #4a90e2; color: white; cursor: pointer; }
+        body { font-family: 'Kosugi Maru', sans-serif; background-color: #f7fafc; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .nav-header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .btn-back { background-color: #718096; color: white; text-decoration: none; font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; }
+        
+        .puzzle-area { width: 100%; max-width: 400px; background: white; padding: 15px; border-radius: 12px; border: 3px solid #cbd5e0; }
+        .stage-box { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .character-slot { width: 60px; height: 60px; border: 2px dashed #a0aec0; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .character-slot img { width: 50px; height: 50px; object-fit: contain; }
+
+        .clue-box { background: #ebf8ff; padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; }
+        
+        .answer-grid { display: flex; gap: 5px; justify-content: center; }
+        .btn-poke { background: #4299e1; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+        
+        .result-msg { font-weight: bold; margin: 15px 0; min-height: 1.2em; }
+        .btn-next { background-color: #48bb78; color: white; padding: 10px 20px; border: none; border-radius: 8px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="nav-bar">
-        <span>Ver 1.0.0</span>
-        <button onclick="alert('最初の画面に戻ります')">戻る</button>
+    <div class="nav-header">
+        <a href="index.html" class="btn-back">⬅ もどる</a>
+        <div class="level-badge" id="level-txt">Level 1</div>
     </div>
 
-    <h2 id="level-badge">Level 1</h2>
-    
-    <div id="svg-container" style="margin: 20px 0;">
-        <svg width="300" height="100" viewBox="0 0 300 100">
-            <rect x="20" y="60" width="80" height="30" fill="#a0522d" />
-            <rect x="110" y="40" width="80" height="50" fill="#a0522d" />
-            <rect x="200" y="20" width="80" height="70" fill="#a0522d" />
-            <text x="60" y="80" text-anchor="middle" fill="white">シャ</text>
-            <text x="150" y="70" text-anchor="middle" fill="white">サン</text>
-            <text x="240" y="60" text-anchor="middle" fill="white">ブー</text>
-        </svg>
+    <h1>ポケモン推理パズル</h1>
+
+    <div class="puzzle-area">
+        <div class="stage-box" id="slots">
+            <div class="character-slot" id="slot-0">?</div>
+            <div class="character-slot" id="slot-1">?</div>
+            <div class="character-slot" id="slot-2">?</div>
+        </div>
+
+        <div class="clue-box" id="clue">
+            ヒント：シャワーズはサンダースのひだり。ブースターはサンダースのみぎ。
+        </div>
+
+        <div class="answer-grid" id="choices">
+            </div>
+
+        <div class="result-msg" id="msg"></div>
+        <button class="btn-next" id="btn-next" onclick="nextStage()">つぎのもんだいへ！</button>
     </div>
 
-    <p id="problem-text">シャワーズの右にサンダース、サンダースの右にブースターがいます。右から2番目はだれ？</p>
-    <div id="options" class="options"></div>
-</div>
+    <script>
+        const stages = [
+            {
+                clue: "サンダースのひだりにシャワーズがいるよ。サンダースのみぎにブースターがいるよ。だれをどこに置くかな？",
+                order: ["シャワーズ", "サンダース", "ブースター"],
+                images: {
+                    "シャワーズ": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
+                    "サンダース": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png",
+                    "ブースター": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"
+                }
+            }
+        ];
 
-<script>
-    // 問題データ
-    const quizData = [
-        { level: 1, text: "シャワーズの右にサンダース、サンダースの右にブースターがいます。右から2番目はだれ？", options: ["シャワーズ", "サンダース", "ブースター"], answer: "サンダース" }
-    ];
+        let currentStage = 0;
+        let placed = [];
 
-    function render() {
-        const stage = quizData[0];
-        document.getElementById('problem-text').innerText = stage.text;
-        const optDiv = document.getElementById('options');
-        stage.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.innerText = opt;
-            btn.onclick = () => alert(opt === stage.answer ? "正解！" : "残念！");
-            optDiv.appendChild(btn);
-        });
-    }
-    render();
-</script>
+        function init() {
+            const s = stages[currentStage];
+            document.getElementById('clue').innerText = s.clue;
+            const choices = document.getElementById('choices');
+            choices.innerHTML = '';
+            
+            Object.keys(s.images).forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-poke';
+                btn.innerText = name;
+                btn.onclick = () => placePokemon(name);
+                choices.appendChild(btn);
+            });
+        }
+
+        function placePokemon(name) {
+            if (placed.length >= 3) return;
+            placed.push(name);
+            const slot = document.getElementById(`slot-${placed.length - 1}`);
+            slot.innerHTML = `<img src="${stages[currentStage].images[name]}">`;
+            
+            if (placed.length === 3) checkResult();
+        }
+
+        function checkResult() {
+            const isCorrect = placed.every((val, idx) => val === stages[currentStage].order[idx]);
+            const msg = document.getElementById('msg');
+            if (isCorrect) {
+                msg.innerText = "せいかい！すごい！🎉";
+                msg.style.color = "green";
+                document.getElementById('btn-next').style.display = 'block';
+            } else {
+                msg.innerText = "ちがうみたい…もういちど消してやってみてね！";
+                msg.style.color = "red";
+                setTimeout(() => { reset(); }, 2000);
+            }
+        }
+
+        function reset() {
+            placed = [];
+            for(let i=0; i<3; i++) document.getElementById(`slot-${i}`).innerHTML = "?";
+            document.getElementById('msg').innerText = "";
+        }
+
+        function nextStage() {
+            // ここに次のレベルの読み込み処理を追加
+            alert("クリアおめでとう！");
+        }
+
+        init();
+    </script>
 </body>
 </html>
