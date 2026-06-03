@@ -7,10 +7,15 @@
         body { font-family: 'Kosugi Maru', sans-serif; background: #f0f7ff; display: flex; flex-direction: column; align-items: center; padding: 10px; }
         .game-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
         .stairs-container { display: flex; align-items: flex-end; justify-content: center; gap: 5px; height: 150px; margin: 20px 0; border-bottom: 4px solid #333; }
-        .slot { width: 50px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 5px; }
+        .slot { width: 50px; border: 2px dashed #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 5px; transition: 0.3s; }
+        .slot img { animation: pop 0.3s ease-out; }
         .clue { background: #eef; padding: 15px; border-radius: 10px; margin: 15px 0; font-size: 0.9rem; line-height: 1.6; }
         .btn-poke { background: #3182ce; color: white; border: none; padding: 10px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        .btn-poke:disabled { background: #cbd5e0; cursor: not-allowed; }
         .controls { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+        @keyframes pop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+        .jump { animation: jumpEff 0.4s ease-in-out infinite alternate; }
+        @keyframes jumpEff { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
     </style>
 </head>
 <body>
@@ -21,14 +26,13 @@
     <div id="clue" class="clue"></div>
     <div id="choices"></div>
     <div class="controls">
-        <button onclick="resetAnswer()" style="background:#e53e3e; color:white; border:none; padding:10px; border-radius:5px;">やりなおす</button>
-        <button onclick="checkAnswer()" style="background:#48bb78; color:white; border:none; padding:10px; border-radius:5px;">ていしゅつ！</button>
+        <button onclick="resetAnswer()" style="background:#e53e3e; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">やりなおす</button>
+        <button onclick="checkAnswer()" style="background:#48bb78; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">ていしゅつ！</button>
     </div>
-    <div id="msg" style="margin-top:15px; font-weight:bold; text-align:center;"></div>
 </div>
 
 <script>
-    const pokemonList = [
+    const allPokemon = [
         {name: "ピカチュウ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"},
         {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
         {name: "ミュウ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png"},
@@ -37,18 +41,16 @@
     ];
 
     let currentLevel = 1;
-    let numSlots = 5;
-    let correctAnswer = [];
-    let playerAnswer = [];
+    let numSlots, correctAnswer, playerAnswer;
 
     function initGame() {
-        numSlots = Math.min(5 + Math.floor((currentLevel-1)/2), 8);
-        correctAnswer = [...pokemonList].sort(() => Math.random() - 0.5).slice(0, numSlots);
+        numSlots = Math.min(5 + Math.floor((currentLevel - 1) / 2), 8);
+        // 問題生成と検証（重複なしでランダムに選ぶ）
+        correctAnswer = [...allPokemon].sort(() => Math.random() - 0.5).slice(0, numSlots);
         playerAnswer = Array(numSlots).fill(null);
         
-        document.getElementById('level-info').innerText = currentLevel <= 5 ? `Level ${currentLevel}` : "エクストリームモード！";
+        document.getElementById('level-info').innerText = `Level ${currentLevel}`;
         document.getElementById('clue').innerHTML = `<ruby>ヒント<rt>ひんと</rt></ruby>：${correctAnswer[0].name}は${correctAnswer[1].name}より<ruby>左<rt>ひだり</rt></ruby>にあるよ。${correctAnswer[numSlots-1].name}は一番<ruby>右<rt>みぎ</rt></ruby>だよ。`;
-        
         render();
     }
 
@@ -58,18 +60,22 @@
         playerAnswer.forEach((p, i) => {
             const div = document.createElement('div');
             div.className = 'slot';
-            div.style.height = (30 + (i * 10)) + 'px';
-            div.onclick = () => { playerAnswer[i] = null; render(); };
+            div.style.height = (50 + (i * 10)) + 'px';
+            div.onclick = () => { 
+                if(playerAnswer[i]) { playerAnswer[i] = null; render(); } 
+            };
             div.innerHTML = p ? `<img src="${p.img}" width="40">` : "?";
             stairs.appendChild(div);
         });
 
         const choices = document.getElementById('choices');
         choices.innerHTML = '';
-        pokemonList.forEach(p => {
+        allPokemon.forEach(p => {
             const btn = document.createElement('button');
             btn.className = 'btn-poke';
             btn.innerText = p.name;
+            // すでに配置済みならボタンを無効化
+            btn.disabled = playerAnswer.some(a => a && a.name === p.name);
             btn.onclick = () => {
                 const idx = playerAnswer.indexOf(null);
                 if(idx !== -1) { playerAnswer[idx] = p; render(); }
