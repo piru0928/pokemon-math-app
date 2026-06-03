@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ポケモン推理パズル Ver 3.7.0</title>
+    <title>ポケモン推理パズル Ver 3.8.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: sans-serif; background: #f0f7ff; margin: 0; padding: 5px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -52,20 +52,40 @@
         currentOrder = [...pool].sort(() => Math.random() - 0.5).slice(0, num);
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         
+        // 重複しないヒント生成
         let hints = [];
-        for(let i=0; i<num; i++) {
-            let p = currentOrder[i];
-            let type = Math.floor(Math.random() * 4);
-            if(type === 0 && i > 0) hints.push(`${p.name}は${currentOrder[i-1].name}の<ruby>右隣<rt>みぎどなり</rt></ruby>。`);
-            else if(type === 1 && i < num-1) hints.push(`${p.name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>。`);
-            else if(type === 2 && i > 1) hints.push(`${p.name}は${currentOrder[0].name}より<ruby>右側<rt>みぎがわ</rt></ruby>。`);
-            else if(type === 3 && i > 0 && i < num-1) hints.push(`${p.name}は${currentOrder[i-1].name}と${currentOrder[i+1].name}の<ruby>間<rt>あいだ</rt></ruby>。`);
-            else hints.push(`${currentOrder[num-1].name}は<ruby>一番右<rt>いちばんみぎ</rt></ruby>。`);
+        let usedTypes = new Set();
+        
+        // 必須ヒント：一番右
+        hints.push(`${currentOrder[num-1].name}は<ruby>一番右<rt>いちばんみぎ</rt></ruby>。`);
+        usedTypes.add('end');
+
+        // 残りのヒントをランダムに作成
+        let attempts = 0;
+        while(hints.length < num && attempts < 100) {
+            let i = Math.floor(Math.random() * (num - 1));
+            let type = Math.floor(Math.random() * 3); // 0:右隣, 1:左隣, 2:間
+            let h = "";
+            
+            if(type === 0 && !usedTypes.has('right'+i)) {
+                h = `${currentOrder[i].name}は${currentOrder[i+1].name}の<ruby>左隣<rt>ひだりどなり</rt></ruby>。`;
+                usedTypes.add('right'+i);
+            } else if(type === 1 && i > 0 && !usedTypes.has('left'+i)) {
+                h = `${currentOrder[i].name}は${currentOrder[i-1].name}の<ruby>右隣<rt>みぎどなり</rt></ruby>。`;
+                usedTypes.add('left'+i);
+            } else if(type === 2 && i > 0 && i < num - 1 && !usedTypes.has('between'+i)) {
+                h = `${currentOrder[i].name}は${currentOrder[i-1].name}と${currentOrder[i+1].name}の<ruby>間<rt>あいだ</rt></ruby>。`;
+                usedTypes.add('between'+i);
+            }
+            if(h && !hints.includes(h)) hints.push(h);
+            attempts++;
         }
+        
         document.getElementById('clue').innerHTML = "ヒント：<br>・" + hints.join("<br>・");
         render();
     }
 
+    // (以下、render, selectPokemon, handleMove, checkAnswerのロジックは変更なし)
     function render() {
         const zone = document.getElementById('drop-zone'), ch = document.getElementById('choices');
         zone.innerHTML = ''; ch.innerHTML = '';
