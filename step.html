@@ -11,6 +11,8 @@
         .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; position: relative; }
         .pokemon-item { width: 60px; cursor: grab; transition: transform 0.2s; }
         .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; line-height: 2.2; font-weight: bold; }
+        /* チェック済み項目のスタイル */
+        .checked { color: #a0aec0; text-decoration: line-through; }
     </style>
 </head>
 <body>
@@ -18,7 +20,7 @@
 <div class="game-card">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <button onclick="history.back()">⬅ もどる</button>
-        <span style="color:#718096;">Ver 1.3.0</span>
+        <span style="color:#718096;">Ver 1.4.0</span>
     </div>
     <h2 id="level-title" style="text-align:center;">Level 1</h2>
     
@@ -51,15 +53,26 @@
         
         document.getElementById('level-title').innerText = `Level ${currentLevel}`;
         
-        // 問題文をポケモンの数(num)だけ生成
-        let clueText = "ヒント：<br>";
-        for(let i = 0; i < num; i++) {
-            if(i === 0) clueText += `・${currentOrder[0].name}は${currentOrder[1].name}より左にいるよ。<br>`;
-            else if(i === num - 1) clueText += `・${currentOrder[num-1].name}は一番右にいるよ。<br>`;
-            else clueText += `・${currentOrder[i].name}は${currentOrder[i-1].name}の右隣にいるよ。<br>`;
-        }
-        document.getElementById('clue').innerHTML = clueText;
+        // 難易度に応じたヒント生成
+        let clues = [
+            `<ruby>左<rt>ひだり</rt></ruby>から${currentOrder[0].name}、${currentOrder[1].name}の<ruby>順番<rt>じゅんばん</rt></ruby>になることがあるよ。`,
+            `${currentOrder[num-1].name}は<ruby>一番<rt>いちばん</rt></ruby><ruby>右<rt>みぎ</rt></ruby>にいるよ。`,
+            `${currentOrder[1].name}は${currentOrder[2].name}の<ruby>隣<rt>となり</rt></ruby>にいるよ。`
+        ];
+        // ランダム化
+        clues.sort(() => Math.random() - 0.5);
+
+        let clueHtml = "ヒント：<br>";
+        clues.forEach((c, i) => {
+            clueHtml += `<input type="checkbox" onchange="toggleCheck(this)"> <span id="clue-${i}">${c}</span><br>`;
+        });
+        document.getElementById('clue').innerHTML = clueHtml;
         render();
+    }
+
+    function toggleCheck(checkbox) {
+        const span = checkbox.nextElementSibling;
+        span.classList.toggle('checked', checkbox.checked);
     }
 
     function render() {
@@ -91,12 +104,9 @@
         const draggedId = e.dataTransfer.getData("text");
         const draggedEl = document.getElementById(draggedId);
         const targetSlot = e.target.closest('.slot');
-        
         if (targetSlot) {
             if (targetSlot.firstChild) {
-                // 入れ替え処理：ターゲットに既にポケモンがいる場合
-                const existingEl = targetSlot.firstChild;
-                draggedEl.parentNode.appendChild(existingEl);
+                draggedEl.parentNode.appendChild(targetSlot.firstChild);
             }
             targetSlot.appendChild(draggedEl);
         }
@@ -107,16 +117,11 @@
     function checkAnswer() {
         const slots = document.querySelectorAll('.slot');
         let playerAns = Array.from(slots).map(s => s.querySelector('img')?.id);
-        
         if(playerAns.includes(undefined)) return alert("全部並べてね！");
         
         if(playerAns.every((name, i) => name === currentOrder[i].name)) {
             confetti({ particleCount: 300, spread: 150 });
-            setTimeout(() => {
-                currentLevel++;
-                alert("大せいかい！次のレベルへ！");
-                initGame();
-            }, 500);
+            setTimeout(() => { currentLevel++; initGame(); }, 1000);
         } else {
             alert("ちがうみたい…もう一度考えてみよう！");
         }
