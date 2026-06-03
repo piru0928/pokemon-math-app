@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ポケモン推理パズル Ver 3.3.0</title>
+    <title>ポケモン推理パズル Ver 3.4.0</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --bg: #f0f7ff; --accent: #3182ce; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 10px; overflow-y: auto; }
-        .container { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; min-height: 90vh; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        #level-title { text-align: center; margin: 10px 0; }
+        /* コンテナを画面内に収める */
+        .container { max-width: 500px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
         
-        .drop-zone { display: flex; gap: 2vw; justify-content: center; margin-bottom: 20px; overflow-x: auto; padding: 5px; }
-        .slot { width: 16vw; height: 16vw; min-width: 50px; min-height: 50px; max-width: 70px; max-height: 70px; border: 2px dashed #cbd5e0; border-radius: 12px; background: #fafafa; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; flex-shrink: 0; }
+        #level-title { text-align: center; margin: 5px 0; font-size: 1.2rem; }
         
-        #clue { background: #ebf8ff; border-left: 4px solid var(--accent); padding: 12px; font-size: 0.95rem; line-height: 1.8; margin-bottom: 20px; border-radius: 0 10px 10px 0; }
-        #choices { display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .drop-zone { display: flex; gap: 2vw; justify-content: center; margin: 5px 0; flex-shrink: 0; }
+        .slot { width: 15vw; height: 15vw; min-width: 45px; min-height: 45px; max-width: 65px; max-height: 65px; border: 2px dashed #cbd5e0; border-radius: 12px; background: #fafafa; display: flex; justify-content: center; align-items: center; }
         
-        .pokemon-item { width: 18vw; height: 18vw; min-width: 50px; min-height: 50px; max-width: 80px; max-height: 80px; cursor: pointer; object-fit: contain; transition: 0.2s; }
+        #clue { background: #ebf8ff; border-left: 4px solid var(--accent); padding: 8px; font-size: 0.85rem; line-height: 1.5; margin: 5px 0; border-radius: 0 10px 10px 0; flex-shrink: 0; overflow-y: auto; max-height: 150px; }
+        
+        /* 選択肢エリアを上に寄せるために flex-grow を調整 */
+        #choices { display: flex; justify-content: space-evenly; flex-wrap: wrap; gap: 5px; margin: 5px 0; flex-grow: 1; align-content: flex-start; }
+        
+        .pokemon-item { width: 18vw; height: 18vw; min-width: 45px; min-height: 45px; max-width: 70px; max-height: 70px; cursor: pointer; object-fit: contain; transition: 0.2s; }
         .selected { opacity: 0.3; transform: scale(0.9); border: 2px solid var(--accent); border-radius: 8px; }
         
-        .buttons { display: flex; gap: 10px; margin-top: auto; }
-        button { padding: 15px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; font-size: 1rem; }
+        .buttons { display: flex; gap: 10px; padding: 5px 0; flex-shrink: 0; }
+        button { padding: 12px; border: none; border-radius: 10px; font-weight: bold; flex: 1; color: white; cursor: pointer; }
         
         #msg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; font-size: 2rem; color: white; font-weight: bold; }
     </style>
@@ -33,7 +37,7 @@
 <div class="container">
     <div class="header">
         <button onclick="history.back()" style="background:#a0aec0; padding: 8px;">⬅ もどる</button>
-        <span style="color:#718096; font-size: 0.8rem;">Ver 3.3.0</span>
+        <span style="color:#718096; font-size: 0.8rem;">Ver 3.4.0</span>
     </div>
     
     <h2 id="level-title">Level 1</h2>
@@ -50,6 +54,7 @@
 <div id="msg">大せいかい！！</div>
 
 <script>
+    // ロジックはVer 3.3.0と同様です
     const pool = [
         {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
         {name: "シャワーズ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png"},
