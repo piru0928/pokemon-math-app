@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポケモン・ロジックパズル | プログラミング思考を鍛えよう！</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fdf6e3; padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .stage-badge { background: #ffcc00; display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+        .question-box { font-size: 1.2rem; margin: 20px 0; line-height: 1.6; }
+        .image-placeholder { background: #eee; height: 200px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; margin: 20px 0; border-radius: 10px; }
+        .options button { width: 100%; padding: 15px; margin: 10px 0; font-size: 1rem; border: none; border-radius: 10px; background: #4a90e2; color: white; cursor: pointer; transition: 0.3s; }
+        .options button:hover { background: #357abd; }
+        #feedback { font-weight: bold; font-size: 1.2rem; margin-top: 20px; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="stage-badge" class="stage-badge">Level 1</div>
+    <h2 id="title">ポケモン推理パズル</h2>
+    
+    <div class="image-placeholder">ここに問題のイラストを表示</div>
+
+    <p id="problem-text" class="question-box"></p>
+    <div id="options" class="options"></div>
+    <p id="feedback"></p>
+</div>
+
+<script>
+    const quizData = [
+        { level: 1, text: "サンダースの左にシャワーズがいます。サンダースの右にブースターがいます。右から2番目はだれ？", options: ["サンダース", "ブースター", "シャワーズ"], answer: "サンダース" },
+        { level: 2, text: "（ここへさらに難しい条件を追加…）", options: ["A", "B", "C"], answer: "A" }
+    ];
+
+    let currentLevel = 0;
+
+    function renderQuiz() {
+        const stage = quizData[currentLevel];
+        document.getElementById('stage-badge').innerText = "Level " + stage.level;
+        document.getElementById('problem-text').innerText = stage.text;
+        
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        stage.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt);
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(answer) {
+        const feedback = document.getElementById('feedback');
+        if (answer === quizData[currentLevel].answer) {
+            feedback.style.color = "green";
+            feedback.innerText = "正解！すごい！";
+            setTimeout(() => {
+                currentLevel++;
+                if (currentLevel < quizData.length) {
+                    feedback.innerText = "";
+                    renderQuiz();
+                } else {
+                    feedback.innerText = "全問クリア！プログラミングの才能あり！？";
+                }
+            }, 1000);
+        } else {
+            feedback.style.color = "red";
+            feedback.innerText = "もう一度考えてみよう！";
+        }
+    }
+
+    renderQuiz();
+</script>
+</body>
+</html>
