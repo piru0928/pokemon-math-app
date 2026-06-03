@@ -6,87 +6,102 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Kosugi Maru', sans-serif; background: #f0f7ff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .game-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 650px; }
-        .stairs-container { display: flex; align-items: flex-end; justify-content: center; gap: 8px; height: 180px; margin: 30px 0; border-bottom: 6px solid #4a5568; padding-bottom: 10px; }
-        .slot { width: 60px; height: 60px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 10px; background: #f7fafc; }
-        .slot img { width: 55px; height: 55px; object-fit: contain; }
-        .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; font-size: 1.1rem; line-height: 1.8; color: #2a4365; }
-        .btn-poke { background: #4299e1; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 8px; cursor: pointer; }
+        .game-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 700px; }
+        .drop-zone { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 180px; margin: 30px 0; border-bottom: 6px solid #4a5568; }
+        .slot { width: 70px; height: 70px; border: 3px dashed #cbd5e0; display: flex; justify-content: center; align-items: center; border-radius: 10px; background: #fff; }
+        .pokemon-item { width: 60px; cursor: grab; }
+        .clue { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 20px; margin: 20px 0; line-height: 1.8; }
     </style>
 </head>
 <body>
 
 <div class="game-card">
-    <div style="display: flex; justify-content: space-between;">
-        <button onclick="history.back()">⬅ もどる</button>
-        <span style="color:#718096;">Ver 1.3.0</span>
-    </div>
+    <button onclick="history.back()">⬅ もどる</button>
     <h2 style="text-align:center;">ブイズのステップクイズ</h2>
-    <div id="level-info" style="font-weight: bold; color: #3182ce; font-size: 1.3rem;">Level 1</div>
-    <div id="stairs" class="stairs-container"></div>
+    <div id="level-info" style="font-weight:bold; color:#3182ce;">Level 1</div>
+    
+    <div id="drop-zone" class="drop-zone"></div>
     <div id="clue" class="clue"></div>
-    <div id="choices" style="display:flex; flex-wrap:wrap; justify-content:center;"></div>
-    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 25px;">
-        <button onclick="resetAnswer()" style="background:#e53e3e; color:white; border:none; padding:12px 25px; border-radius:10px; cursor:pointer;">やりなおす</button>
-        <button onclick="checkAnswer()" style="background:#48bb78; color:white; border:none; padding:12px 25px; border-radius:10px; cursor:pointer; font-size: 1.1rem;">ていしゅつ！</button>
+    <div id="choices" style="display:flex; justify-content:center; gap:10px; min-height:80px;"></div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <button onclick="checkAnswer()" style="background:#48bb78; color:white; padding:15px 30px; border:none; border-radius:10px; font-size:1.2rem; cursor:pointer;">ていしゅつ！</button>
     </div>
 </div>
 
 <script>
-    const eeveeFamily = [
+    const pool = [
         {name: "イーブイ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
         {name: "シャワーズ", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png"},
         {name: "サンダース", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png"},
         {name: "ブースター", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"}
     ];
 
-    let currentLevel = 1;
-    let correctAnswer, playerAnswer;
+    let currentOrder = []; // 正解データ
 
     function initGame() {
-        correctAnswer = [...eeveeFamily].sort(() => Math.random() - 0.5);
-        playerAnswer = Array(correctAnswer.length).fill(null);
+        // 4匹のランダムな並びを作成
+        currentOrder = [...pool].sort(() => Math.random() - 0.5);
         
-        document.getElementById('level-info').innerText = `Level ${currentLevel}`;
-        document.getElementById('clue').innerHTML = `ヒント：<br>・イーブイはシャワーズより左にいるよ。<br>・ブースターは一番右にいるよ。<br>・サンダースはシャワーズの隣にいるよ。`;
+        // 4つの条件をヒントとして表示（論理的に一意に決まる組み合わせ）
+        document.getElementById('clue').innerHTML = `
+            ヒント：<br>
+            ・${currentOrder[0].name}は${currentOrder[1].name}より左にいるよ。<br>
+            ・${currentOrder[2].name}は一番右ではないよ。<br>
+            ・${currentOrder[3].name}は一番右にいるよ。<br>
+            ・${currentOrder[1].name}は${currentOrder[2].name}の左隣にいるよ。
+        `;
+
         render();
     }
 
     function render() {
-        const stairs = document.getElementById('stairs');
-        stairs.innerHTML = '';
-        playerAnswer.forEach((p, i) => {
-            const div = document.createElement('div');
-            div.className = 'slot';
-            div.onclick = () => { playerAnswer[i] = null; render(); };
-            div.innerHTML = p ? `<img src="${p.img}">` : "?";
-            stairs.appendChild(div);
-        });
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.innerHTML = '';
+        for(let i=0; i<4; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.id = 'slot-' + i;
+            slot.ondragover = e => e.preventDefault();
+            slot.ondrop = drop;
+            dropZone.appendChild(slot);
+        }
 
         const choices = document.getElementById('choices');
         choices.innerHTML = '';
-        correctAnswer.forEach(p => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-poke';
-            btn.innerText = p.name;
-            btn.disabled = playerAnswer.some(a => a && a.name === p.name);
-            btn.onclick = () => {
-                const idx = playerAnswer.indexOf(null);
-                if(idx !== -1) { playerAnswer[idx] = p; render(); }
-            };
-            choices.appendChild(btn);
+        pool.forEach(p => {
+            const img = document.createElement('img');
+            img.src = p.img;
+            img.className = 'pokemon-item';
+            img.draggable = true;
+            img.id = p.name;
+            img.ondragstart = e => e.dataTransfer.setData("text", e.target.id);
+            choices.appendChild(img);
         });
     }
 
-    function resetAnswer() { playerAnswer = Array(correctAnswer.length).fill(null); render(); }
+    function drop(e) {
+        const id = e.dataTransfer.getData("text");
+        const el = document.getElementById(id);
+        e.target.appendChild(el);
+    }
 
     function checkAnswer() {
-        if(playerAnswer.includes(null)) return alert("まだ空いてる場所があるよ！");
-        if(playerAnswer.every((p, i) => p.name === correctAnswer[i].name)) {
-            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
-            setTimeout(() => { alert("大せいかい！！"); currentLevel++; initGame(); }, 500);
+        const slots = document.querySelectorAll('.slot');
+        let playerAns = [];
+        slots.forEach(s => {
+            const img = s.querySelector('img');
+            playerAns.push(img ? img.id : null);
+        });
+
+        if(playerAns.includes(null)) return alert("全部並べてね！");
+        
+        if(playerAns.every((name, i) => name === currentOrder[i].name)) {
+            confetti({ particleCount: 300, spread: 150, origin: { y: 0.6 } });
+            alert("正解！すごい！");
+            initGame();
         } else {
-            alert("ちがうみたい。ヒントをもう一度読んでみてね！");
+            alert("もう一度考えてみよう！");
         }
     }
 
