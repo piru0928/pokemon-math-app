@@ -2,121 +2,129 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ポケモン 論理パズル ⚡️</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+    <title>ポケモン推理パズル</title>
     <style>
         body { font-family: 'Kosugi Maru', sans-serif; background-color: #f7fafc; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .nav-header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .btn-back { background-color: #718096; color: white; text-decoration: none; font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; }
-        
         .puzzle-area { width: 100%; max-width: 400px; background: white; padding: 15px; border-radius: 12px; border: 3px solid #cbd5e0; }
+        
+        /* ポケモン表示エリア */
         .stage-box { display: flex; justify-content: space-around; margin-bottom: 20px; }
-        .character-slot { width: 60px; height: 60px; border: 2px dashed #a0aec0; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
-        .character-slot img { width: 50px; height: 50px; object-fit: contain; }
-
+        .character-slot { width: 70px; height: 70px; border: 2px dashed #a0aec0; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .character-slot:hover { background: #f0f4f8; }
+        .character-slot img { width: 60px; height: 60px; object-fit: contain; animation: pop 0.3s ease-out; }
+        
         .clue-box { background: #ebf8ff; padding: 10px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; }
         
-        .answer-grid { display: flex; gap: 5px; justify-content: center; }
-        .btn-poke { background: #4299e1; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
+        /* 選択肢ボタン */
+        .answer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .btn-poke { background: #4299e1; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; transition: transform 0.2s; }
+        .btn-poke:active { transform: scale(0.95); }
         
-        .result-msg { font-weight: bold; margin: 15px 0; min-height: 1.2em; }
-        .btn-next { background-color: #48bb78; color: white; padding: 10px 20px; border: none; border-radius: 8px; display: none; }
+        /* アニメーション */
+        @keyframes pop { 0% { transform: scale(0.5); } 100% { transform: scale(1); } }
+        
+        .btn-next { background-color: #48bb78; color: white; padding: 10px 20px; border: none; border-radius: 8px; display: none; margin-top: 10px; width: 100%; font-size: 1rem; }
     </style>
 </head>
 <body>
 
-    <div class="nav-header">
-        <a href="index.html" class="btn-back">⬅ もどる</a>
-        <div class="level-badge" id="level-txt">Level 1</div>
+<div class="puzzle-area">
+    <div id="level-title">Level 1</div>
+    <div class="stage-box" id="slots">
+        <div class="character-slot" id="slot-0" onclick="removePokemon(0)">?</div>
+        <div class="character-slot" id="slot-1" onclick="removePokemon(1)">?</div>
+        <div class="character-slot" id="slot-2" onclick="removePokemon(2)">?</div>
     </div>
+    <div class="clue-box" id="clue"></div>
+    <div class="answer-grid" id="choices"></div>
+    <div id="msg" style="font-weight: bold; margin: 10px 0;"></div>
+    <button class="btn-next" id="btn-next" onclick="nextStage()">つぎのもんだいへ！</button>
+</div>
 
-    <h1>ポケモン推理パズル</h1>
-
-    <div class="puzzle-area">
-        <div class="stage-box" id="slots">
-            <div class="character-slot" id="slot-0">?</div>
-            <div class="character-slot" id="slot-1">?</div>
-            <div class="character-slot" id="slot-2">?</div>
-        </div>
-
-        <div class="clue-box" id="clue">
-            ヒント：シャワーズはサンダースのひだり。ブースターはサンダースのみぎ。
-        </div>
-
-        <div class="answer-grid" id="choices">
-            </div>
-
-        <div class="result-msg" id="msg"></div>
-        <button class="btn-next" id="btn-next" onclick="nextStage()">つぎのもんだいへ！</button>
-    </div>
-
-    <script>
-        const stages = [
-            {
-                clue: "サンダースのひだりにシャワーズがいるよ。サンダースのみぎにブースターがいるよ。だれをどこに置くかな？",
-                order: ["シャワーズ", "サンダース", "ブースター"],
-                images: {
-                    "シャワーズ": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
-                    "サンダース": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png",
-                    "ブースター": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"
-                }
+<script>
+    const stages = [
+        {
+            clue: "サンダースのひだりにシャワーズ。サンダースのみぎにブースター。",
+            order: ["シャワーズ", "サンダース", "ブースター"],
+            images: {
+                "シャワーズ": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
+                "サンダース": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png",
+                "ブースター": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"
             }
-        ];
-
-        let currentStage = 0;
-        let placed = [];
-
-        function init() {
-            const s = stages[currentStage];
-            document.getElementById('clue').innerText = s.clue;
-            const choices = document.getElementById('choices');
-            choices.innerHTML = '';
-            
-            Object.keys(s.images).forEach(name => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-poke';
-                btn.innerText = name;
-                btn.onclick = () => placePokemon(name);
-                choices.appendChild(btn);
-            });
+        },
+        {
+            clue: "ブースターが一番ひだり。サンダースが一番みぎだよ。",
+            order: ["ブースター", "シャワーズ", "サンダース"],
+            images: {
+                "シャワーズ": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png",
+                "サンダース": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png",
+                "ブースター": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png"
+            }
         }
+    ];
 
-        function placePokemon(name) {
-            if (placed.length >= 3) return;
+    let currentStageIdx = 0;
+    let placed = [];
+
+    function render() {
+        const s = stages[currentStageIdx];
+        document.getElementById('level-title').innerText = "Level " + (currentStageIdx + 1);
+        document.getElementById('clue').innerText = s.clue;
+        document.getElementById('choices').innerHTML = '';
+        document.getElementById('msg').innerText = '';
+        document.getElementById('btn-next').style.display = 'none';
+        
+        Object.keys(s.images).forEach(name => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-poke';
+            btn.innerText = name;
+            btn.onclick = () => placePokemon(name);
+            document.getElementById('choices').appendChild(btn);
+        });
+        updateSlots();
+    }
+
+    function placePokemon(name) {
+        if (placed.length < 3) {
             placed.push(name);
-            const slot = document.getElementById(`slot-${placed.length - 1}`);
-            slot.innerHTML = `<img src="${stages[currentStage].images[name]}">`;
-            
+            updateSlots();
             if (placed.length === 3) checkResult();
         }
+    }
 
-        function checkResult() {
-            const isCorrect = placed.every((val, idx) => val === stages[currentStage].order[idx]);
-            const msg = document.getElementById('msg');
-            if (isCorrect) {
-                msg.innerText = "せいかい！すごい！🎉";
-                msg.style.color = "green";
-                document.getElementById('btn-next').style.display = 'block';
-            } else {
-                msg.innerText = "ちがうみたい…もういちど消してやってみてね！";
-                msg.style.color = "red";
-                setTimeout(() => { reset(); }, 2000);
-            }
+    function removePokemon(index) {
+        if (index < placed.length) {
+            placed.splice(index, 1);
+            updateSlots();
+            document.getElementById('msg').innerText = '';
         }
+    }
 
-        function reset() {
+    function updateSlots() {
+        for(let i=0; i<3; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            slot.innerHTML = placed[i] ? `<img src="${stages[currentStageIdx].images[placed[i]]}">` : "?";
+        }
+    }
+
+    function checkResult() {
+        const isCorrect = placed.every((val, idx) => val === stages[currentStageIdx].order[idx]);
+        document.getElementById('msg').innerText = isCorrect ? "せいかい！🎉" : "ちがうみたい…スロットを押すと消せるよ！";
+        document.getElementById('msg').style.color = isCorrect ? "green" : "red";
+        if (isCorrect) document.getElementById('btn-next').style.display = 'block';
+    }
+
+    function nextStage() {
+        currentStageIdx++;
+        if (currentStageIdx < stages.length) {
             placed = [];
-            for(let i=0; i<3; i++) document.getElementById(`slot-${i}`).innerHTML = "?";
-            document.getElementById('msg').innerText = "";
+            render();
+        } else {
+            alert("すべての問題をクリア！");
         }
+    }
 
-        function nextStage() {
-            // ここに次のレベルの読み込み処理を追加
-            alert("クリアおめでとう！");
-        }
-
-        init();
-    </script>
+    render();
+</script>
 </body>
 </html>
