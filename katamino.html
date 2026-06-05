@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ポケモン・パズル・マスター</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0f0f0; }
+        #game-board { display: grid; margin: 20px auto; border: 2px solid #333; background: #fff; }
+        .cell { width: 40px; height: 40px; border: 1px solid #ccc; box-sizing: border-box; }
+        .block { background: #ff3e3e; border-radius: 8px; border: 2px solid #fff; }
+        button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; }
+        #confetti { position: fixed; top: 0; left: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <h1>ポケモン・パズル・マスター</h1>
+    <div id="level-display">レベル: 1</div>
+    <div id="game-board"></div>
+    
+    <button onclick="checkAnswer()">回答する</button>
+    <button onclick="giveUp()">ギブアップ</button>
+    <button onclick="location.reload()">戻る（リロード）</button>
+    
+    <div id="version" style="margin-top:20px; font-size: 12px; color: #888;">Version 1.0.0</div>
+
+    <canvas id="confetti"></canvas>
+
+    <script>
+        let level = 1;
+        const board = document.getElementById('game-board');
+        const canvas = document.getElementById('confetti');
+        const ctx = canvas.getContext('2d');
+
+        // ゲーム初期化
+        function initGame() {
+            const size = 5 + level; // レベルに応じて拡大
+            board.style.gridTemplateColumns = `repeat(${size}, 40px)`;
+            board.innerHTML = '';
+            for(let i=0; i<size*size; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                board.appendChild(cell);
+            }
+        }
+
+        function checkAnswer() {
+            // ここに判定ロジック（簡易版）
+            alert("おめでとう！ポケモンマスターの素質があるよ！");
+            triggerConfetti();
+        }
+
+        function giveUp() {
+            alert("答えを表示するよ！");
+            const cells = document.querySelectorAll('.cell');
+            let i = 0;
+            const interval = setInterval(() => {
+                if(i < 5) cells[i].classList.add('block');
+                else clearInterval(interval);
+                i++;
+            }, 500);
+        }
+
+        function triggerConfetti() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            for(let i=0; i<100; i++) {
+                ctx.fillStyle = `hsl(${Math.random()*360}, 100%, 50%)`;
+                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 10, 10);
+            }
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
