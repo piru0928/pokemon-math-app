@@ -2,75 +2,82 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ポケモン・パズル・マスター</title>
+    <title>KATAMINO-カタミノ-</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f0f0; }
-        #game-board { display: grid; margin: 20px auto; border: 2px solid #333; background: #fff; }
-        .cell { width: 40px; height: 40px; border: 1px solid #ccc; box-sizing: border-box; }
-        .block { background: #ff3e3e; border-radius: 8px; border: 2px solid #fff; }
-        button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; }
-        #confetti { position: fixed; top: 0; left: 0; pointer-events: none; }
+        body { 
+            display: flex; flex-direction: column; align-items: center; 
+            background-color: #fdf6e3; font-family: 'Arial', sans-serif; 
+        }
+        #game-container { 
+            background: #fff; padding: 20px; border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
+        }
+        #board { 
+            display: grid; margin: 20px auto; border: 4px solid #ffcb05; 
+            background: #fff8e1; border-radius: 8px;
+        }
+        .cell { width: 40px; height: 40px; border: 1px solid #ffe082; box-sizing: border-box; }
+        .filled { background-color: #78c850; border-radius: 4px; }
+        .controls { margin-top: 20px; }
+        button { 
+            padding: 10px 20px; margin: 5px; border: none; border-radius: 10px; 
+            background: #448aff; color: white; cursor: pointer; font-weight: bold;
+        }
+        #message { font-size: 20px; color: #d32f2f; margin: 10px; height: 30px; }
+        #version { margin-top: 20px; color: #999; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <h1>ポケモン・パズル・マスター</h1>
-    <div id="level-display">レベル: 1</div>
-    <div id="game-board"></div>
+<div id="game-container">
+    <h1>KATAMINO-カタミノ-</h1>
+    <div id="level-display">レベル: 1 (スペース: 3x5)</div>
+    <div id="message"></div>
+    <div id="board"></div>
     
-    <button onclick="checkAnswer()">回答する</button>
-    <button onclick="giveUp()">ギブアップ</button>
-    <button onclick="location.reload()">戻る（リロード）</button>
+    <div class="controls">
+        <button onclick="checkAnswer()">回答をチェック</button>
+        <button onclick="giveUp()">ギブアップ</button>
+        <button onclick="location.reload()">戻る</button>
+    </div>
+    <div id="version">Version 1.1.0</div>
+</div>
+
+<script>
+    let level = 1;
+    const board = document.getElementById('board');
     
-    <div id="version" style="margin-top:20px; font-size: 12px; color: #888;">Version 1.0.0</div>
-
-    <canvas id="confetti"></canvas>
-
-    <script>
-        let level = 1;
-        const board = document.getElementById('game-board');
-        const canvas = document.getElementById('confetti');
-        const ctx = canvas.getContext('2d');
-
-        // ゲーム初期化
-        function initGame() {
-            const size = 5 + level; // レベルに応じて拡大
-            board.style.gridTemplateColumns = `repeat(${size}, 40px)`;
-            board.innerHTML = '';
-            for(let i=0; i<size*size; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                board.appendChild(cell);
-            }
+    function createBoard() {
+        const rows = 3;
+        const cols = 3 + level; // レベルで横幅が広がる
+        board.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+        board.innerHTML = '';
+        for(let i=0; i<rows*cols; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            board.appendChild(cell);
         }
+    }
 
-        function checkAnswer() {
-            // ここに判定ロジック（簡易版）
-            alert("おめでとう！ポケモンマスターの素質があるよ！");
-            triggerConfetti();
-        }
+    function checkAnswer() {
+        document.getElementById('message').innerText = "おめでとう！ポケモンゲット！";
+        // ここに派手な演出（紙吹雪など）の処理
+    }
 
-        function giveUp() {
-            alert("答えを表示するよ！");
-            const cells = document.querySelectorAll('.cell');
-            let i = 0;
-            const interval = setInterval(() => {
-                if(i < 5) cells[i].classList.add('block');
-                else clearInterval(interval);
+    function giveUp() {
+        const cells = document.querySelectorAll('.cell');
+        let i = 0;
+        const interval = setInterval(() => {
+            if(i < cells.length) {
+                cells[i].classList.add('filled');
                 i++;
-            }, 500);
-        }
-
-        function triggerConfetti() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            for(let i=0; i<100; i++) {
-                ctx.fillStyle = `hsl(${Math.random()*360}, 100%, 50%)`;
-                ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, 10, 10);
+            } else {
+                clearInterval(interval);
             }
-        }
+        }, 200);
+    }
 
-        initGame();
-    </script>
+    createBoard();
+</script>
 </body>
 </html>
