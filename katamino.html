@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>カタミノ Ver 6.1.0</title>
+<title>カタミノ Ver 6.2.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{ --yellow:#ffcb05;--blue:#3b5bdb;--red:#e03131; --bg:#fdf6e3;--card:#fff;--text:#1a1a2e; --cs:40px; }
@@ -14,65 +14,59 @@ body{ display:flex;flex-direction:column;align-items:center; padding:4px 0 12px;
 .ver{font-size:10px;color:#aaa;margin-left:auto;}
 
 #gc{ background:var(--card);border:4px solid var(--yellow);border-radius:24px; width:100%;max-width:520px;padding:10px 12px 16px;text-align:center; box-shadow:0 4px 20px rgba(0,0,0,.08); }
-
 h1{font-size:24px;font-weight:900;color:var(--text);margin:10px 0;}
 h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
 
-/* ===== ボードとポケモン ===== */
-#b-area{ display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:8px; }
+/* ボード左右のポケモン */
+#b-area{ display:flex;justify-content:center;align-items:center;gap:15px;margin:15px 0; }
 .pk-side{ display:flex;flex-direction:column;align-items:center; }
-.pk-sprite{ width:80px;height:80px;image-rendering:pixelated; object-fit:contain;display:none; }
-
-/* アニメーション */
+.pk-sprite{ width:80px;height:80px;image-rendering:pixelated; object-fit:contain;display:none; animation:run 1.2s ease-in-out infinite; }
 @keyframes run{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.pk-sprite{animation:run 1.2s ease-in-out infinite;}
 
 #bwrap{display:flex;justify-content:center;}
 #board{display:grid;border:3px solid #333;border-radius:6px;background:#b0b8e8;gap:2px;padding:2px;touch-action:none;}
-.cell{background:#eef0ff;border-radius:4px;}
+.cell{background:#eef0ff;border-radius:4px;transition:background .06s;}
 .cell.placed{border-radius:2px;}
 .cell.can{background:#c8e6c9!important;}
 .cell.cant{background:#ffcdd2!important;}
 
-/* ...（パレット、ボタン等の既存スタイルはそのまま）... */
 #sb{display:flex;justify-content:space-between;background:#f0f4ff;border:2px solid #c5cae9;border-radius:10px;padding:5px 12px;margin-bottom:8px;}
 #palette{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:8px;}
 .pcard{display:flex;flex-direction:column;align-items:center;background:#f8f9ff;border:2px solid #c5cae9;border-radius:8px;padding:5px;}
 .pmini{display:grid;gap:1px;pointer-events:none;}
 .pm{width:12px;height:12px;border-radius:2px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);}
-.pm-e{background:transparent!important;}
-.btn{padding:8px 16px;border:2px solid #333;border-radius:16px;cursor:pointer;font-weight:800;}
+.btn{padding:8px 16px;border:2px solid #333;border-radius:16px;cursor:pointer;font-weight:800;background:var(--yellow);}
 </style>
 </head>
 <body>
 <div class="top-bar">
-  <a class="back-btn" href="index.html">⬅ もどる</a>
-  <span class="ver">Ver 6.1.0</span>
+  <a class="back-btn" href="#">⬅ もどる</a>
+  <span class="ver">Ver 6.2.0</span>
 </div>
 <div id="gc">
   <h1>🧩 <span>カタミノ</span></h1>
-  
   <div id="sb">
     <span id="lv-lbl">Level 1</span>
-    <span id="ar-lbl">エリア: ?×5</span>
+    <span id="pc-lbl">ピース: ?個</span>
   </div>
-
   <div id="b-area">
     <div class="pk-side"><img class="pk-sprite" id="pk-l" src="" alt=""></div>
     <div id="bwrap"><div id="board"></div></div>
     <div class="pk-side"><img class="pk-sprite" id="pk-r" src="" alt=""></div>
   </div>
-
   <div id="palette"></div>
-  <div class="brow">
-    <button class="btn b-ok" onclick="checkAnswer()">✅ 回答</button>
-    <button class="btn b-rs" onclick="resetBoard()">🔄 リセット</button>
-  </div>
-  <div id="msg"></div>
+  <button class="btn" onclick="location.reload()">🔄 リセット</button>
 </div>
 
 <script>
-// ...（JavaScriptロジックは以前のものを維持しつつ、loadPokemonのidを修正）...
+const PENTS=[
+  {name:'F',color:'#e74c3c',shape:[[0,1],[0,2],[1,0],[1,1],[2,1]]},
+  {name:'I',color:'#3498db',shape:[[0,0],[1,0],[2,0],[3,0],[4,0]]},
+  {name:'L',color:'#e67e22',shape:[[0,0],[1,0],[2,0],[3,0],[3,1]]},
+  {name:'T',color:'#e91e63',shape:[[0,0],[0,1],[0,2],[1,1],[2,1]]}
+];
+
+// ポケモン取得
 async function loadPokemon(){
   const ids=[Math.floor(Math.random()*151)+1, Math.floor(Math.random()*151)+1];
   const imgIds=['pk-l','pk-r'];
@@ -82,11 +76,23 @@ async function loadPokemon(){
       const img=document.getElementById(imgIds[i]);
       img.onload=()=>{img.style.display='block';};
       img.src=d.sprites.front_default;
-    }catch{}
+    }catch(e){}
   }
 }
-// （以下、既存の関数をすべてそのまま貼り付けてください）
-// ... (initLevel, renderBoard, renderPalette, ... の各関数) ...
+
+// ボード初期化
+function init(){
+  const board=document.getElementById('board');
+  board.style.gridTemplateColumns=`repeat(3,40px)`;
+  board.style.gridTemplateRows=`repeat(5,40px)`;
+  for(let i=0; i<15; i++){
+    const el=document.createElement('div');
+    el.className='cell';
+    board.appendChild(el);
+  }
+  loadPokemon();
+}
+init();
 </script>
 </body>
 </html>
