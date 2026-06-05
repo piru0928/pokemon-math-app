@@ -1,702 +1,725 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>カタミノ Ver 2.0.0</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --yellow: #ffcb05;
-      --blue:   #3b5bdb;
-      --red:    #e03131;
-      --bg:     #fdf6e3;
-      --card:   #ffffff;
-      --text:   #1a1a2e;
-      --cell:   40px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>カタミノ Ver 5.0.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --yellow:#ffcb05;--blue:#3b5bdb;--red:#e03131;
+  --bg:#fdf6e3;--card:#fff;--text:#1a1a2e;
+  --cs:40px; /* JS で上書き */
+}
+html,body{
+  background:var(--bg);font-family:'Nunito','Arial',sans-serif;
+  height:100%;overflow-x:hidden;
+  /* テキスト選択・コンテキストメニュー禁止 */
+  -webkit-user-select:none;-moz-user-select:none;user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:none; /* 全体でスクロール禁止（ゲーム画面のため） */
+}
+body{
+  display:flex;flex-direction:column;align-items:center;
+  padding:4px 0 8px;min-height:100%;overflow-y:auto;touch-action:pan-y;
+}
+.top-bar{width:100%;max-width:520px;display:flex;align-items:center;padding:4px 12px;gap:8px;flex-shrink:0;}
+.back-btn{text-decoration:none;font-size:12px;font-weight:800;color:var(--text);background:var(--yellow);border:2px solid var(--text);border-radius:16px;padding:2px 10px;-webkit-tap-highlight-color:transparent;}
+.ver{font-size:10px;color:#aaa;margin-left:auto;}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+#gc{
+  background:var(--card);border:4px solid var(--yellow);border-radius:24px;
+  width:100%;max-width:520px;padding:10px 12px 16px;text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);flex-shrink:0;
+}
+h1{font-size:20px;font-weight:900;color:var(--text);margin-bottom:2px;}
+h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
 
-    body {
-      background: var(--bg);
-      font-family: 'Nunito', 'Arial', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 0 30px;
-    }
+/* ポケモン */
+#mascot-row{display:flex;align-items:center;justify-content:center;gap:6px;height:52px;margin:2px 0 6px;}
+#mascot{height:52px;image-rendering:pixelated;}
+#pkname{font-size:11px;font-weight:800;color:var(--blue);}
 
-    /* ===== ヘッダー ===== */
-    .top-bar {
-      width: 100%;
-      max-width: 560px;
-      display: flex;
-      align-items: center;
-      padding: 8px 16px;
-      gap: 10px;
-    }
-    .back-btn {
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--text);
-      background: var(--yellow);
-      border: 2px solid var(--text);
-      border-radius: 20px;
-      padding: 4px 12px;
-      white-space: nowrap;
-    }
-    .version-tag {
-      font-size: 11px;
-      color: #999;
-      margin-left: auto;
-    }
+#sb{display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border:2px solid #c5cae9;border-radius:10px;padding:5px 12px;margin-bottom:8px;}
+#lv-lbl{font-size:14px;font-weight:900;color:var(--blue);}
+#ar-lbl,#pc-lbl{font-size:11px;font-weight:700;color:#555;}
 
-    /* ===== メインカード ===== */
-    #game-container {
-      background: var(--card);
-      border: 4px solid var(--yellow);
-      border-radius: 28px;
-      width: 100%;
-      max-width: 560px;
-      padding: 20px 20px 24px;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    }
+#hint{background:#fffde7;border:2px dashed var(--yellow);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:#666;margin-bottom:8px;line-height:1.6;}
 
-    h1 {
-      font-size: 26px;
-      font-weight: 900;
-      color: var(--text);
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-    }
-    h1 span { color: var(--yellow); text-shadow: 0 0 0 2px var(--text); -webkit-text-stroke: 1px var(--text); }
+/* パレット */
+#palette{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:8px;min-height:40px;}
+.pcard{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:#f8f9ff;border:2px solid #c5cae9;border-radius:8px;
+  padding:4px;
+  cursor:grab;touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:box-shadow .1s;
+}
+.pcard:active{box-shadow:0 4px 16px rgba(0,0,0,.2);}
+.pmini{display:grid;gap:1px;}
+.pm{width:12px;height:12px;border-radius:2px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);}
+.pm-e{background:transparent!important;box-shadow:none!important;}
+.rbtn{
+  background:var(--yellow);border:1.5px solid #555;border-radius:6px;
+  padding:1px 5px;font-size:9px;font-weight:900;cursor:pointer;
+  font-family:'Nunito',sans-serif;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
 
-    /* ===== ポケモン装飾 ===== */
-    #mascot { height: 80px; margin: 4px auto; display: block; }
+/* ボード */
+#bwrap{display:flex;justify-content:center;margin-bottom:8px;overflow:visible;}
+#board{display:grid;border:3px solid #333;border-radius:6px;background:#b0b8e8;gap:2px;padding:2px;}
+.cell{background:#eef0ff;border-radius:4px;transition:background .08s;}
+.cell.placed{border-radius:2px;}
+.cell.can{background:#c8e6c9!important;}
+.cell.cant{background:#ffcdd2!important;}
 
-    /* ===== レベル・ステータス ===== */
-    #status-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f0f4ff;
-      border: 2px solid #c5cae9;
-      border-radius: 14px;
-      padding: 8px 16px;
-      margin-bottom: 12px;
-    }
-    #level-label { font-size: 15px; font-weight: 800; color: var(--blue); }
-    #area-label  { font-size: 13px; font-weight: 700; color: #555; }
-    #piece-count { font-size: 13px; font-weight: 700; color: var(--red); }
+/* ゴースト */
+#ghost{position:fixed;pointer-events:none;z-index:9999;display:grid;gap:1px;opacity:.75;display:none;}
+.gm{border-radius:3px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25);}
+.gm-e{background:transparent!important;box-shadow:none!important;}
 
-    /* ===== ヒント ===== */
-    #hint-box {
-      background: #fffde7;
-      border: 2px dashed var(--yellow);
-      border-radius: 12px;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #555;
-      margin-bottom: 14px;
-      line-height: 1.6;
-    }
+/* ボタン */
+.brow{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;}
+.btn{padding:7px 14px;border:2px solid #333;border-radius:16px;cursor:pointer;font-weight:800;font-size:12px;font-family:'Nunito',sans-serif;box-shadow:0 3px 0 rgba(0,0,0,.15);transition:transform .1s,box-shadow .1s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.15);}
+.b-ok{background:#33cc33;color:#fff;}.b-rs{background:#90caf9;color:#333;}.b-gv{background:#ff4500;color:#fff;}
 
-    /* ===== ピースエリア ===== */
-    #pieces-area {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 14px;
-      min-height: 60px;
-    }
+#msg{min-height:24px;font-size:12px;font-weight:800;margin:6px 0 0;border-radius:8px;padding:3px 8px;}
+#msg.ok{background:#e8f5e9;color:#2e7d32;border:2px solid #a5d6a7;}
+#msg.ng{background:#ffebee;color:#c62828;border:2px solid #ef9a9a;}
+#msg.info{background:#fffde7;color:#f57f17;border:2px solid #ffe082;}
+.footer{font-size:10px;color:#bbb;margin-top:6px;}
 
-    .piece-wrapper {
-      position: relative;
-      cursor: grab;
-      user-select: none;
-    }
-    .piece-wrapper.dragging { opacity: 0.4; }
-    .piece-wrapper.used { opacity: 0.25; pointer-events: none; }
+/* ===== 正解オーバーレイ ===== */
+#ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center;}
+#ov.show{display:flex;}
+#ovc{
+  background:#fff;border:4px solid var(--yellow);border-radius:24px;
+  padding:24px 28px;text-align:center;max-width:280px;width:90%;
+  animation:pop .45s cubic-bezier(.175,.885,.32,1.275);
+}
+#ovc h2{font-size:26px;margin-bottom:2px;}
+#ov-pk{height:100px;image-rendering:pixelated;margin:4px auto;display:block;animation:bounce 0.6s infinite alternate;}
+#ov-msg{font-size:13px;color:#555;margin-bottom:14px;font-weight:700;}
+#ov-stars{font-size:28px;letter-spacing:4px;margin-bottom:8px;}
 
-    .piece-grid {
-      display: grid;
-      gap: 2px;
-    }
-    .p-cell {
-      width: 16px;
-      height: 16px;
-      border-radius: 3px;
-      transition: transform .1s;
-    }
-    .p-cell.filled { box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25); }
-    .p-cell.empty  { background: transparent !important; }
+/* confetti */
+.confetti{position:fixed;pointer-events:none;z-index:400;width:10px;height:10px;border-radius:2px;animation:fall linear forwards;}
+@keyframes fall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+  100%{transform:translateY(110vh) rotate(720deg);opacity:0;}
+}
 
-    .rotate-btn {
-      position: absolute;
-      bottom: -6px;
-      right: -6px;
-      background: var(--yellow);
-      border: 2px solid #333;
-      border-radius: 50%;
-      width: 18px; height: 18px;
-      font-size: 10px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 900;
-    }
-
-    /* ===== ボード ===== */
-    #board-wrap {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 14px;
-    }
-
-    #board {
-      display: grid;
-      border: 3px solid #333;
-      border-radius: 4px;
-      background: #e8eaf6;
-      gap: 1px;
-      padding: 1px;
-    }
-
-    .cell {
-      width: var(--cell);
-      height: var(--cell);
-      background: #f8f9ff;
-      border-radius: 3px;
-      transition: background .15s;
-      position: relative;
-    }
-    .cell.highlight { background: #c5cae9; }
-    .cell.placed {
-      border-radius: 0;
-    }
-    .cell.dragover { background: rgba(255,203,5,0.5) !important; }
-
-    /* ===== ボタン ===== */
-    .btn-row { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-    .btn {
-      padding: 9px 18px;
-      border: 2px solid #333;
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: 800;
-      font-size: 13px;
-      font-family: 'Nunito', sans-serif;
-      transition: transform .1s, box-shadow .1s;
-      box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-    }
-    .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
-    .btn-check  { background: #33cc33; color: #fff; }
-    .btn-give   { background: #ff4500; color: #fff; }
-    .btn-reset  { background: #90caf9; color: #333; }
-    .btn-back   { background: #ccc;    color: #333; }
-
-    /* ===== メッセージ ===== */
-    #message {
-      min-height: 32px;
-      font-size: 14px;
-      font-weight: 800;
-      margin: 10px 0 0;
-      border-radius: 10px;
-      padding: 6px 10px;
-      transition: all .3s;
-    }
-    #message.success { background: #e8f5e9; color: #2e7d32; border: 2px solid #a5d6a7; }
-    #message.fail    { background: #ffebee; color: #c62828; border: 2px solid #ef9a9a; }
-    #message.hint    { background: #fffde7; color: #f57f17; border: 2px solid #ffe082; }
-
-    .footer { font-size: 11px; color: #aaa; margin-top: 10px; }
-
-    /* ===== オーバーレイ ===== */
-    #overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.55);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
-    #overlay.show { display: flex; }
-    #overlay-card {
-      background: #fff;
-      border: 4px solid var(--yellow);
-      border-radius: 24px;
-      padding: 30px 36px;
-      text-align: center;
-      max-width: 320px;
-    }
-    #overlay-card h2 { font-size: 28px; margin-bottom: 8px; }
-    #overlay-card p  { font-size: 14px; color: #555; margin-bottom: 18px; }
-    #overlay-img { height: 90px; margin: 10px auto; display: block; }
-
-    /* ===== アニメ ===== */
-    @keyframes pop {
-      0%   { transform: scale(0.8); opacity: 0; }
-      70%  { transform: scale(1.05); }
-      100% { transform: scale(1);   opacity: 1; }
-    }
-    .pop { animation: pop .35s ease forwards; }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60%  { transform: translateX(-5px); }
-      40%, 80%  { transform: translateX(5px); }
-    }
-    .shake { animation: shake .4s ease; }
-  </style>
+@keyframes pop{0%{transform:scale(.6);opacity:0}80%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@keyframes bounce{0%{transform:translateY(0)}100%{transform:translateY(-10px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.shake{animation:shake .35s ease;}
+</style>
 </head>
 <body>
-
 <div class="top-bar">
   <a class="back-btn" href="index.html">⬅ もどる</a>
-  <span class="version-tag">Ver 2.0.0</span>
+  <span class="ver">Ver 5.0.0</span>
 </div>
-
-<div id="game-container">
+<div id="gc">
   <h1>🧩 <span>カタミノ</span></h1>
-
-  <img id="mascot" src="" alt="ポケモン">
-
-  <div id="status-bar">
-    <span id="level-label">Level 1</span>
-    <span id="area-label">エリア: 3×5</span>
-    <span id="piece-count">ピース: 3個</span>
+  <div id="mascot-row">
+    <img id="mascot" src="" alt="" style="display:none;">
+    <span id="pkname"></span>
   </div>
-
-  <div id="hint-box">
-    ピースをドラッグしてボードに置こう！<br>
-    ピース下の🔄ボタンで回転できるよ
+  <div id="sb">
+    <span id="lv-lbl">Level 1</span>
+    <span id="ar-lbl">エリア: ?×5</span>
+    <span id="pc-lbl">ピース: ?個</span>
   </div>
-
-  <div id="pieces-area"></div>
-
-  <div id="board-wrap">
-    <div id="board"></div>
+  <div id="hint">ピースをドラッグ → ボードに置こう！<br>置いたピースはドラッグで移動できるよ</div>
+  <div id="palette"></div>
+  <div id="bwrap"><div id="board"></div></div>
+  <div class="brow">
+    <button class="btn b-ok" onclick="checkAnswer()">✅ 回答する</button>
+    <button class="btn b-rs" onclick="resetBoard()">🔄 リセット</button>
+    <button class="btn b-gv" onclick="giveUp()">🏳 ギブアップ</button>
   </div>
-
-  <div class="btn-row">
-    <button class="btn btn-check" onclick="checkAnswer()">✅ 回答する</button>
-    <button class="btn btn-reset" onclick="resetBoard()">🔄 リセット</button>
-    <button class="btn btn-give"  onclick="giveUp()">🏳 ギブアップ</button>
-  </div>
-
-  <div id="message"></div>
-  <div class="footer">カタミノ Ver 2.0.0</div>
+  <div id="msg"></div>
+  <div class="footer">カタミノ Ver 5.0.0</div>
 </div>
-
-<!-- 正解オーバーレイ -->
-<div id="overlay">
-  <div id="overlay-card">
-    <h2>🎉 せいかい！</h2>
-    <img id="overlay-img" src="" alt="">
-    <p id="overlay-msg">すごい！ピースをぴったり はめたよ！</p>
-    <button class="btn btn-check" onclick="nextLevel()">つぎのレベル ➡</button>
-  </div>
-</div>
+<div id="ghost"></div>
+<div id="ov"><div id="ovc">
+  <div id="ov-stars">⭐⭐⭐</div>
+  <h2>🎉 せいかい！</h2>
+  <img id="ov-pk" src="" alt="">
+  <p id="ov-msg"></p>
+  <button class="btn b-ok" onclick="nextLevel()" style="font-size:14px;padding:10px 22px;">つぎへ ➡</button>
+</div></div>
 
 <script>
 // ============================================================
-//  ペンタミノ定義（各ピース: [row][col] の filled セル座標）
-//  5マスを使う本物のペンタミノ形状
+// ペンタミノ全12種
 // ============================================================
-const PENTOMINOES = [
-  // F
-  { name:'F', color:'#e74c3c', shape:[[0,1],[0,2],[1,0],[1,1],[2,1]] },
-  // I
-  { name:'I', color:'#3498db', shape:[[0,0],[1,0],[2,0],[3,0],[4,0]] },
-  // L
-  { name:'L', color:'#e67e22', shape:[[0,0],[1,0],[2,0],[3,0],[3,1]] },
-  // N
-  { name:'N', color:'#9b59b6', shape:[[0,1],[1,0],[1,1],[2,0],[3,0]] },
-  // P
-  { name:'P', color:'#1abc9c', shape:[[0,0],[0,1],[1,0],[1,1],[2,0]] },
-  // T
-  { name:'T', color:'#e91e63', shape:[[0,0],[0,1],[0,2],[1,1],[2,1]] },
-  // U
-  { name:'U', color:'#f39c12', shape:[[0,0],[0,2],[1,0],[1,1],[1,2]] },
-  // V
-  { name:'V', color:'#27ae60', shape:[[0,0],[1,0],[2,0],[2,1],[2,2]] },
-  // W
-  { name:'W', color:'#2980b9', shape:[[0,0],[1,0],[1,1],[2,1],[2,2]] },
-  // X
-  { name:'X', color:'#c0392b', shape:[[0,1],[1,0],[1,1],[1,2],[2,1]] },
-  // Y
-  { name:'Y', color:'#8e44ad', shape:[[0,1],[1,0],[1,1],[2,1],[3,1]] },
-  // Z
-  { name:'Z', color:'#16a085', shape:[[0,0],[0,1],[1,1],[2,1],[2,2]] },
-];
-
-// レベルごとに使うピースのインデックス（難易度順）
-const LEVELS = [
-  [4, 7, 11],             // L3: P, V, Z
-  [2, 3, 7, 11],          // L4: L, N, V, Z
-  [1, 2, 4, 7, 11],       // L5: I, L, P, V, Z
-  [0, 1, 2, 4, 7, 11],    // L6: + F
-  [0, 1, 2, 4, 6, 7, 11], // L7: + U
-  [0, 1, 2, 3, 4, 6, 7, 11], // L8
-  [0, 1, 2, 3, 4, 5, 6, 7, 11], // L9
-  [0, 1, 2, 3, 4, 5, 6, 7, 9, 11], // L10
-  [0,1,2,3,4,5,6,7,8,9,11], // L11
-  [0,1,2,3,4,5,6,7,8,9,10,11], // L12
+const PENTS=[
+  {name:'F',color:'#e74c3c',shape:[[0,1],[0,2],[1,0],[1,1],[2,1]]},
+  {name:'I',color:'#3498db',shape:[[0,0],[1,0],[2,0],[3,0],[4,0]]},
+  {name:'L',color:'#e67e22',shape:[[0,0],[1,0],[2,0],[3,0],[3,1]]},
+  {name:'J',color:'#c0392b',shape:[[0,1],[1,1],[2,1],[3,0],[3,1]]},
+  {name:'N',color:'#9b59b6',shape:[[0,1],[1,0],[1,1],[2,0],[3,0]]},
+  {name:'P',color:'#1abc9c',shape:[[0,0],[0,1],[1,0],[1,1],[2,0]]},
+  {name:'T',color:'#e91e63',shape:[[0,0],[0,1],[0,2],[1,1],[2,1]]},
+  {name:'U',color:'#f39c12',shape:[[0,0],[0,2],[1,0],[1,1],[1,2]]},
+  {name:'V',color:'#27ae60',shape:[[0,0],[1,0],[2,0],[2,1],[2,2]]},
+  {name:'W',color:'#2980b9',shape:[[0,0],[1,0],[1,1],[2,1],[2,2]]},
+  {name:'Y',color:'#8e44ad',shape:[[0,1],[1,0],[1,1],[2,1],[3,1]]},
+  {name:'Z',color:'#16a085',shape:[[0,0],[0,1],[1,1],[2,1],[2,2]]},
 ];
 
 // ============================================================
-//  グローバル状態
+// 形状ユーティリティ
 // ============================================================
-let level = 1;
-let COLS, ROWS = 5;
-let boardState = [];    // boardState[r][c] = pieceIndex or -1
-let pieces = [];        // { def, rotation, placed, boardCells }
-let draggingIdx = null;
-let dragShape = null;
-let pokemonSpriteUrl = '';
-
-// ============================================================
-//  PokeAPI
-// ============================================================
-async function fetchPokemon() {
-  const id = Math.floor(Math.random() * 151) + 1;
-  try {
-    const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    const d = await r.json();
-    const url = d.sprites.front_default;
-    document.getElementById('mascot').src = url;
-    pokemonSpriteUrl = url;
-  } catch { /* スプライトなしでも続行 */ }
+function normalize(s){
+  const mr=Math.min(...s.map(([r])=>r)),mc=Math.min(...s.map(([,c])=>c));
+  return s.map(([r,c])=>[r-mr,c-mc]);
+}
+function rot90(s){
+  const mr=Math.max(...s.map(([r])=>r));
+  return normalize(s.map(([r,c])=>[c,mr-r]));
+}
+function shapeKey(s){return normalize(s.map(p=>[...p])).map(p=>p.join()).sort().join('|');}
+function allRots(shape){
+  const seen=new Set(),res=[];
+  let cur=normalize(shape.map(p=>[...p]));
+  for(let i=0;i<4;i++){
+    const k=shapeKey(cur);
+    if(!seen.has(k)){seen.add(k);res.push(cur.map(p=>[...p]));}
+    cur=rot90(cur);
+  }
+  return res;
+}
+function getBounds(s){return{R:Math.max(...s.map(([r])=>r))+1,C:Math.max(...s.map(([,c])=>c))+1};}
+function getCurrentShape(idx){
+  let s=pieces[idx].def.shape.map(p=>[...p]);
+  for(let i=0;i<pieces[idx].rotation;i++) s=rot90(s);
+  return normalize(s);
 }
 
 // ============================================================
-//  初期化
+// バックトラッキングソルバー（正解保証）
+// 「最初の空きマス」を常に埋める戦略で探索
 // ============================================================
-function initLevel() {
-  const lv = Math.min(level, LEVELS.length);
-  COLS = 2 + lv;   // level1→3cols, level2→4cols ...
+function solve(ROWS,COLS,defs,timeLimit=1500){
+  const board=Array.from({length:ROWS},()=>Array(COLS).fill(-1));
+  const used=Array(defs.length).fill(false);
+  const deadline=Date.now()+timeLimit;
 
-  const pieceIndices = LEVELS[lv - 1];
-  COLS = pieceIndices.length + 2; // 実際にはピース数+2でちょうどになる設計
+  function firstEmpty(){
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c]===-1)return[r,c];
+    return null;
+  }
+  function canPlace(shape,br,bc){
+    return shape.every(([dr,dc])=>{
+      const nr=br+dr,nc=bc+dc;
+      return nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1;
+    });
+  }
+  function place(shape,br,bc,idx){shape.forEach(([dr,dc])=>{board[br+dr][bc+dc]=idx;});}
+  function unplace(shape,br,bc){shape.forEach(([dr,dc])=>{board[br+dr][bc+dc]=-1;});}
 
-  // 盤面をCOLS×5で確保
-  boardState = Array.from({length: ROWS}, () => Array(COLS).fill(-1));
+  function bt(){
+    if(Date.now()>deadline)return false;
+    const pos=firstEmpty();
+    if(!pos)return true;
+    const[r,c]=pos;
+    for(let i=0;i<defs.length;i++){
+      if(used[i])continue;
+      used[i]=true;
+      for(const rot of allRots(defs[i].shape)){
+        // rotの各セルをr,cに合わせる
+        for(const[dr,dc]of rot){
+          const adj=rot.map(([a,b])=>[a-dr,b-dc]);
+          if(canPlace(adj,r,c)){
+            place(adj,r,c,i);
+            if(bt())return true;
+            unplace(adj,r,c);
+          }
+        }
+      }
+      used[i]=false;
+    }
+    return false;
+  }
+  return bt() ? board.map(row=>[...row]) : null;
+}
 
-  // ピース状態初期化
-  pieces = pieceIndices.map(idx => ({
-    def:      PENTOMINOES[idx],
-    rotation: 0,
-    placed:   false,
-    boardCells: [],   // 置いたセルのインデックス
-  }));
+// ============================================================
+// 問題生成（解が存在するまでリトライ、Iのみ防止）
+// ============================================================
+const LEVEL_N=[3,3,4,4,5,5,6,7,8,9];
 
-  document.getElementById('level-label').textContent  = `Level ${level}`;
-  document.getElementById('area-label').textContent   = `エリア: ${COLS}×${ROWS}`;
-  document.getElementById('piece-count').textContent  = `ピース: ${pieces.length}個`;
+function generateProblem(n){
+  // shuffleしてn個選ぶ、Iが多すぎないようにする
+  for(let attempt=0;attempt<30;attempt++){
+    const pool=[...PENTS];
+    // シャッフル
+    for(let i=pool.length-1;i>0;i--){
+      const j=0|Math.random()*(i+1);
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    // 先頭n個（全種類異なる: poolはPENTS全12種なのでn≤12なら重複なし）
+    const defs=pool.slice(0,n);
+    // I字が過半数を占めていたらスキップ
+    const iCount=defs.filter(d=>d.name==='I').length;
+    if(iCount>1)continue;
+    const sol=solve(5,n,defs,1500);
+    if(sol)return{defs,sol};
+  }
+  // 最終フォールバック: P,V,Z (3個), P,V,Z,L (4個) 等、既知の解があるセット
+  const fallbacks=[
+    ['P','V','Z'],
+    ['P','V','Z','L'],
+    ['P','V','Z','L','I'],
+    ['P','V','Z','L','I','N'],
+    ['P','V','Z','L','I','N','T'],
+    ['P','V','Z','L','I','N','T','W'],
+    ['P','V','Z','L','I','N','T','W','F'],
+    ['P','V','Z','L','I','N','T','W','F','U'],
+  ];
+  const names=fallbacks[Math.min(n-3,fallbacks.length-1)];
+  const defs=names.map(nm=>PENTS.find(p=>p.name===nm));
+  const sol=solve(5,n,defs,3000);
+  if(sol)return{defs,sol};
+  // 究極フォールバック: I×n の縦置き
+  const idefs=Array.from({length:n},()=>PENTS[1]);
+  const isol=Array.from({length:5},(_,r)=>Array.from({length:n},(_,c)=>c));
+  return{defs:idefs,sol:isol};
+}
+
+// ============================================================
+// セルサイズをビューポートから計算（画面縦に収まるように）
+// ============================================================
+function calcCellSize(cols){
+  const vw=window.innerWidth;
+  const vh=window.innerHeight;
+  // 使える幅: カード max 520px, padding 24px, board padding 4px, gap(cols-1)*2
+  const maxW=Math.min(vw-24, 520-28);
+  const csFromW=Math.floor((maxW-(cols-1)*2-4)/cols);
+  // 使える高さ概算: vh - topbar(36) - h1(28) - mascot(58) - sb(36) - hint(46) - palette(60) - buttons(44) - msg(30) - footer(22) - padding(40)
+  const usedH=36+28+58+36+46+60+44+30+22+40;
+  const availH=vh-usedH;
+  const csFromH=Math.floor((availH-4*2-(5-1)*2)/5);
+  return Math.max(24, Math.min(csFromW,csFromH,48));
+}
+
+// ============================================================
+// グローバル状態
+// ============================================================
+const ROWS=5;
+let level=1;
+let COLS=3;
+let CS=40;
+let pieces=[];
+let boardState=[];
+let solutionBoard=null;
+let pokeSpriteUrl='';
+let pokeName='';
+
+// ドラッグ
+let dragIdx=null;
+let dragPointerId=null;
+
+// ============================================================
+// 初期化
+// ============================================================
+function initLevel(){
+  const lv=Math.min(level,LEVEL_N.length);
+  COLS=LEVEL_N[lv-1];
+  CS=calcCellSize(COLS);
+  document.documentElement.style.setProperty('--cs',CS+'px');
+
+  const {defs,sol}=generateProblem(COLS);
+  solutionBoard=sol;
+
+  pieces=defs.map((def,i)=>{
+    const solCells=[];
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(sol[r][c]===i) solCells.push([r,c]);
+    return{def,rotation:0,placed:false,solCells};
+  });
+
+  boardState=Array.from({length:ROWS},()=>Array(COLS).fill(-1));
+  dragIdx=null;
+  dragPointerId=null;
+
+  document.getElementById('lv-lbl').textContent=`Level ${level}`;
+  document.getElementById('ar-lbl').textContent=`エリア: ${COLS}×${ROWS}`;
+  document.getElementById('pc-lbl').textContent=`ピース: ${COLS}個`;
 
   renderBoard();
-  renderPieces();
-  setMessage('');
-  fetchPokemon();
+  renderPalette();
+  setMsg('','');
+  loadPokemon();
 }
 
 // ============================================================
-//  形状ユーティリティ
+// PokeAPI（失敗してもスプライトなしで続行）
 // ============================================================
-function rotateShape(shape) {
-  // 90度回転: (r,c) → (c, maxR - r)
-  const maxR = Math.max(...shape.map(([r])=>r));
-  return shape.map(([r,c]) => [c, maxR - r]);
-}
-
-function normalizeShape(shape) {
-  const minR = Math.min(...shape.map(([r])=>r));
-  const minC = Math.min(...shape.map(([_,c])=>c));
-  return shape.map(([r,c]) => [r-minR, c-minC]);
-}
-
-function getShape(piece) {
-  let s = piece.def.shape;
-  for (let i = 0; i < piece.rotation; i++) s = rotateShape(s);
-  return normalizeShape(s);
-}
-
-function shapeBounds(shape) {
-  return {
-    rows: Math.max(...shape.map(([r])=>r)) + 1,
-    cols: Math.max(...shape.map(([_,c])=>c)) + 1,
-  };
+async function loadPokemon(){
+  const id=Math.floor(Math.random()*151)+1;
+  const img=document.getElementById('mascot');
+  img.style.display='none';
+  try{
+    const res=await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    if(!res.ok)throw new Error();
+    const d=await res.json();
+    const url=d.sprites.front_default;
+    if(!url)throw new Error();
+    pokeSpriteUrl=url;
+    pokeName=d.name.toUpperCase();
+    img.onload=()=>{img.style.display='block';};
+    img.src=url;
+    document.getElementById('pkname').textContent=pokeName;
+  }catch{
+    pokeSpriteUrl='';
+    pokeName='';
+    document.getElementById('pkname').textContent='';
+  }
 }
 
 // ============================================================
-//  ボード描画
+// ボード描画
 // ============================================================
-function renderBoard() {
-  const board = document.getElementById('board');
-  board.style.gridTemplateColumns = `repeat(${COLS}, var(--cell))`;
-  board.style.gridTemplateRows    = `repeat(${ROWS}, var(--cell))`;
-  board.innerHTML = '';
-
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.r = r;
-      cell.dataset.c = c;
-
-      const pi = boardState[r][c];
-      if (pi !== -1) {
-        cell.style.background = pieces[pi].def.color;
-        cell.classList.add('placed');
-      }
-
-      // ドロップイベント
-      cell.addEventListener('dragover', onDragOver);
-      cell.addEventListener('drop',     onDrop);
-      cell.addEventListener('dragleave', onDragLeave);
-
+function renderBoard(){
+  const board=document.getElementById('board');
+  board.style.gridTemplateColumns=`repeat(${COLS},${CS}px)`;
+  board.style.gridTemplateRows=`repeat(${ROWS},${CS}px)`;
+  board.innerHTML='';
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const cell=document.createElement('div');
+      cell.className='cell';
+      cell.style.width=CS+'px';cell.style.height=CS+'px';
+      cell.dataset.r=r; cell.dataset.c=c;
+      const pi=boardState[r][c];
+      if(pi!==-1){cell.style.background=pieces[pi].def.color;cell.classList.add('placed');}
       board.appendChild(cell);
     }
   }
 }
 
 // ============================================================
-//  ピース描画
+// パレット描画
 // ============================================================
-function renderPieces() {
-  const area = document.getElementById('pieces-area');
-  area.innerHTML = '';
+function renderPalette(){
+  const pal=document.getElementById('palette');
+  pal.innerHTML='';
+  pieces.forEach((piece,idx)=>{
+    if(piece.placed)return;
+    const shape=getCurrentShape(idx);
+    const{R,C}=getBounds(shape);
+    const card=document.createElement('div');
+    card.className='pcard';
+    card.dataset.idx=idx;
 
-  pieces.forEach((piece, idx) => {
-    const shape = getShape(piece);
-    const { rows, cols } = shapeBounds(shape);
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'piece-wrapper' + (piece.placed ? ' used' : '');
-    wrapper.draggable = true;
-    wrapper.dataset.idx = idx;
-
-    // ミニグリッド
-    const grid = document.createElement('div');
-    grid.className = 'piece-grid';
-    grid.style.gridTemplateColumns = `repeat(${cols}, 16px)`;
-    grid.style.gridTemplateRows    = `repeat(${rows}, 16px)`;
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const cell = document.createElement('div');
-        const isFilled = shape.some(([sr,sc]) => sr===r && sc===c);
-        cell.className = 'p-cell ' + (isFilled ? 'filled' : 'empty');
-        if (isFilled) cell.style.background = piece.def.color;
-        grid.appendChild(cell);
-      }
+    const grid=document.createElement('div');
+    grid.className='pmini';
+    grid.style.gridTemplateColumns=`repeat(${C},12px)`;
+    grid.style.gridTemplateRows=`repeat(${R},12px)`;
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      const mc=document.createElement('div');
+      mc.className=shape.some(([sr,sc])=>sr===r&&sc===c)?'pm':'pm pm-e';
+      if(shape.some(([sr,sc])=>sr===r&&sc===c)) mc.style.background=piece.def.color;
+      grid.appendChild(mc);
     }
-    wrapper.appendChild(grid);
+    card.appendChild(grid);
 
-    // 回転ボタン
-    if (!piece.placed) {
-      const rb = document.createElement('button');
-      rb.className = 'rotate-btn';
-      rb.textContent = '🔄';
-      rb.title = '回転';
-      rb.addEventListener('click', (e) => {
-        e.stopPropagation();
-        pieces[idx].rotation = (pieces[idx].rotation + 1) % 4;
-        renderPieces();
-      });
-      wrapper.appendChild(rb);
-    }
-
-    // ドラッグ
-    wrapper.addEventListener('dragstart', (e) => {
-      draggingIdx = idx;
-      dragShape   = getShape(pieces[idx]);
-      wrapper.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
+    const rb=document.createElement('button');
+    rb.className='rbtn';
+    rb.textContent='↻';
+    rb.addEventListener('pointerdown',e=>{
+      e.stopPropagation();e.preventDefault();
+      if(dragIdx!==null)return;
+      pieces[idx].rotation=(pieces[idx].rotation+1)%4;
+      renderPalette();
     });
-    wrapper.addEventListener('dragend', () => {
-      draggingIdx = null;
-      dragShape   = null;
-      wrapper.classList.remove('dragging');
-      clearHighlights();
+    card.appendChild(rb);
+
+    // ドラッグ開始（pointerdown）
+    card.addEventListener('pointerdown',e=>{
+      if(e.target===rb)return;
+      e.preventDefault();
+      beginDrag(idx,e.pointerId,e.clientX,e.clientY);
     });
-
-    area.appendChild(wrapper);
+    pal.appendChild(card);
   });
 }
 
 // ============================================================
-//  ドラッグ＆ドロップ処理
+// ゴースト
 // ============================================================
-function getCellCoord(cell) {
-  return { r: parseInt(cell.dataset.r), c: parseInt(cell.dataset.c) };
+function showGhost(idx,cx,cy){
+  const ghost=document.getElementById('ghost');
+  const shape=getCurrentShape(idx);
+  const{R,C}=getBounds(shape);
+  const color=pieces[idx].def.color;
+  ghost.style.gridTemplateColumns=`repeat(${C},${CS}px)`;
+  ghost.style.gridTemplateRows=`repeat(${R},${CS}px)`;
+  ghost.innerHTML='';
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+    const mc=document.createElement('div');
+    const filled=shape.some(([sr,sc])=>sr===r&&sc===c);
+    mc.className=filled?'gm':'gm gm-e';
+    mc.style.width=CS+'px';mc.style.height=CS+'px';
+    if(filled)mc.style.background=color;
+    ghost.appendChild(mc);
+  }
+  ghost.style.display='grid';
+  posGhost(idx,cx,cy);
 }
 
-function onDragOver(e) {
+function posGhost(idx,cx,cy){
+  const ghost=document.getElementById('ghost');
+  const shape=getCurrentShape(idx);
+  const{R,C}=getBounds(shape);
+  ghost.style.left=(cx-C*CS/2)+'px';
+  ghost.style.top=(cy-R*CS/2)+'px';
+}
+
+function hideGhost(){
+  const g=document.getElementById('ghost');
+  g.style.display='none';
+  g.innerHTML='';
+}
+
+// ============================================================
+// ドラッグ開始
+// ============================================================
+function beginDrag(idx,pointerId,cx,cy){
+  if(dragIdx!==null)return;
+  dragIdx=idx;
+  dragPointerId=pointerId;
+  if(pieces[idx].placed){
+    removePieceFromBoard(idx);
+    renderBoard();
+  }
+  showGhost(idx,cx,cy);
+  setMsg('','');
+}
+
+// ============================================================
+// ハイライト
+// ============================================================
+function clearHL(){
+  document.querySelectorAll('#board .cell.can,.cell.cant').forEach(el=>el.classList.remove('can','cant'));
+}
+function highlight(cx,cy){
+  clearHL();
+  if(dragIdx===null)return;
+  const{r,c}=boardXY(cx,cy);
+  if(r<0)return;
+  const shape=getCurrentShape(dragIdx);
+  const{R,C}=getBounds(shape);
+  const br=r-Math.floor(R/2),bc=c-Math.floor(C/2);
+  const ok=canPlaceAt(shape,br,bc);
+  shape.forEach(([dr,dc])=>{
+    const el=document.querySelector(`#board .cell[data-r="${br+dr}"][data-c="${bc+dc}"]`);
+    if(el)el.classList.add(ok?'can':'cant');
+  });
+}
+
+function boardXY(cx,cy){
+  const rect=document.getElementById('board').getBoundingClientRect();
+  const x=cx-rect.left-2,y=cy-rect.top-2;
+  const cw=(rect.width-4)/COLS,ch=(rect.height-4)/ROWS;
+  const c=Math.floor(x/cw),r=Math.floor(y/ch);
+  if(r<0||r>=ROWS||c<0||c>=COLS)return{r:-1,c:-1};
+  return{r,c};
+}
+
+function canPlaceAt(shape,br,bc){
+  return shape.every(([dr,dc])=>{
+    const nr=br+dr,nc=bc+dc;
+    return nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&boardState[nr][nc]===-1;
+  });
+}
+
+// ============================================================
+// ドロップ
+// ============================================================
+function doDrop(cx,cy){
+  if(dragIdx===null)return;
+  clearHL();
+  const{r,c}=boardXY(cx,cy);
+  const shape=getCurrentShape(dragIdx);
+  const{R,C}=getBounds(shape);
+  const br=r-Math.floor(R/2),bc=c-Math.floor(C/2);
+  if(r>=0&&canPlaceAt(shape,br,bc)){
+    shape.forEach(([dr,dc])=>{boardState[br+dr][bc+dc]=dragIdx;});
+    pieces[dragIdx].placed=true;
+    renderBoard();
+    setMsg('','');
+    if(pieces.every(p=>p.placed))setTimeout(checkAnswer,100);
+  } else if(r>=0){
+    setMsg('そこには置けないよ！','ng');
+  }
+  dragIdx=null;
+  dragPointerId=null;
+  hideGhost();
+  renderPalette();
+}
+
+// ============================================================
+// グローバルポインタイベント（capture で確実に受け取る）
+// ============================================================
+document.addEventListener('pointermove',e=>{
+  if(dragIdx===null||e.pointerId!==dragPointerId)return;
   e.preventDefault();
-  if (draggingIdx === null || !dragShape) return;
-  const { r, c } = getCellCoord(e.currentTarget);
-  clearHighlights();
-  const ok = canPlace(dragShape, r, c);
-  dragShape.forEach(([dr, dc]) => {
-    const cell = getBoardCell(r+dr, c+dc);
-    if (cell) cell.classList.add(ok ? 'dragover' : 'highlight');
-  });
-}
+  posGhost(dragIdx,e.clientX,e.clientY);
+  highlight(e.clientX,e.clientY);
+},{passive:false,capture:true});
 
-function onDragLeave() {
-  clearHighlights();
-}
-
-function onDrop(e) {
+document.addEventListener('pointerup',e=>{
+  if(dragIdx===null||e.pointerId!==dragPointerId)return;
   e.preventDefault();
-  if (draggingIdx === null || !dragShape) return;
-  const { r, c } = getCellCoord(e.currentTarget);
-  clearHighlights();
+  doDrop(e.clientX,e.clientY);
+},{passive:false,capture:true});
 
-  if (!canPlace(dragShape, r, c)) {
-    showMessage('そこには置けないよ！', 'fail');
-    return;
+document.addEventListener('pointercancel',e=>{
+  if(dragIdx===null||e.pointerId!==dragPointerId)return;
+  dragIdx=null;dragPointerId=null;hideGhost();clearHL();renderPalette();
+},{capture:true});
+
+// ボード上の置いたピースをドラッグで持ち上げ
+document.getElementById('board').addEventListener('pointerdown',e=>{
+  if(dragIdx!==null)return;
+  const cell=e.target.closest('.cell');
+  if(!cell)return;
+  const r=parseInt(cell.dataset.r),c=parseInt(cell.dataset.c);
+  const pi=boardState[r][c];
+  if(pi===-1)return;
+  e.preventDefault();
+  e.stopPropagation();
+  beginDrag(pi,e.pointerId,e.clientX,e.clientY);
+  renderPalette();
+},{passive:false});
+
+// ============================================================
+// ピース除去
+// ============================================================
+function removePieceFromBoard(idx){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(boardState[r][c]===idx) boardState[r][c]=-1;
+  pieces[idx].placed=false;
+}
+
+// ============================================================
+// 回答チェック
+// ============================================================
+function checkAnswer(){
+  if(!pieces.every(p=>p.placed)){setMsg('まだ置いていないピースがあるよ！','info');return;}
+  if(boardState.some(row=>row.some(v=>v===-1))){setMsg('あいているマスがあるよ！','ng');return;}
+  showClear();
+}
+
+// ============================================================
+// 正解演出
+// ============================================================
+function showClear(){
+  playClearSound();
+  launchConfetti();
+  const img=document.getElementById('ov-pk');
+  if(pokeSpriteUrl){img.src=pokeSpriteUrl;img.style.display='block';}
+  else img.style.display='none';
+  document.getElementById('ov-msg').textContent=`レベル ${level} クリア！ すごい！`;
+  document.getElementById('ov').classList.add('show');
+}
+
+// Web Audio API でピコピコ効果音
+function playClearSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const notes=[523,659,784,1047]; // C5 E5 G5 C6
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='square';
+      osc.frequency.value=freq;
+      const t=ctx.currentTime+i*0.12;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.18,t+0.02);
+      gain.gain.linearRampToValueAtTime(0,t+0.1);
+      osc.start(t);osc.stop(t+0.15);
+    });
+  }catch{}
+}
+
+function launchConfetti(){
+  const colors=['#ffcb05','#e74c3c','#3498db','#2ecc71','#9b59b6','#f39c12','#1abc9c'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');
+    el.className='confetti';
+    el.style.cssText=`
+      left:${Math.random()*100}vw;
+      top:-10px;
+      background:${colors[i%colors.length]};
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${1.2+Math.random()*1.8}s;
+      animation-delay:${Math.random()*0.6}s;
+    `;
+    document.body.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove());
   }
-
-  // もし既に置いてあったら元の位置をクリア
-  if (pieces[draggingIdx].placed) {
-    removePieceFromBoard(draggingIdx);
-  }
-
-  // 盤面に配置
-  dragShape.forEach(([dr, dc]) => {
-    boardState[r+dr][c+dc] = draggingIdx;
-  });
-  pieces[draggingIdx].placed = true;
-
-  renderBoard();
-  renderPieces();
-  setMessage('');
-
-  // 全ピース配置済みなら自動チェック
-  if (pieces.every(p => p.placed)) checkAnswer();
-}
-
-function canPlace(shape, baseR, baseC) {
-  return shape.every(([dr, dc]) => {
-    const nr = baseR+dr, nc = baseC+dc;
-    return nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && boardState[nr][nc] === -1;
-  });
-}
-
-function removePieceFromBoard(idx) {
-  for (let r = 0; r < ROWS; r++)
-    for (let c = 0; c < COLS; c++)
-      if (boardState[r][c] === idx) boardState[r][c] = -1;
-  pieces[idx].placed = false;
-}
-
-function getBoardCell(r, c) {
-  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return null;
-  return document.querySelector(`#board .cell[data-r="${r}"][data-c="${c}"]`);
-}
-
-function clearHighlights() {
-  document.querySelectorAll('#board .cell.dragover, #board .cell.highlight')
-    .forEach(el => el.classList.remove('dragover','highlight'));
 }
 
 // ============================================================
-//  回答チェック
+// リセット
 // ============================================================
-function checkAnswer() {
-  // 全ピースが置かれているか
-  if (!pieces.every(p => p.placed)) {
-    showMessage('まだ置いていないピースがあるよ！', 'hint');
-    document.getElementById('game-container').classList.add('shake');
-    setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 400);
-    return;
-  }
-
-  // 全マスが埋まっているか
-  const allFilled = boardState.every(row => row.every(v => v !== -1));
-  if (!allFilled) {
-    showMessage('あいているマスがあるよ！', 'fail');
-    return;
-  }
-
-  // 🎉 正解！
-  const overlay = document.getElementById('overlay');
-  document.getElementById('overlay-img').src = pokemonSpriteUrl;
-  document.getElementById('overlay-msg').textContent =
-    `レベル ${level} クリア！ すごい！`;
-  overlay.classList.add('show');
-  overlay.querySelector('#overlay-card').classList.add('pop');
+function resetBoard(){
+  boardState=Array.from({length:ROWS},()=>Array(COLS).fill(-1));
+  pieces.forEach(p=>{p.placed=false;p.rotation=0;});
+  dragIdx=null;dragPointerId=null;
+  hideGhost();clearHL();
+  renderBoard();renderPalette();setMsg('','');
 }
 
 // ============================================================
-//  ギブアップ（解答表示）
+// ギブアップ
 // ============================================================
-function giveUp() {
-  if (!confirm('ギブアップしますか？\n答えを見ると次のレベルには進めません。')) return;
-
-  // 盤面をリセットして自動解を流し込む（簡易：アニメで色だけ埋める）
-  resetBoardState();
-  showMessage('ポケモンが教えてくれたよ！答えを見てね', 'hint');
-
-  // 簡易ウェーブアニメで全セルを彩色
-  const cells = document.querySelectorAll('#board .cell');
-  const colors = ['#e74c3c','#3498db','#e67e22','#9b59b6','#1abc9c','#f39c12','#27ae60'];
-  cells.forEach((cell, i) => {
-    setTimeout(() => {
-      cell.style.background = colors[i % colors.length];
-      cell.style.borderRadius = '0';
-    }, i * 30);
-  });
+function giveUp(){
+  if(!confirm('ギブアップしますか？'))return;
+  boardState=solutionBoard.map(row=>[...row]);
+  pieces.forEach(p=>p.placed=true);
+  dragIdx=null;dragPointerId=null;
+  hideGhost();clearHL();
+  renderBoard();renderPalette();
+  setMsg('これが答えだよ！👀','info');
 }
 
 // ============================================================
-//  リセット
+// 次のレベル
 // ============================================================
-function resetBoard() {
-  resetBoardState();
-  renderBoard();
-  renderPieces();
-  setMessage('');
-}
-
-function resetBoardState() {
-  boardState = Array.from({length: ROWS}, () => Array(COLS).fill(-1));
-  pieces.forEach(p => { p.placed = false; p.rotation = 0; });
-}
-
-// ============================================================
-//  次のレベル
-// ============================================================
-function nextLevel() {
-  document.getElementById('overlay').classList.remove('show');
+function nextLevel(){
+  document.getElementById('ov').classList.remove('show');
   level++;
-  if (level > LEVELS.length) level = 1;
+  if(level>LEVEL_N.length)level=1;
   initLevel();
 }
 
 // ============================================================
-//  メッセージ
+// メッセージ
 // ============================================================
-function setMessage(text, type='') {
-  const el = document.getElementById('message');
-  el.textContent = text;
-  el.className = type ? `${type}` : '';
-  if (text) el.id = 'message'; // force repaint for animation
-}
-
-function showMessage(text, type) {
-  setMessage(text, type);
-}
+function setMsg(t,type){const el=document.getElementById('msg');el.textContent=t;el.className=type||'';}
 
 // ============================================================
-//  スタート
+// リサイズ対応
+// ============================================================
+window.addEventListener('resize',()=>{
+  CS=calcCellSize(COLS);
+  document.documentElement.style.setProperty('--cs',CS+'px');
+  renderBoard();
+});
+
+// ============================================================
+// スタート
 // ============================================================
 initLevel();
 </script>
