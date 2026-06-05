@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <title>KATAMINO-カタミノ-</title>
     <style>
-        body { background-color: #fdf6e3; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Arial', sans-serif; }
-        #game-container { background: #fff; padding: 30px; border-radius: 30px; border: 5px solid #ffcb05; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 80%; max-width: 600px; }
-        h1 { color: #3b4cca; }
-        #board { display: grid; gap: 2px; margin: 20px auto; background: #ddd; border: 4px solid #333; width: fit-content; }
-        .cell { width: 40px; height: 40px; background: #fff; }
-        .filled { background-color: #ff9d5e; border-radius: 5px; }
-        .controls button { padding: 12px 25px; margin: 10px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; color: white; }
-        #check-btn { background: #33cc33; }
-        #giveup-btn { background: #ff4500; }
-        #back-btn { background: #aaa; }
-        canvas { position: fixed; top: 0; left: 0; pointer-events: none; }
+        body { background-color: #fdf6e3; font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; }
+        #game-container { background: #fff; padding: 20px; border-radius: 30px; border: 5px solid #ffcb05; margin-top: 20px; text-align: center; }
+        #board { display: grid; gap: 1px; background: #ddd; border: 3px solid #333; margin: 20px auto; }
+        .cell { width: 30px; height: 30px; background: #fff; }
+        #pieces-area { display: flex; justify-content: center; gap: 10px; margin: 20px; height: 60px; }
+        .piece { width: 50px; height: 50px; background: #448aff; cursor: grab; border-radius: 8px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 15px; cursor: pointer; color: white; font-weight: bold; margin: 5px; }
+        #confetti { position: fixed; top: 0; left: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -22,56 +19,62 @@
 <div id="game-container">
     <h1>KATAMINO-カタミノ-</h1>
     <div id="status">レベル 1</div>
+    <div id="pieces-area"></div>
     <div id="board"></div>
-    <div class="controls">
-        <button id="check-btn" onclick="checkAnswer()">回答合わせ</button>
-        <button id="giveup-btn" onclick="giveUp()">ギブアップ</button>
-        <button id="back-btn" onclick="location.reload()">戻る</button>
+    <div>
+        <button class="btn" style="background:#33cc33" onclick="checkAnswer()">回答合わせ</button>
+        <button class="btn" style="background:#ff4500" onclick="giveUp()">ギブアップ</button>
+        <button class="btn" style="background:#aaa" onclick="location.reload()">戻る</button>
     </div>
-    <div style="margin-top:20px; font-size: 12px; color: #888;">Version 1.2.0</div>
+    <div style="font-size:12px; color:#888; margin-top:10px;">Version 1.3.0</div>
 </div>
-
-<canvas id="confetti"></canvas>
 
 <script>
     let level = 1;
     const board = document.getElementById('board');
-    const status = document.getElementById('status');
+    const piecesArea = document.getElementById('pieces-area');
 
-    function createBoard() {
-        const cols = 3 + (level - 1);
-        board.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+    function initLevel() {
+        // レベル10を超えたらランダム
+        const currentLevel = level > 10 ? Math.floor(Math.random() * 10) + 1 : level;
+        document.getElementById('status').innerText = `レベル ${level} (現在: ${currentLevel})`;
+        
+        // ボード生成
+        const cols = 3 + (currentLevel - 1);
+        board.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
         board.innerHTML = '';
         for(let i=0; i<cols * 5; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
+            cell.ondragover = (e) => e.preventDefault();
+            cell.ondrop = (e) => cell.classList.add('filled');
             board.appendChild(cell);
         }
-        status.innerText = `レベル ${level}: このエリアをピースで埋めよう！`;
+
+        // ピース生成
+        piecesArea.innerHTML = '';
+        for(let i=0; i<currentLevel; i++) {
+            const p = document.createElement('div');
+            p.className = 'piece';
+            p.draggable = true;
+            piecesArea.appendChild(p);
+        }
     }
 
     function checkAnswer() {
-        alert("🎉 おめでとう！ポケモンゲットだぜ！ ✨");
-        if(level < 10) {
-            level++;
-            createBoard();
-        }
+        alert("🎉 ポケモンゲット！おめでとう！ ✨");
+        level++;
+        initLevel();
     }
 
     function giveUp() {
         const cells = document.querySelectorAll('.cell');
-        let i = 0;
-        const timer = setInterval(() => {
-            if(i < cells.length) {
-                cells[i].classList.add('filled');
-                i++;
-            } else {
-                clearInterval(timer);
-            }
-        }, 100);
+        cells.forEach((cell, i) => {
+            setTimeout(() => cell.style.backgroundColor = '#ff9d5e', i * 50);
+        });
     }
 
-    createBoard();
+    initLevel();
 </script>
 </body>
 </html>
