@@ -138,7 +138,7 @@ h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
   <span class="ver">Ver 6.0.0</span>
 </div>
 <div id="gc">
-  <!-- タイトル行（ポケモンを両脇に） -->
+  <!-- タイトル行　-->
   <div id="title-row">
     <h1>🧩 <span>カタミノ</span></h1>
   </div>
@@ -150,9 +150,11 @@ h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
   </div>
   <div id="hint">ドラッグで置く・タップで回転！<br>枠からはみ出して置いてもOK 👌</div>
   <div id="palette"></div>
-  <div class="pk-side left"><img class="pk-sprite" id="pk-l" src="" alt=""></div>
-  <div id="bwrap"><div id="board"></div></div>
-  <div class="pk-side right"><img class="pk-sprite" id="pk-r" src="" alt=""></div>
+  <div id="bwrap">
+    <div class="pk-side left"><img class="pk-sprite" id="pk-l" src="" alt=""></div>
+    <div id="board"></div>
+    <div class="pk-side right"><img class="pk-sprite" id="pk-r" src="" alt=""></div>
+  </div>
   <div class="brow">
     <button class="btn b-ok" onclick="checkAnswer()">✅ 回答する</button>
     <button class="btn b-rs" onclick="resetBoard()">🔄 リセット</button>
