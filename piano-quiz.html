@@ -2,70 +2,109 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ポケモンピアノマスター ステージ選択</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ポケモンピアノマスター</title>
     <style>
-        .stage-map { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; }
-        .stage-btn { padding: 20px; background: var(--yellow); border-radius: 15px; cursor: pointer; font-weight: bold; }
-        .hidden { display: none; }
+        :root { --yellow: #ffcb05; --blue: #3b5bdb; --bg: #fdf6e3; --card: #fff; --text: #1a1a2e; }
+        body { background: var(--bg); font-family: 'Arial', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        #gc { background: var(--card); border: 4px solid var(--yellow); border-radius: 24px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; }
+        .screen { display: none; }
+        .active { display: block; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .btn { padding: 15px; background: var(--yellow); border: 2px solid var(--text); border-radius: 15px; cursor: pointer; font-weight: 800; }
+        .piano { display: flex; justify-content: center; margin: 20px 0; }
+        .key { width: 40px; height: 100px; border: 1px solid #333; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; cursor: pointer; background: white; }
+        .key.black { background: #333; color: white; width: 30px; height: 60px; margin: 0 -15px; z-index: 2; }
+        .confetti { position: fixed; pointer-events: none; z-index: 1000; animation: fall 1s linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div id="gc">
-    <div id="map-screen" class="stage-map">
-        <div class="stage-btn" onclick="startStage(1)">ステージ1<br>黒鍵の森</div>
-        <div class="stage-btn" onclick="startStage(2)">ステージ2<br>ドの隠れ家</div>
-        <div class="stage-btn" onclick="startStage(3)">ステージ3<br>指のダンス</div>
-        <div class="stage-btn" onclick="startStage(4)">ステージ4<br>ドレミの階段</div>
-        <div class="stage-btn" onclick="startStage(5)">ステージ5<br>音のかくれんぼ</div>
+    <div id="screen-map" class="screen active">
+        <h1>ポケモンピアノマスター</h1>
+        <p>ステージをえらんでね！</p>
+        <div class="grid" id="stage-grid"></div>
     </div>
 
-    <div id="game-screen" class="hidden">
-        <h2 id="stage-title">ステージ名</h2>
-        <div id="instruction">指示が表示されます</div>
-        <div id="piano-container"></div>
-        <button class="btn" onclick="goBackToMap()">マップにもどる</button>
+    <div id="screen-game" class="screen">
+        <h2 id="stage-title">ステージ</h2>
+        <div id="instruction" style="font-weight:bold; margin-bottom:10px;"></div>
+        <div class="piano" id="keyboard"></div>
+        <button class="btn" onclick="backToMap()">もどる</button>
     </div>
 </div>
 
 <script>
-    let currentStage = 0;
+    const stages = [
+        { id: 1, name: "黒鍵の森", desc: "2つのお山をタッチ！" },
+        { id: 2, name: "ドの隠れ家", desc: "「ド」の扉をノック！" },
+        { id: 3, name: "指のダンス", desc: "指をパタパタ！" },
+        { id: 4, name: "階段のぼり", desc: "高い音へ進もう！" },
+        { id: 5, name: "音のかくれんぼ", desc: "お隣さんはどこ？" }
+    ];
 
-    function startStage(stageNum) {
-        currentStage = stageNum;
-        document.getElementById('map-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
-        renderStageContent(stageNum);
+    // 初期化
+    function init() {
+        const grid = document.getElementById('stage-grid');
+        stages.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'btn';
+            div.innerText = s.name;
+            div.onclick = () => startStage(s);
+            grid.appendChild(div);
+        });
     }
 
-    function renderStageContent(stageNum) {
-        const piano = document.getElementById('piano-container');
-        piano.innerHTML = '';
-        
-        switch(stageNum) {
-            case 1:
-                document.getElementById('stage-title').innerText = "黒鍵の森";
-                document.getElementById('instruction').innerText = "2つのお山を全部タッチしてね！";
-                // ステージ1専用の鍵盤レンダリング
-                createKeyboardForStage1(piano);
-                break;
-            case 2:
-                // ドの隠れ家（もぐら叩きロジック）
-                break;
-            // ... 他のステージも同様に追加
+    function startStage(stage) {
+        document.getElementById('screen-map').classList.remove('active');
+        document.getElementById('screen-game').classList.add('active');
+        document.getElementById('stage-title').innerText = stage.name;
+        document.getElementById('instruction').innerText = stage.desc;
+        renderKeyboard();
+    }
+
+    function backToMap() {
+        document.getElementById('screen-game').classList.remove('active');
+        document.getElementById('screen-map').classList.add('active');
+    }
+
+    function renderKeyboard() {
+        const kb = document.getElementById('keyboard');
+        kb.innerHTML = '';
+        const notes = ["ド", "ド#", "レ", "レ#", "ミ", "ファ", "ファ#", "ソ", "ソ#", "ラ", "ラ#", "シ"];
+        notes.forEach((n, i) => {
+            const div = document.createElement('div');
+            div.className = 'key ' + (n.includes('#') ? 'black' : '');
+            div.innerText = n;
+            div.onclick = () => handleInput(n);
+            kb.appendChild(div);
+        });
+    }
+
+    function handleInput(note) {
+        if (note === "ド") {
+            triggerSuccess();
+        } else {
+            alert("おしい！こっちのお山だよ！");
         }
     }
 
-    function goBackToMap() {
-        document.getElementById('map-screen').classList.remove('hidden');
-        document.getElementById('game-screen').classList.add('hidden');
+    function triggerSuccess() {
+        alert("せいかい！メダルをゲットしたよ！");
+        for(let i=0; i<30; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti';
+            el.style.left = Math.random()*100 + 'vw';
+            el.style.background = 'gold';
+            el.style.width = '10px'; el.style.height = '10px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
     }
 
-    // ステージ1: 2つ並びの黒鍵を判定するロジック例
-    function createKeyboardForStage1(container) {
-        // 黒鍵を「2つグループ」か「3つグループ」かデータとして保持
-        // タップ時に「正解ならキラキラ＋動物出現」の演出を紐付け
-    }
+    init();
 </script>
 </body>
 </html>
