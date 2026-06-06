@@ -2,381 +2,106 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ピアノマスター - 1オクターブ挑戦版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ピアノマスター・ポケモン版</title>
     <style>
-        :root {
-            --primary-color: #e91e63;
-            --bg-color: #fce4ec;
-            --card-bg: #ffffff;
-            --text-color: #424242;
-        }
-
-        body {
-            margin: 0;
-            padding: 15px;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .quiz-container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-            box-sizing: border-box;
-            text-align: center;
-        }
-
-        .header-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
-            font-weight: bold;
-            color: #888;
-        }
-
-        .version-tag {
-            background-color: #f0f0f0;
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-size: 11px;
-        }
-
-        .score-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .combo-counter {
-            flex: 1;
-            background-color: #ff80ab;
-            color: white;
-            padding: 6px 8px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .best-counter {
-            flex: 1;
-            background-color: #ffb300;
-            color: white;
-            padding: 6px 8px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .title {
-            color: var(--primary-color);
-            font-size: 22px;
-            margin: 5px 0 15px 0;
-            font-weight: bold;
-        }
-
-        .question-box {
-            background: #fafafa;
-            border: 2px solid #f0f0f0;
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .question-text {
-            font-size: 20px;
-            font-weight: bold;
-            line-height: 1.8;
-        }
-
-        .target-sound {
-            font-size: 32px;
-            color: var(--primary-color);
-            background: #fff0f5;
-            padding: 2px 20px;
-            border-radius: 12px;
-            border: 2px dashed #ff80ab;
-            display: inline-block;
-            margin: 5px 0;
-        }
-
-        /* ーーー 鍵盤（1オクターブ専用スリムデザイン） ーーー */
-        .piano-wrapper {
-            width: 100%;
-            padding: 10px 0;
-            margin-bottom: 15px;
-            background: #222;
-            border-radius: 12px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-        }
-
-        .piano-keyboard {
-            display: flex;
-            position: relative;
-            width: max-content;
-            margin: 0 auto;
-            padding: 5px 10px 15px 10px;
-        }
-
-        /* 白鍵（はっけん）: 7枚がきれいに収まるサイズ */
-        .white-key {
-            width: 54px;
-            height: 180px;
-            background: linear-gradient(to bottom, #eeeeee 0%, #ffffff 100%);
-            border: 1px solid #bbb;
-            border-radius: 0 0 6px 6px;
-            box-sizing: border-box;
-            cursor: pointer;
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 4px 2px rgba(0,0,0,0.15);
-            transition: background 0.1s;
-        }
-
-        /* 黒鍵（こくけん）レイヤー */
-        .black-keys-overlay {
-            position: absolute;
-            top: 5px;
-            left: 10px;
-            display: flex;
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .black-key {
-            width: 32px;
-            height: 110px;
-            background: linear-gradient(to bottom, #444444 0%, #000000 100%);
-            border-radius: 0 0 4px 4px;
-            box-shadow: 0 3px 3px rgba(0,0,0,0.4);
-            box-sizing: border-box;
-            margin-left: 22px; 
-            flex-shrink: 0;
-        }
-
-        /* 黒鍵がない場所（ミ〜ファの間） */
-        .black-gap {
-            width: 32px;
-            margin-left: 22px;
-            visibility: hidden;
-            flex-shrink: 0;
-        }
-
-        /* フラッシュ演出 */
-        .white-key.correct-flash {
-            background: #a5d6a7 !important;
-        }
-        .white-key.wrong-flash {
-            background: #ef9a9a !important;
-        }
-
-        /* フィードバック */
-        .feedback {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 15px 0;
-            min-height: 30px;
-        }
-        .correct { color: #4caf50; }
-        .incorrect { color: #f44336; }
-
-        .next-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 14px 40px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #c2185b;
-            display: none;
-        }
-        .next-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #c2185b;
-        }
-
-        ruby { ruby-position: over; }
-        rt { font-size: 0.55em; color: #e91e63; }
+        :root { --primary-color: #e91e63; --bg-color: #fce4ec; }
+        body { margin: 0; padding: 10px; font-family: sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; min-height: 100vh; }
+        .quiz-container { width: 100%; max-width: 500px; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; }
+        .header-info { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 10px; }
+        .piano-keyboard { display: flex; justify-content: center; margin: 20px 0; touch-action: manipulation; }
+        .white-key { width: 40px; height: 120px; background: white; border: 1px solid #ccc; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; font-weight: bold; }
+        .white-key:active { background: #ffeb3b; }
+        .target-box { font-size: 24px; margin: 20px 0; padding: 20px; background: #fff0f5; border-radius: 15px; }
+        .btn { padding: 10px 20px; border-radius: 20px; border: none; background: #e91e63; color: white; font-weight: bold; cursor: pointer; margin: 5px; }
+        ruby rt { font-size: 0.6em; }
     </style>
 </head>
 <body>
 
 <div class="quiz-container">
     <div class="header-info">
-        <span id="question-number">第 1 問</span>
-        <span class="version-tag">ピアノ学習クイズ ver 1.2.0</span>
+        <span>ver 2.0.0</span>
+        <button onclick="alert('ただいま開発中！')">戻る</button>
+    </div>
+    
+    <div class="title">🎹 <ruby>絶対音感<rt>ぜったいおんかん</rt></ruby>ポケモンマスター</div>
+    
+    <div class="target-box" id="question-area">
+        <ruby>音<rt>おと</rt></ruby>を<ruby>聞<rt>き</rt></ruby>いて、<ruby>鍵盤<rt>けんばん</rt></ruby>を<ruby>押<rt>お</rt></ruby>そう！
     </div>
 
-    <div class="score-container">
-        <div class="combo-counter" id="combo-display">れんぞくせいかい: 0 もん</div>
-        <div class="best-counter" id="best-display">👑 さいこうきろく: 0 もん</div>
-    </div>
+    <div class="piano-keyboard" id="keyboard"></div>
 
-    <div class="title">🎹 ピアノマスター</div>
-
-    <div class="question-box">
-        <div class="question-text">
-            ピアノの <span class="target-sound" id="target-sound-text">??</span> はどこかな？<br>
-            <ruby>正<rt>ただ</rt></ruby>しい<ruby>鍵盤<rt>けんばん</rt></ruby>を <strong>ポン！</strong> と<ruby>押<rt>お</rt></ruby>してみよう！
-        </div>
-    </div>
-
-    <div class="piano-wrapper">
-        <div class="piano-keyboard" id="piano-keyboard">
-            </div>
-    </div>
-
-    <div class="feedback" id="feedback-text"></div>
-    <button class="next-btn" id="next-btn" onclick="nextQuestion()">つぎのもんだいへ！</button>
+    <div id="status"></div>
+    <button class="btn" id="next-btn" style="display:none;" onclick="playNextQuestion()">つぎのポケモンへ！</button>
 </div>
 
 <script>
-    // 1. 【仕様変更】初心者向けに「基本の1オクターブ（7音）」に固定
-    const ONE_OCTAVE_KEYS = [
-        { id: 0, name: "ド",   hasBlackRight: true },
-        { id: 1, name: "レ",   hasBlackRight: true },
-        { id: 2, name: "ミ",   hasBlackRight: false }, // ミの右は黒鍵なし
-        { id: 3, name: "ファ", hasBlackRight: true },
-        { id: 4, name: "ソ",   hasBlackRight: true },
-        { id: 5, name: "ラ",   hasBlackRight: true },
-        { id: 6, name: "シ",   hasBlackRight: false }  // シの右は黒鍵なし
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [
+        { name: "ド", freq: 261.63 }, { name: "レ", freq: 293.66 }, { name: "ミ", freq: 329.63 },
+        { name: "ファ", freq: 349.23 }, { name: "ソ", freq: 392.00 }, { name: "ラ", freq: 440.00 }, { name: "シ", freq: 493.88 }
     ];
 
-    let questionCount = 1;
-    let currentCombo = 0;
-    let bestCombo = 0;
-    let currentTargetKey = null;
-    let isAnswered = false;
+    let currentTarget = null;
+    let difficulty = 1; // 正解数に応じて難易度が上がる
 
-    // 2. 記録保存（localStorage）の読み込み
-    function loadHighScore() {
-        const savedBest = localStorage.getItem("piano_best_combo");
-        if (savedBest !== null) {
-            bestCombo = parseInt(savedBest, 10);
-        } else {
-            bestCombo = 0;
-        }
-        document.getElementById("best-display").innerText = `👑 さいこうきろく: ${bestCombo} もん`;
+    function playTone(freq, duration = 0.5) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
     }
 
-    // 3. 1オクターブ専用の鍵盤をぴったりサイズで描画
-    function initPiano() {
-        const keyboardContainer = document.getElementById("piano-keyboard");
-        keyboardContainer.innerHTML = "";
-
-        const blackOverlay = document.createElement("div");
-        blackOverlay.className = "black-keys-overlay";
-
-        let isFirstBlack = true;
-
-        ONE_OCTAVE_KEYS.forEach((key) => {
-            // 白鍵の生成
-            const whiteDOM = document.createElement("div");
-            whiteDOM.className = "white-key";
-            whiteDOM.dataset.id = key.id;
-            whiteDOM.onclick = () => handleKeyClick(key.id, whiteDOM);
-            keyboardContainer.appendChild(whiteDOM);
-
-            // 黒鍵の配置
-            if (key.id < ONE_OCTAVE_KEYS.length - 1) {
-                if (key.hasBlackRight) {
-                    const blackDOM = document.createElement("div");
-                    blackDOM.className = "black-key";
-                    if (isFirstBlack) {
-                        blackDOM.style.marginLeft = "36px"; // ドの上の黒鍵の初期ズレ
-                        isFirstBlack = false;
-                    }
-                    blackOverlay.appendChild(blackDOM);
-                } else {
-                    const gapDOM = document.createElement("div");
-                    gapDOM.className = "black-gap";
-                    blackOverlay.appendChild(gapDOM);
-                }
-            }
+    // 正解時の派手な音（ポケモンゲット音のイメージ）
+    function playVictorySound() {
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+            setTimeout(() => playTone(f, 0.3), i * 150);
         });
-
-        keyboardContainer.appendChild(blackOverlay);
     }
 
-    // クイズを出題
-    function loadQuiz() {
-        isAnswered = false;
-        document.getElementById("next-btn").style.display = "none";
-        document.getElementById("feedback-text").innerHTML = "";
-        document.getElementById("question-number").innerText = `第 ${questionCount} 問`;
-
-        // 全鍵盤の色をリセット
-        const keys = document.querySelectorAll(".white-key");
-        keys.forEach(k => k.className = "white-key");
-
-        // 7音の中からランダムに出題
-        currentTargetKey = ONE_OCTAVE_KEYS[Math.floor(Math.random() * ONE_OCTAVE_KEYS.length)];
-        document.getElementById("target-sound-text").innerText = currentTargetKey.name;
+    function init() {
+        const kb = document.getElementById('keyboard');
+        notes.forEach(n => {
+            const div = document.createElement('div');
+            div.className = 'white-key';
+            div.innerText = n.name;
+            div.onclick = () => checkAnswer(n);
+            kb.appendChild(div);
+        });
+        playNextQuestion();
     }
 
-    // タップ判定と連続記録の更新処理
-    function handleKeyClick(clickedId, element) {
-        if (isAnswered) return;
-        isAnswered = true;
+    function playNextQuestion() {
+        // 難易度調整：レベルが上がると音の長さが短くなる
+        const duration = Math.max(0.1, 0.6 - (difficulty * 0.05));
+        currentTarget = notes[Math.floor(Math.random() * notes.length)];
+        document.getElementById('question-area').innerHTML = "🎶 この<ruby>音<rt>おと</rt></ruby>はどれかな？";
+        document.getElementById('next-btn').style.display = 'none';
+        
+        setTimeout(() => playTone(currentTarget.freq, duration), 500);
+    }
 
-        const feedbackEl = document.getElementById("feedback-text");
-        const correctElement = document.querySelector(`.white-key[data-id="${currentTargetKey.id}"]`);
-
-        if (clickedId === currentTargetKey.id) {
-            // 正解
-            currentCombo++;
-            element.classList.add("correct-flash");
-            feedbackEl.innerHTML = "<span class='correct'>✨ せいかい！ 正しい場所をおせたね！</span>";
-
-            // 最高連続記録の更新チェック
-            if (currentCombo > bestCombo) {
-                bestCombo = currentCombo;
-                localStorage.setItem("piano_best_combo", bestCombo); // ブラウザにセーブ
-                document.getElementById("best-display").innerText = `👑 さいこうきろく: ${bestCombo} もん`;
-            }
+    function checkAnswer(note) {
+        if (note.name === currentTarget.name) {
+            difficulty++;
+            playVictorySound();
+            document.getElementById('status').innerHTML = "✨ せいかい！ゲットだぜ！";
+            document.getElementById('next-btn').style.display = 'inline-block';
         } else {
-            // 不正解（連続記録ストップ）
-            currentCombo = 0;
-            element.classList.add("wrong-flash");
-            correctElement.classList.add("correct-flash"); // 正解の場所を教えてあげる
-            feedbackEl.innerHTML = `<span class='incorrect'>❌ ざんねん！ 正しい「${currentTargetKey.name}」の場所はみどりのところだよ！</span>`;
+            document.getElementById('status').innerHTML = "❌ ざんねん！もういちどきいてみて！";
+            playTone(note.freq, 0.3);
         }
-
-        // 画面のコンボ数を更新
-        document.getElementById("combo-display").innerText = `れんぞくせいかい: ${currentCombo} もん`;
-        document.getElementById("next-btn").style.display = "inline-block";
     }
 
-    // つぎの問題へ
-    function nextQuestion() {
-        questionCount++;
-        loadQuiz();
-    }
-
-    // 起動時処理
-    window.onload = () => {
-        loadHighScore();
-        initPiano();
-        loadQuiz();
-    };
+    init();
 </script>
-
 </body>
 </html>
