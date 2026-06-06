@@ -6,17 +6,17 @@
     <title>ポケモンピアノマスター</title>
     <style>
         :root { --yellow: #ffcb05; --blue: #3b5bdb; --bg: #fdf6e3; --card: #fff; --text: #1a1a2e; }
-        body { background: var(--bg); font-family: 'Arial', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        body { background: var(--bg); font-family: 'Nunito', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; padding: 10px; }
         #gc { background: var(--card); border: 4px solid var(--yellow); border-radius: 24px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; }
         .screen { display: none; }
         .active { display: block; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .btn { padding: 15px; background: var(--yellow); border: 2px solid var(--text); border-radius: 15px; cursor: pointer; font-weight: 800; }
-        .piano { display: flex; justify-content: center; margin: 20px 0; }
-        .key { width: 40px; height: 100px; border: 1px solid #333; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; cursor: pointer; background: white; }
-        .key.black { background: #333; color: white; width: 30px; height: 60px; margin: 0 -15px; z-index: 2; }
-        .confetti { position: fixed; pointer-events: none; z-index: 1000; animation: fall 1s linear forwards; }
-        @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
+        /* 問題表示エリア */
+        #question-box { background: #e3f2fd; border: 2px solid var(--blue); border-radius: 15px; padding: 15px; margin: 15px 0; font-size: 18px; font-weight: bold; }
+        .piano { display: flex; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+        .key { width: 45px; height: 90px; border: 1px solid #333; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; cursor: pointer; background: white; font-weight: bold; }
+        .key.black { background: #333; color: white; width: 35px; height: 60px; margin: 0 -17px; z-index: 2; }
     </style>
 </head>
 <body>
@@ -29,29 +29,28 @@
     </div>
 
     <div id="screen-game" class="screen">
-        <h2 id="stage-title">ステージ</h2>
-        <div id="instruction" style="font-weight:bold; margin-bottom:10px;"></div>
+        <h2 id="stage-title"></h2>
+        <div id="question-box"></div>
         <div class="piano" id="keyboard"></div>
-        <button class="btn" onclick="backToMap()">もどる</button>
+        <button class="btn" onclick="backToMap()">⬅ もどる</button>
     </div>
 </div>
 
 <script>
     const stages = [
-        { id: 1, name: "黒鍵の森", desc: "2つのお山をタッチ！" },
-        { id: 2, name: "ドの隠れ家", desc: "「ド」の扉をノック！" },
-        { id: 3, name: "指のダンス", desc: "指をパタパタ！" },
-        { id: 4, name: "階段のぼり", desc: "高い音へ進もう！" },
-        { id: 5, name: "音のかくれんぼ", desc: "お隣さんはどこ？" }
+        { id: 1, title: "黒鍵の森", task: "「2つのお山（黒鍵）」を全部タッチしてね！" },
+        { id: 2, title: "ドの隠れ家", task: "「2つのお山」の左にある「ド」をタッチ！" },
+        { id: 3, title: "指のダンス", task: "「1」が出たら親指をタッチしてね！" },
+        { id: 4, title: "階段のぼり", task: "「ド・レ・ミ」の順番にタッチしてね！" },
+        { id: 5, title: "音のかくれんぼ", task: "「ド」のとなり（レ）をタッチしてね！" }
     ];
 
-    // 初期化
     function init() {
         const grid = document.getElementById('stage-grid');
         stages.forEach(s => {
             const div = document.createElement('div');
             div.className = 'btn';
-            div.innerText = s.name;
+            div.innerText = s.title;
             div.onclick = () => startStage(s);
             grid.appendChild(div);
         });
@@ -60,48 +59,30 @@
     function startStage(stage) {
         document.getElementById('screen-map').classList.remove('active');
         document.getElementById('screen-game').classList.add('active');
-        document.getElementById('stage-title').innerText = stage.name;
-        document.getElementById('instruction').innerText = stage.desc;
+        document.getElementById('stage-title').innerText = stage.title;
+        document.getElementById('question-box').innerText = stage.task;
         renderKeyboard();
-    }
-
-    function backToMap() {
-        document.getElementById('screen-game').classList.remove('active');
-        document.getElementById('screen-map').classList.add('active');
     }
 
     function renderKeyboard() {
         const kb = document.getElementById('keyboard');
         kb.innerHTML = '';
         const notes = ["ド", "ド#", "レ", "レ#", "ミ", "ファ", "ファ#", "ソ", "ソ#", "ラ", "ラ#", "シ"];
-        notes.forEach((n, i) => {
+        notes.forEach(n => {
             const div = document.createElement('div');
             div.className = 'key ' + (n.includes('#') ? 'black' : '');
             div.innerText = n;
-            div.onclick = () => handleInput(n);
+            div.onclick = () => {
+                // ここで各ステージの正解判定ロジックを入れる
+                alert(n + " だね！その調子！");
+            };
             kb.appendChild(div);
         });
     }
 
-    function handleInput(note) {
-        if (note === "ド") {
-            triggerSuccess();
-        } else {
-            alert("おしい！こっちのお山だよ！");
-        }
-    }
-
-    function triggerSuccess() {
-        alert("せいかい！メダルをゲットしたよ！");
-        for(let i=0; i<30; i++) {
-            const el = document.createElement('div');
-            el.className = 'confetti';
-            el.style.left = Math.random()*100 + 'vw';
-            el.style.background = 'gold';
-            el.style.width = '10px'; el.style.height = '10px';
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1000);
-        }
+    function backToMap() {
+        document.getElementById('screen-game').classList.remove('active');
+        document.getElementById('screen-map').classList.add('active');
     }
 
     init();
