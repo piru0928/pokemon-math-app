@@ -32,13 +32,25 @@ body{
   box-shadow:0 4px 20px rgba(0,0,0,.08);flex-shrink:0;
 }
 
-/* ===== タイトル ===== */
+/* ===== タイトル + ポケモン ===== */
 #title-row{
   position:relative;display:flex;align-items:center;justify-content:center;
   height:56px;margin-bottom:6px;
 }
 h1{font-size:20px;font-weight:900;color:var(--text);line-height:1;}
 h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
+
+.pk-side{
+  position:absolute;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:center;
+}
+.pk-side.left{left:0;}
+.pk-side.right{right:0;}
+
+.pk-sprite{
+  width:52px;height:52px;image-rendering:pixelated;
+  object-fit:contain;display:none; /* ロード後に表示 */
+}
 /* 左右で走るアニメ */
 @keyframes runL{0%,100%{transform:translateX(0) scaleX(1)}50%{transform:translateX(4px) scaleX(1)}}
 @keyframes runR{0%,100%{transform:translateX(0) scaleX(-1)}50%{transform:translateX(-4px) scaleX(-1)}}
@@ -75,25 +87,13 @@ h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
 .pm{width:12px;height:12px;border-radius:2px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.2);}
 .pm-e{background:transparent!important;box-shadow:none!important;}
 
-/* ===== ボード + ポケモン ===== */
+/* ===== ボード ===== */
 #bwrap{display:flex;justify-content:center;margin-bottom:8px;overflow:visible;}
 #board{display:grid;border:3px solid #333;border-radius:6px;background:#b0b8e8;gap:2px;padding:2px;touch-action:none;}
 .cell{background:#eef0ff;border-radius:4px;transition:background .06s;}
 .cell.placed{border-radius:2px;}
 .cell.can{background:#c8e6c9!important;}
 .cell.cant{background:#ffcdd2!important;}
-
-.pk-side{
-  position:absolute;top:50%;transform:translateY(-50%);
-  display:flex;flex-direction:column;align-items:center;
-}
-.pk-side.left{}
-.pk-side.right{}
-
-.pk-sprite{
-  width:100px;height:100px;image-rendering:pixelated;
-  object-fit:contain;display:none; /* ロード後に表示 */
-}
 
 /* ===== ゴースト ===== */
 #ghost{
@@ -138,9 +138,11 @@ h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
   <span class="ver">Ver 6.0.0</span>
 </div>
 <div id="gc">
-  <!-- タイトル行　-->
+  <!-- タイトル行（ポケモンを両脇に） -->
   <div id="title-row">
+    <div class="pk-side left"><img class="pk-sprite" id="pk-l" src="" alt=""></div>
     <h1>🧩 <span>カタミノ</span></h1>
+    <div class="pk-side right"><img class="pk-sprite" id="pk-r" src="" alt=""></div>
   </div>
 
   <div id="sb">
@@ -150,11 +152,7 @@ h1 span{color:var(--yellow);-webkit-text-stroke:1px var(--text);}
   </div>
   <div id="hint">ドラッグで置く・タップで回転！<br>枠からはみ出して置いてもOK 👌</div>
   <div id="palette"></div>
-  <div id="bwrap">
-    <div class="pk-side left"><img class="pk-sprite" id="pk-l" src="" alt=""></div>
-    <div id="board"></div>
-    <div class="pk-side right"><img class="pk-sprite" id="pk-r" src="" alt=""></div>
-  </div>
+  <div id="bwrap"><div id="board"></div></div>
   <div class="brow">
     <button class="btn b-ok" onclick="checkAnswer()">✅ 回答する</button>
     <button class="btn b-rs" onclick="resetBoard()">🔄 リセット</button>
