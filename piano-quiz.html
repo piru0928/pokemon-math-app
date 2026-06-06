@@ -1,149 +1,71 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ポケモンピアノマスター Ver 1.0.0</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-<style>
-  :root{ --yellow:#ffcb05; --blue:#3b5bdb; --red:#e03131; --bg:#fdf6e3; --card:#fff; --text:#1a1a2e; }
-  body{ background:var(--bg); font-family:'Nunito','Arial',sans-serif; height:100vh; display:flex; flex-direction:column; align-items:center; padding:10px; margin:0; }
-  #gc{ background:var(--card); border:4px solid var(--yellow); border-radius:24px; width:100%; max-width:520px; padding:20px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,.1); }
-  
-  h1{ font-size:22px; color:var(--text); margin:10px 0; }
-  h1 span{ color:var(--yellow); -webkit-text-stroke:1px var(--text); }
-  
-  #status-bar{ display:flex; justify-content:center; gap:15px; margin-bottom:15px; }
-  .stat-box{ background:#f0f4ff; border:2px solid #c5cae9; border-radius:12px; padding:5px 12px; font-weight:800; color:var(--blue); }
-  
-  /* ピアノ鍵盤 */
-  .piano{ display:flex; justify-content:center; margin:20px 0; position:relative; }
-  .key{ width:40px; height:120px; border:1px solid #333; display:flex; align-items:flex-end; justify-content:center; padding-bottom:10px; cursor:pointer; font-weight:800; z-index:1; }
-  .white{ background:white; }
-  .black{ background:#333; color:white; width:30px; height:80px; margin:0 -15px; z-index:2; }
-  .key:active{ background:#ffeb3b !important; }
-
-  .btn-row{ display:flex; justify-content:center; gap:10px; }
-  .btn{ padding:10px 20px; border:2px solid #333; border-radius:20px; cursor:pointer; font-weight:800; font-family:inherit; }
-  
-  #msg{ height:40px; font-weight:800; margin:15px 0; display:flex; align-items:center; justify-content:center; }
-  .ok{ color:#2e7d32; }
-  .ng{ color:#c62828; }
-  
-  /* 紙吹雪演出 */
-  .confetti{ position:fixed; pointer-events:none; z-index:1000; border-radius:2px; animation:fall linear forwards; }
-  @keyframes fall{ 0%{opacity:1; transform:translateY(-20px) rotate(0);} 100%{opacity:0; transform:translateY(100vh) rotate(720deg);} }
-</style>
+    <meta charset="UTF-8">
+    <title>ポケモンピアノマスター ステージ選択</title>
+    <style>
+        .stage-map { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; }
+        .stage-btn { padding: 20px; background: var(--yellow); border-radius: 15px; cursor: pointer; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
 <div id="gc">
-  <div style="font-size:10px; color:#aaa; text-align:right;">ver 1.0.0 | 2026/06/06</div>
-  <h1>🎹 <span>ポケモンピアノマスター</span></h1>
-  
-  <div id="status-bar">
-    <div class="stat-box" id="level-lbl">レベル: 1</div>
-    <div class="stat-box" id="combo-lbl">連続正解: 0</div>
-  </div>
+    <div id="map-screen" class="stage-map">
+        <div class="stage-btn" onclick="startStage(1)">ステージ1<br>黒鍵の森</div>
+        <div class="stage-btn" onclick="startStage(2)">ステージ2<br>ドの隠れ家</div>
+        <div class="stage-btn" onclick="startStage(3)">ステージ3<br>指のダンス</div>
+        <div class="stage-btn" onclick="startStage(4)">ステージ4<br>ドレミの階段</div>
+        <div class="stage-btn" onclick="startStage(5)">ステージ5<br>音のかくれんぼ</div>
+    </div>
 
-  <div id="msg">音を聴いて当てよう！</div>
-
-  <div class="piano" id="keyboard"></div>
-
-  <div class="btn-row">
-    <button class="btn" style="background:#ffcb05" onclick="playCurrentNote()">もう一度聞く</button>
-    <button class="btn" style="background:#ccc" onclick="location.href='https://piru0928.github.io/pokemon-math-app/'">戻る</button>
-  </div>
+    <div id="game-screen" class="hidden">
+        <h2 id="stage-title">ステージ名</h2>
+        <div id="instruction">指示が表示されます</div>
+        <div id="piano-container"></div>
+        <button class="btn" onclick="goBackToMap()">マップにもどる</button>
+    </div>
 </div>
 
 <script>
-  let audioCtx;
-  const notes = [
-    { label: "ド", freq: 261.63, type: "white" },
-    { label: "ド#", freq: 277.18, type: "black" },
-    { label: "レ", freq: 293.66, type: "white" },
-    { label: "レ#", freq: 311.13, type: "black" },
-    { label: "ミ", freq: 329.63, type: "white" },
-    { label: "ファ", freq: 349.23, type: "white" },
-    { label: "ファ#", freq: 369.99, type: "black" },
-    { label: "ソ", freq: 392.00, type: "white" },
-    { label: "ソ#", freq: 415.30, type: "black" },
-    { label: "ラ", freq: 440.00, type: "white" },
-    { label: "ラ#", freq: 466.16, type: "black" },
-    { label: "シ", freq: 493.88, type: "white" }
-  ];
+    let currentStage = 0;
 
-  let currentTarget, combo = 0, level = 1;
-
-  function initAudio() {
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-
-  function playTone(freq, duration = 0.8) {
-    initAudio();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
-  }
-
-  function playCurrentNote() { playTone(currentTarget.freq); }
-
-  function initKeyboard() {
-    const kb = document.getElementById('keyboard');
-    notes.forEach(n => {
-      const div = document.createElement('div');
-      div.className = `key ${n.type}`;
-      div.innerText = n.label;
-      div.onclick = () => checkAnswer(n);
-      kb.appendChild(div);
-    });
-  }
-
-  function checkAnswer(n) {
-    if (n.label === currentTarget.label) {
-      combo++;
-      level = Math.floor(combo / 3) + 1;
-      document.getElementById('msg').innerHTML = "<span class='ok'>✨ せいかい！</span>";
-      document.getElementById('combo-lbl').innerText = "連続正解: " + combo;
-      document.getElementById('level-lbl').innerText = "レベル: " + level;
-      launchConfetti();
-      setTimeout(nextQuestion, 1000);
-    } else {
-      combo = 0;
-      document.getElementById('msg').innerHTML = "<span class='ng'>❌ ちがうよ！もういちど！</span>";
-      document.getElementById('combo-lbl').innerText = "連続正解: 0";
-      playTone(n.freq);
+    function startStage(stageNum) {
+        currentStage = stageNum;
+        document.getElementById('map-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        renderStageContent(stageNum);
     }
-  }
 
-  function nextQuestion() {
-    // レベルに応じて出題範囲を拡大
-    const range = Math.min(notes.length, 3 + level * 2);
-    currentTarget = notes[Math.floor(Math.random() * range)];
-    document.getElementById('msg').innerText = "この音はどれかな？";
-    playCurrentNote();
-  }
-
-  function launchConfetti() {
-    const cols = ['#ffcb05', '#e03131', '#3b5bdb', '#2ecc71'];
-    for(let i=0; i<50; i++){
-      const el = document.createElement('div');
-      el.className = 'confetti';
-      el.style.cssText = `left:${Math.random()*100}vw; background:${cols[i%4]}; width:10px; height:10px; animation-duration:${1+Math.random()}s;`;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 2000);
+    function renderStageContent(stageNum) {
+        const piano = document.getElementById('piano-container');
+        piano.innerHTML = '';
+        
+        switch(stageNum) {
+            case 1:
+                document.getElementById('stage-title').innerText = "黒鍵の森";
+                document.getElementById('instruction').innerText = "2つのお山を全部タッチしてね！";
+                // ステージ1専用の鍵盤レンダリング
+                createKeyboardForStage1(piano);
+                break;
+            case 2:
+                // ドの隠れ家（もぐら叩きロジック）
+                break;
+            // ... 他のステージも同様に追加
+        }
     }
-  }
 
-  initKeyboard();
-  nextQuestion();
+    function goBackToMap() {
+        document.getElementById('map-screen').classList.remove('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+    }
+
+    // ステージ1: 2つ並びの黒鍵を判定するロジック例
+    function createKeyboardForStage1(container) {
+        // 黒鍵を「2つグループ」か「3つグループ」かデータとして保持
+        // タップ時に「正解ならキラキラ＋動物出現」の演出を紐付け
+    }
 </script>
 </body>
 </html>
