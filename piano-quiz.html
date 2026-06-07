@@ -3,89 +3,407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ポケモンピアノマスター</title>
+    <title>ピアノ探検隊</title>
     <style>
-        :root { --yellow: #ffcb05; --blue: #3b5bdb; --bg: #fdf6e3; --card: #fff; --text: #1a1a2e; }
-        body { background: var(--bg); font-family: 'Nunito', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; padding: 10px; }
-        #gc { background: var(--card); border: 4px solid var(--yellow); border-radius: 24px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,.1); text-align: center; }
-        .screen { display: none; }
-        .active { display: block; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .btn { padding: 15px; background: var(--yellow); border: 2px solid var(--text); border-radius: 15px; cursor: pointer; font-weight: 800; }
-        /* 問題表示エリア */
-        #question-box { background: #e3f2fd; border: 2px solid var(--blue); border-radius: 15px; padding: 15px; margin: 15px 0; font-size: 18px; font-weight: bold; }
-        .piano { display: flex; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
-        .key { width: 45px; height: 90px; border: 1px solid #333; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; cursor: pointer; background: white; font-weight: bold; }
-        .key.black { background: #333; color: white; width: 35px; height: 60px; margin: 0 -17px; z-index: 2; }
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fcf8e8;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        #app-container {
+            width: 375px; /* 基本サイズ（iPhone 13 mini） */
+            height: 812px;
+            background: white;
+            border-radius: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 10px solid #f2cf6f; /* 画像のフレーム色 */
+            position: relative;
+        }
+
+        /* 画面上部のステータスバーを模倣 */
+        #status-bar-mock {
+            height: 44px;
+            background-color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: black;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        #time-mock {
+            flex: 1;
+        }
+        #icons-mock {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* コンテンツエリア */
+        #game-area {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        h1#stage-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        #instruction-text {
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #e6f7ff;
+            color: #003a8c;
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 2px solid #91d5ff;
+            text-align: center;
+            width: 80%;
+            margin-bottom: 40px;
+        }
+
+        /* 鍵盤エリア */
+        #keyboard-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            overflow: hidden; /* はみ出し防止 */
+        }
+
+        .piano-wrapper {
+            display: flex;
+            width: auto;
+            max-width: 100%; /* これで画面幅に合わせる */
+            position: relative;
+        }
+
+        .white-key {
+            width: calc((375px - 40px) / 7.5); /* 7.5個分の白鍵 */
+            height: calc(calc((375px - 40px) / 7.5) * 3);
+            background: white;
+            border: 1px solid #ccc;
+            border-bottom: 5px solid #bbb;
+            border-radius: 0 0 8px 8px;
+            box-sizing: border-box;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 5px;
+            color: #999;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .black-key {
+            width: calc(calc((375px - 40px) / 7.5) * 0.7);
+            height: calc(calc(calc((375px - 40px) / 7.5) * 3) * 0.6);
+            background: #222;
+            position: absolute;
+            top: 0;
+            z-index: 2;
+            cursor: pointer;
+            border-radius: 0 0 5px 5px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 2px;
+            color: #eee;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        /* ターゲット鍵盤の強調表示 */
+        .key-target {
+            border: 4px solid #1890ff; /* ターゲット色 */
+            box-shadow: 0 0 10px rgba(24, 144, 255, 0.7);
+        }
+
+        /* 正解アニメーション */
+        @keyframes correct-flash {
+            0% { background-color: #f6ffed; }
+            50% { background-color: #b7eb8f; }
+            100% { background-color: white; }
+        }
+        .key-correct {
+            animation: correct-flash 0.5s ease;
+        }
+
+        /* 不正解アニメーション */
+        @keyframes wrong-shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        .key-wrong {
+            background-color: #fff1f0;
+            border-color: #ff4d4f;
+            animation: wrong-shake 0.3s ease-in-out;
+        }
+
+        /* ポップアップメッセージ */
+        #message-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.85);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            z-index: 10;
+        }
+
+        #close-popup-btn {
+            background-color: white;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* 戻るボタン */
+        #back-button-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #back-button {
+            display: flex;
+            align-items: center;
+            background-color: #f2cf6f;
+            color: #333;
+            border: 3px solid #e0b04e;
+            border-radius: 15px;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #back-button i { margin-right: 5px; }
+
     </style>
 </head>
 <body>
 
-<div id="gc">
-    <div id="screen-map" class="screen active">
-        <h1>ポケモンピアノマスター</h1>
-        <p>ステージをえらんでね！</p>
-        <div class="grid" id="stage-grid"></div>
+    <div id="app-container">
+        <div id="status-bar-mock">
+            <div id="time-mock">10:13</div>
+            <div id="icons-mock">
+                <span>📶</span>
+                <span>4G</span>
+                <span>78</span>
+            </div>
+        </div>
+
+        <div id="game-area">
+            <h1 id="stage-title">ドを探せ！</h1>
+            <div id="instruction-text">「2つのお山」の左下にある「ド」をタッチ！</div>
+
+            <div id="keyboard-container">
+                <div class="piano-wrapper">
+                    <div class="white-key" data-note="c1" data-target="true">ド</div>
+                    <div class="black-key" data-note="c#1" style="left: calc((375px - 40px) / 7.5 * 0.7); display:none;">ド#</div>
+                    <div class="white-key" data-note="d1">レ</div>
+                    <div class="black-key" data-note="d#1" style="left: calc((375px - 40px) / 7.5 * 1.7); display:none;">レ#</div>
+                    <div class="white-key" data-note="e1">ミ</div>
+                    <div class="white-key" data-note="f1">ファ</div>
+                    <div class="black-key" data-note="f#1" style="left: calc((375px - 40px) / 7.5 * 3.7); display:none;">ファ#</div>
+                    <div class="white-key" data-note="g1">ソ</div>
+                    <div class="black-key" data-note="g#1" style="left: calc((375px - 40px) / 7.5 * 4.7); display:none;">ソ#</div>
+                    <div class="white-key" data-note="a1">ラ</div>
+                    <div class="black-key" data-note="a#1" style="left: calc((375px - 40px) / 7.5 * 5.7); display:none;">ラ#</div>
+                    <div class="white-key" data-note="b1">シ</div>
+                </div>
+            </div>
+
+            <div id="message-popup">
+                <p id="popup-text">レだね！その調子！</p>
+                <button id="close-popup-btn">閉じる</button>
+            </div>
+
+            <div id="back-button-container">
+                <button id="back-button">
+                    <i>←</i> もどる
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="screen-game" class="screen">
-        <h2 id="stage-title"></h2>
-        <div id="question-box"></div>
-        <div class="piano" id="keyboard"></div>
-        <button class="btn" onclick="backToMap()">⬅ もどる</button>
-    </div>
-</div>
+    <script>
+        const appContainer = document.getElementById('app-container');
+        const stageTitle = document.getElementById('stage-title');
+        const instructionText = document.getElementById('instruction-text');
+        const keyboard = document.querySelector('.piano-wrapper');
+        const popup = document.getElementById('message-popup');
+        const popupText = document.getElementById('popup-text');
+        const closePopupBtn = document.getElementById('close-popup-btn');
+        const backButton = document.getElementById('back-button');
 
-<script>
-    const stages = [
-        { id: 1, title: "黒鍵の森", task: "「2つのお山（黒鍵）」を全部タッチしてね！" },
-        { id: 2, title: "ドの隠れ家", task: "「2つのお山」の左にある「ド」をタッチ！" },
-        { id: 3, title: "指のダンス", task: "「1」が出たら親指をタッチしてね！" },
-        { id: 4, title: "階段のぼり", task: "「ド・レ・ミ」の順番にタッチしてね！" },
-        { id: 5, title: "音のかくれんぼ", task: "「ド」のとなり（レ）をタッチしてね！" }
-    ];
+        // 音声・効果音（本番では外部ファイルを用意してください）
+        // 簡易的にWeb Audio APIを使用
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    function init() {
-        const grid = document.getElementById('stage-grid');
-        stages.forEach(s => {
-            const div = document.createElement('div');
-            div.className = 'btn';
-            div.innerText = s.title;
-            div.onclick = () => startStage(s);
-            grid.appendChild(div);
+        function playNote(freq, type = 'sine', duration = 0.5) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.type = type;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.currentTime + duration);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // 音符と周波数のマップ
+        const noteFrequencies = {
+            'c1': 261.63, 'c#1': 277.18, 'd1': 293.66, 'd#1': 311.13, 'e1': 329.63,
+            'f1': 349.23, 'f#1': 369.99, 'g1': 392.00, 'g#1': 415.30, 'a1': 440.00,
+            'a#1': 466.16, 'b1': 493.88,
+        };
+
+        let currentStage = 0;
+        let isCorrect = false;
+
+        const stages = [
+            {
+                title: "ドを探せ！",
+                instruction: "「2つのお山」の左下にある「ド」をタッチ！",
+                targets: ["c1"],
+                blackKeysDisplay: "block" // ステージ2以降は黒鍵を表示
+            },
+            {
+                title: "黒鍵の森",
+                instruction: "「3つのお山」をタッチして！",
+                targets: ["f#1", "g#1", "a#1"],
+                blackKeysDisplay: "block"
+            },
+            {
+                title: "ミを探そう！",
+                instruction: "「2つのお山」の右下は「ミ」だよ！",
+                targets: ["e1"],
+                blackKeysDisplay: "block"
+            }
+        ];
+
+        function setupStage(stageIndex) {
+            const stage = stages[stageIndex];
+            stageTitle.innerText = stage.title;
+            instructionText.innerText = stage.instruction;
+            currentStage = stageIndex;
+            isCorrect = false;
+
+            // ターゲット鍵盤の強調をリセット
+            const keys = keyboard.querySelectorAll('.white-key, .black-key');
+            keys.forEach(key => {
+                key.classList.remove('key-target', 'key-correct', 'key-wrong');
+                key.removeAttribute('data-target');
+            });
+
+            // 黒鍵の表示設定
+            const blackKeys = keyboard.querySelectorAll('.black-key');
+            blackKeys.forEach(key => {
+                key.style.display = stage.blackKeysDisplay;
+            });
+
+            // 新しいターゲットを設定
+            stage.targets.forEach(note => {
+                const targetKey = keyboard.querySelector(`[data-note="${note}"]`);
+                if (targetKey) {
+                    targetKey.classList.add('key-target');
+                    targetKey.setAttribute('data-target', 'true');
+                }
+            });
+        }
+
+        function showPopup(text) {
+            popupText.innerText = text;
+            popup.style.display = 'block';
+        }
+
+        function closePopup() {
+            popup.style.display = 'none';
+            if (isCorrect) {
+                // 正解なら次のステージへ
+                setupStage((currentStage + 1) % stages.length);
+            }
+        }
+
+        // イベントリスナー
+        keyboard.addEventListener('click', (e) => {
+            if (e.target.classList.contains('white-key') || e.target.classList.contains('black-key')) {
+                const clickedKey = e.target;
+                const note = clickedKey.getAttribute('data-note');
+                const isTarget = clickedKey.getAttribute('data-target') === 'true';
+
+                // 音を鳴らす
+                playNote(noteFrequencies[note]);
+
+                if (isTarget) {
+                    // 正解
+                    clickedKey.classList.remove('key-target');
+                    clickedKey.classList.add('key-correct');
+                    isCorrect = true;
+                    setTimeout(() => {
+                        showPopup(`ドだね！大正解！次のステージへ行こう！`);
+                        playNote(noteFrequencies['c1'] * 2, 'square', 0.1); // 正解の効果音
+                    }, 300);
+                } else {
+                    // 不正解
+                    clickedKey.classList.add('key-wrong');
+                    setTimeout(() => clickedKey.classList.remove('key-wrong'), 300);
+                    playNote(100, 'sawtooth', 0.2); // 不正解の効果音
+                }
+            }
         });
-    }
 
-    function startStage(stage) {
-        document.getElementById('screen-map').classList.remove('active');
-        document.getElementById('screen-game').classList.add('active');
-        document.getElementById('stage-title').innerText = stage.title;
-        document.getElementById('question-box').innerText = stage.task;
-        renderKeyboard();
-    }
-
-    function renderKeyboard() {
-        const kb = document.getElementById('keyboard');
-        kb.innerHTML = '';
-        const notes = ["ド", "ド#", "レ", "レ#", "ミ", "ファ", "ファ#", "ソ", "ソ#", "ラ", "ラ#", "シ"];
-        notes.forEach(n => {
-            const div = document.createElement('div');
-            div.className = 'key ' + (n.includes('#') ? 'black' : '');
-            div.innerText = n;
-            div.onclick = () => {
-                // ここで各ステージの正解判定ロジックを入れる
-                alert(n + " だね！その調子！");
-            };
-            kb.appendChild(div);
+        closePopupBtn.addEventListener('click', closePopup);
+        backButton.addEventListener('click', () => {
+            // ステージ1に戻る
+            setupStage(0);
         });
-    }
 
-    function backToMap() {
-        document.getElementById('screen-game').classList.remove('active');
-        document.getElementById('screen-map').classList.add('active');
-    }
+        // 初期セットアップ
+        setupStage(0);
 
-    init();
-</script>
+    </script>
 </body>
 </html>
