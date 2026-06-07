@@ -5,29 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ピアノ探検隊</title>
 <style>
+/* ===== 元のスタイルを完全維持 ===== */
 *, *::before, *::after { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
 :root {
-  --cream: #FFF9E6;
-  --gold: #FFD700;
-  --gold-dark: #E6B800;
-  --blue: #004A99;
-  --blue-light: #E6F7FF;
-  --blue-border: #91D5FF;
-  --orange: #FF9800;
-  --orange-dark: #E65100;
-  --green: #4CAF50;
-  --green-dark: #2E7D32;
-  --red: #F44336;
-  --purple: #7C3AED;
+  --cream: #FFF9E6; --gold: #FFD700; --gold-dark: #E6B800;
+  --blue: #004A99; --blue-light: #E6F7FF; --blue-border: #91D5FF;
+  --orange: #FF9800; --orange-dark: #E65100; --green: #4CAF50;
+  --green-dark: #2E7D32; --red: #F44336; --purple: #7C3AED;
   --purple-dark: #5B21B6;
-  --pink: #E91E63;
-  --cyan: #00BCD4;
 }
 
 body {
-  margin: 0; padding: 0;
-  background: var(--cream);
+  margin: 0; padding: 0; background: var(--cream);
   font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'BIZ UDPGothic', sans-serif;
   display: flex; justify-content: center; align-items: flex-start;
   min-height: 100dvh; overflow-y: auto; touch-action: manipulation;
@@ -39,139 +29,63 @@ body {
   padding: 12px 10px; gap: 12px;
 }
 
-/* ===== SCREENS ===== */
 .screen { display: none; flex-direction: column; align-items: center; width: 100%; gap: 12px; }
 .screen.active { display: flex; }
 
-/* ===== STAGE SELECT ===== */
-#screen-select {
-  justify-content: flex-start; min-height: 80dvh;
-  gap: 15px; padding: 20px 0;
-}
-.select-title {
-  font-size: 28px; font-weight: 900; color: var(--blue);
-  text-align: center; letter-spacing: 2px; margin-bottom: 10px;
-  text-shadow: 0 3px 0 rgba(0,74,153,0.15);
-}
+#screen-select { justify-content: flex-start; min-height: 80dvh; gap: 12px; padding: 20px 0; }
+.select-title { font-size: 28px; font-weight: 900; color: var(--blue); text-align: center; letter-spacing: 2px; text-shadow: 0 3px 0 rgba(0,74,153,0.15); margin-bottom: 5px; }
 .select-title span { color: var(--gold-dark); }
-.select-subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 10px;}
+.select-subtitle { font-size: 13px; color: #888; text-align: center; margin-bottom: 10px; }
 
 .stage-card {
-  width: 95%; background: white; border-radius: 16px;
-  border: 3px solid var(--gold); padding: 16px;
-  box-shadow: 0 4px 0 rgba(0,0,0,0.12);
-  cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
-  text-align: center;
+  width: 95%; background: white; border-radius: 16px; border: 3px solid var(--gold); padding: 12px 16px;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.12); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; text-align: center;
+  display: flex; align-items: center; text-align: left; gap: 12px;
 }
 .stage-card:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(0,0,0,0.12); }
-.stage-card.stage2 { border-color: var(--purple); }
-.stage-card.stage3 { border-color: var(--green); }
-.stage-card.stage4 { border-color: var(--pink); }
-.stage-card.stage5 { border-color: var(--cyan); }
-.stage-card.stage6 { border-color: var(--orange); }
-.stage-card.stage7 { border-color: #3F51B5; }
+.stage-card-icon { font-size: 32px; flex-shrink: 0; }
+.stage-card-content { flex: 1; }
+.stage-card-title { font-size: 16px; font-weight: 900; color: var(--blue); margin-bottom: 4px; }
+.stage-card-desc { font-size: 11px; color: #666; line-height: 1.4; }
 
-.stage-card-icon { font-size: 32px; margin-bottom: 4px; }
-.stage-card-title { font-size: 18px; font-weight: 900; margin-bottom: 4px; color: #333;}
-.stage-card.stage1 .stage-card-title { color: var(--gold-dark); }
-.stage-card.stage2 .stage-card-title { color: var(--purple); }
-.stage-card.stage3 .stage-card-title { color: var(--green-dark); }
-.stage-card.stage4 .stage-card-title { color: var(--pink); }
-.stage-card.stage5 .stage-card-title { color: var(--cyan); }
-.stage-card.stage6 .stage-card-title { color: var(--orange-dark); }
-.stage-card.stage7 .stage-card-title { color: #3F51B5; }
-.stage-card-desc { font-size: 12px; color: #666; line-height: 1.4; }
-
-/* ===== HEADER ===== */
 .game-header { width: 100%; text-align: center; }
 .meta-info { font-size: 10px; color: #aaa; margin-bottom: 4px; }
-.status-bar {
-  display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;
-}
+.status-bar { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
 .status-pill {
-  font-size: 15px; font-weight: bold; background: white;
-  padding: 6px 16px; border-radius: 20px;
-  border: 3px solid var(--gold); color: #555;
-  box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+  font-size: 15px; font-weight: bold; background: white; padding: 6px 16px; border-radius: 20px;
+  border: 3px solid var(--gold); color: #555; box-shadow: 0 3px 0 rgba(0,0,0,0.1);
 }
+.status-pill.extreme { border-color: var(--purple); color: var(--purple); }
 
-/* ===== QUESTION AREA (Stages 1 & 2) ===== */
 .question-area {
-  display: flex; align-items: center;
-  background: var(--blue-light); padding: 12px 15px;
-  border-radius: 15px; border: 3px solid var(--blue-border);
-  width: 100%; min-height: 90px;
+  display: flex; align-items: center; background: var(--blue-light); padding: 12px 15px;
+  border-radius: 15px; border: 3px solid var(--blue-border); width: 100%; min-height: 90px;
 }
 #pokemon-img {
-  width: 50px; height: 50px; object-fit: contain; margin-right: 10px; flex-shrink: 0;
-  animation: float 2s ease-in-out infinite;
+  width: 50px; height: 50px; object-fit: contain; margin-right: 12px; flex-shrink: 0;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); animation: float 2s ease-in-out infinite;
 }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-.instruction { font-size: 14px; font-weight: bold; color: var(--blue); line-height: 1.5; flex: 1; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+.instruction { font-size: 15px; font-weight: bold; color: var(--blue); line-height: 1.6; flex: 1; word-break: break-word; }
+.instruction ruby { ruby-align: center; }
 
-/* ===== CLASSROOM MODAL (Stages 3-7) ===== */
-#classroom-modal {
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8); z-index: 100; padding: 20px;
+.play-audio-btn {
+  display: inline-block; margin-top: 6px; background: var(--green); color: white; border: none;
+  padding: 7px 14px; border-radius: 18px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 var(--green-dark);
 }
-.classroom-box {
-  background: white; border-radius: 20px; padding: 25px; width: 100%; max-width: 400px;
-  text-align: center; border: 4px solid var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-}
-.classroom-title { font-size: 22px; font-weight: 900; color: var(--blue); margin-bottom: 12px; }
-.classroom-text { font-size: 15px; color: #444; line-height: 1.6; margin-bottom: 20px; }
-.classroom-btn {
-  background: var(--green); color: white; border: none; padding: 12px 30px;
-  font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer;
-  box-shadow: 0 4px 0 var(--green-dark); transition: 0.1s;
-}
-.classroom-btn:active { transform: translateY(4px); box-shadow: none; }
+.play-audio-btn:active { transform: translateY(3px); box-shadow: none; }
 
-/* ===== RHYTHM GAME AREA ===== */
-#rhythm-area {
-  display: none; flex-direction: column; align-items: center; width: 100%; gap: 10px;
-}
-#rhythm-canvas {
-  width: 100%; height: 160px; background: #222; border-radius: 12px;
-  border: 4px solid #555; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-}
-.rhythm-controls {
-  display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap;
-}
-.rb {
-  flex: 1; min-width: 80px; padding: 15px 10px; font-size: 16px; font-weight: 900;
-  border-radius: 12px; border: none; cursor: pointer; color: white;
-  box-shadow: 0 5px 0 rgba(0,0,0,0.3); transition: 0.05s;
-}
-.rb:active { transform: translateY(5px); box-shadow: none; }
-.rb-f { background: var(--pink); }
-.rb-p { background: var(--blue); }
-.rb-maj { background: var(--orange); }
-.rb-min { background: var(--purple); }
-.rb-c { background: #E53935; }
-.rb-f2 { background: #43A047; }
-.rb-g { background: #1E88E5; }
-.rb-tap { background: var(--green); width: 100%; flex: none; max-width: 300px; padding: 20px;}
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px) rotate(-2deg)} 50%{transform:translateX(8px) rotate(2deg)} 75%{transform:translateX(-8px) rotate(-2deg)} }
+.shake { animation: shake 0.4s ease-in-out; border-color: var(--red) !important; }
 
-/* ===== KEYBOARD & OTHER STYLES ===== */
+/* ===== KEYBOARD ===== */
 .keyboard {
-  display: flex; position: relative; width: 100%; height: 22vh; min-height: 140px;
+  display: flex; position: relative; width: 100%; height: 26vh; min-height: 160px; max-height: 210px;
   background: #444; padding: 5px; border-radius: 8px; border-bottom: 10px solid #222;
 }
-.key {
-  cursor: pointer; border-radius: 0 0 6px 6px; display: flex; justify-content: center;
-  align-items: flex-end; padding-bottom: 12px; font-weight: bold; transition: background-color 0.08s;
-}
-.key.white {
-  flex: 1; background: white; border: 1px solid #ccc; z-index: 1; color: #666;
-  margin: 0 2px; font-size: 13px; box-shadow: inset 0 -8px 8px rgba(0,0,0,0.05);
-}
-.key.black {
-  position: absolute; width: calc((100% - 10px) / 7 * 0.65); height: 60%;
-  background: #222; color: white; z-index: 2; top: 5px; transform: translateX(-50%);
-  font-size: 10px; padding-bottom: 7px; box-shadow: inset -2px -5px 5px rgba(255,255,255,0.15);
-}
+.key { cursor: pointer; border-radius: 0 0 6px 6px; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 12px; font-weight: bold; transition: background-color 0.08s; }
+.key.white { flex: 1; background: white; border: 1px solid #ccc; z-index: 1; color: #666; margin: 0 2px; font-size: 13px; box-shadow: inset 0 -8px 8px rgba(0,0,0,0.05); }
+.key.black { position: absolute; width: calc((100% - 10px) / 7 * 0.65); height: 60%; background: #222; color: white; z-index: 2; top: 5px; transform: translateX(-50%); font-size: 10px; padding-bottom: 7px; box-shadow: inset -2px -5px 5px rgba(255,255,255,0.15); }
 .key.black[data-note="C#"] { left: calc((100% - 10px) / 7 * 1 + 5px); }
 .key.black[data-note="D#"] { left: calc((100% - 10px) / 7 * 2 + 5px); }
 .key.black[data-note="F#"] { left: calc((100% - 10px) / 7 * 4 + 5px); }
@@ -179,64 +93,98 @@ body {
 .key.black[data-note="A#"] { left: calc((100% - 10px) / 7 * 6 + 5px); }
 .key.active.white { background: #FFD666; }
 .key.active.black { background: #777; }
+.key.hide-label { color: transparent !important; }
+.key.highlight-correct.white { background: #a8f0a8 !important; }
+.key.highlight-correct.black { background: #3a9a3a !important; }
 
-.sheet-area {
-  width: 100%; background: white; border-radius: 15px; border: 3px solid var(--purple);
-  padding: 12px; display: none; flex-direction: column; align-items: center; gap: 8px;
-}
+/* ===== SHEET MUSIC & CHOICES ===== */
+.sheet-area { width: 100%; background: white; border-radius: 15px; border: 3px solid var(--purple); padding: 12px; display: none; flex-direction: column; align-items: center; gap: 8px; }
+.sheet-label { font-size: 12px; font-weight: bold; color: var(--purple); }
 #sheet-canvas { display: block; max-width: 100%; border-radius: 8px; }
-.note-choices { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
 
-.btn-row { display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: auto;}
-.home-btn {
-  background: #78909C; color: white; border: none; padding: 11px 24px;
-  font-size: 15px; font-weight: bold; border-radius: 22px; cursor: pointer;
-  box-shadow: 0 4px 0 #455A64;
+.note-choices { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
+.note-choice-btn {
+  padding: 12px 20px; font-size: 15px; font-weight: bold; border-radius: 14px; border: 3px solid var(--blue-border);
+  background: white; color: var(--blue); cursor: pointer; box-shadow: 0 3px 0 rgba(0,74,153,0.2); transition: transform 0.08s, box-shadow 0.08s;
+  flex: 1 1 40%; max-width: 200px; text-align: center;
 }
+.note-choice-btn:active { transform: translateY(3px); box-shadow: none; }
+.note-choice-btn.correct { background: #a8f0a8; border-color: var(--green); }
+.note-choice-btn.wrong { background: #fca5a5; border-color: var(--red); }
+
+/* ===== RHYTHM GAME AREA ===== */
+#rhythm-area { display: none; flex-direction: column; align-items: center; width: 100%; gap: 10px; background: #222; border-radius: 15px; padding: 15px; border: 4px solid var(--orange); }
+#rhythm-canvas { width: 100%; height: 120px; background: #111; border-radius: 8px; border: 2px solid #555; }
+.rhythm-tap-btn { width: 100%; background: var(--orange); color: white; border: none; padding: 20px; font-size: 24px; font-weight: 900; border-radius: 12px; box-shadow: 0 6px 0 var(--orange-dark); cursor: pointer; }
+.rhythm-tap-btn:active { transform: translateY(6px); box-shadow: none; background: #FFB74D; }
+.rhythm-feedback { font-size: 20px; font-weight: bold; height: 24px; color: var(--gold); }
+
+/* ===== BUTTONS ===== */
+.btn-row { display: flex; gap: 10px; justify-content: center; width: 100%; }
+.home-btn { background: #78909C; color: white; border: none; padding: 11px 24px; font-size: 15px; font-weight: bold; border-radius: 22px; cursor: pointer; box-shadow: 0 4px 0 #455A64; margin-bottom: 16px; margin-top: 6px; }
 .home-btn:active { transform: translateY(4px); box-shadow: none; }
+#extreme-badge-wrap { display:none; margin-top:6px; text-align:center; }
+.extreme-badge { background: linear-gradient(135deg, var(--purple), #C026D3); color: white; font-size: 13px; font-weight: 900; padding: 6px 18px; border-radius: 20px; letter-spacing: 2px; animation: pulse-badge 1.5s ease-in-out infinite; }
+@keyframes pulse-badge { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+#extreme-count-display { font-size: 13px; color: var(--purple); font-weight: bold; margin-top: 4px; }
 </style>
 </head>
 <body>
 <div id="app">
 
   <div id="screen-select" class="screen active">
-    <div class="select-title">🎹 ピアノ<span><ruby>探検隊<rt>たんけんたい</rt></ruby></span></div>
+    <div class="select-title">🎹 ピアノ<span>探検隊</span></div>
     <div class="select-subtitle">ステージをえらんでね！</div>
 
-    <div class="stage-card stage1" onclick="startStage(1)">
+    <div class="stage-card" onclick="startStage(1)">
       <div class="stage-card-icon">🎮</div>
-      <div class="stage-card-title">ステージ１：<ruby>鍵盤探<rt>けんばんさが</rt></ruby>し</div>
-      <div class="stage-card-desc"><ruby>正<rt>ただ</rt></ruby>しい<ruby>鍵盤<rt>けんばん</rt></ruby>をタッチしよう！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:var(--gold-dark);">ステージ１：鍵盤探し</div>
+        <div class="stage-card-desc">ポケモンのヒントを見て正しい鍵盤をタッチ！</div>
+      </div>
     </div>
-    <div class="stage-card stage2" onclick="startStage(2)">
+    <div class="stage-card" onclick="startStage(2)" style="border-color:var(--purple);">
       <div class="stage-card-icon">🎼</div>
-      <div class="stage-card-title">ステージ２：<ruby>楽譜読<rt>がくふよ</rt></ruby>み</div>
-      <div class="stage-card-desc"><ruby>五線譜<rt>ごせんふ</rt></ruby>を<ruby>読<rt>よ</rt></ruby>んで<ruby>答<rt>こた</rt></ruby>えよう！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:var(--purple);">ステージ２：楽譜読み</div>
+        <div class="stage-card-desc">五線譜の音符を読んで答えよう！</div>
+      </div>
     </div>
-    <div class="stage-card stage3" onclick="startStage(3)">
+
+    <div class="stage-card" onclick="startStage(3)" style="border-color:var(--green);">
       <div class="stage-card-icon">🥁</div>
-      <div class="stage-card-title">ステージ３：リズム＆<ruby>聴音<rt>ちょうおん</rt></ruby></div>
-      <div class="stage-card-desc"><ruby>座学<rt>ざがく</rt></ruby>＋リズムにあわせてタップ！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:var(--green-dark);">ステージ３：リズム＆聴音</div>
+        <div class="stage-card-desc">【Lv1〜5】クイズ 【Lv6〜10】音ゲー！</div>
+      </div>
     </div>
-    <div class="stage-card stage4" onclick="startStage(4)">
+    <div class="stage-card" onclick="startStage(4)" style="border-color:#E91E63;">
       <div class="stage-card-icon">𝄆</div>
-      <div class="stage-card-title">ステージ４：<ruby>音楽記号<rt>おんがくきごう</rt></ruby></div>
-      <div class="stage-card-desc"><ruby>強弱<rt>きょうじゃく</rt></ruby>などの<ruby>記号<rt>きごう</rt></ruby>をあやつろう！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:#E91E63;">ステージ４：音楽記号クイズ</div>
+        <div class="stage-card-desc">強弱記号などの意味をクイズで覚えよう！</div>
+      </div>
     </div>
-    <div class="stage-card stage5" onclick="startStage(5)">
+    <div class="stage-card" onclick="startStage(5)" style="border-color:#00BCD4;">
       <div class="stage-card-icon">✨</div>
-      <div class="stage-card-title">ステージ５：<ruby>和音<rt>わおん</rt></ruby>＆コード</div>
-      <div class="stage-card-desc">メジャーとマイナーを<ruby>聴<rt>き</rt></ruby>き<ruby>分<rt>わ</rt></ruby>けろ！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:#00838F;">ステージ５：和音クイズ</div>
+        <div class="stage-card-desc">音を聴いてメジャーかマイナーか当てよう！</div>
+      </div>
     </div>
-    <div class="stage-card stage6" onclick="startStage(6)">
+    <div class="stage-card" onclick="startStage(6)" style="border-color:var(--orange);">
       <div class="stage-card-icon">🎸</div>
-      <div class="stage-card-title">ステージ６：<ruby>伴奏<rt>ばんそう</rt></ruby>セッション</div>
-      <div class="stage-card-desc">メロディにベース<ruby>音<rt>おん</rt></ruby>をあわせよう！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:var(--orange-dark);">ステージ６：伴奏クイズ</div>
+        <div class="stage-card-desc">メロディを支えるベース音の知識をテスト！</div>
+      </div>
     </div>
-    <div class="stage-card stage7" onclick="startStage(7)">
+    <div class="stage-card" onclick="startStage(7)" style="border-color:#3F51B5;">
       <div class="stage-card-icon">🎧</div>
-      <div class="stage-card-title">ステージ７：アレンジ<ruby>創作<rt>そうさく</rt></ruby></div>
-      <div class="stage-card-desc"><ruby>自由<rt>じゆう</rt></ruby>なリズムで<ruby>曲<rt>きょく</rt></ruby>を<ruby>飾<rt>かざ</rt></ruby>ろう！</div>
+      <div class="stage-card-content">
+        <div class="stage-card-title" style="color:#3F51B5;">ステージ７：アレンジクイズ</div>
+        <div class="stage-card-desc">曲をカッコよくする秘密をクイズで解明！</div>
+      </div>
     </div>
   </div>
 
@@ -247,44 +195,43 @@ body {
         <div class="status-pill" id="level-pill">Lv: <span id="level-display">1</span></div>
         <div class="status-pill" id="combo-pill">🔥 <span id="combo-display">0</span></div>
       </div>
+      <div id="extreme-badge-wrap">
+        <div class="extreme-badge">⚡ EXTREME MODE ⚡</div>
+        <div id="extreme-count-display"></div>
+      </div>
     </div>
 
     <div class="question-area" id="question-area">
       <img id="pokemon-img" src="" alt="">
       <div id="instruction-box" class="instruction">読み込み中…</div>
     </div>
+
     <div class="sheet-area" id="sheet-area">
+      <div class="sheet-label" id="sheet-label">五線譜</div>
       <canvas id="sheet-canvas" width="360" height="150"></canvas>
     </div>
+
     <div class="note-choices" id="note-choices"></div>
+
     <div class="keyboard" id="keyboard"></div>
 
     <div id="rhythm-area">
-      <canvas id="rhythm-canvas" width="400" height="160"></canvas>
-      <div id="rhythm-controls" class="rhythm-controls"></div>
+      <div style="color:white; font-size:14px; font-weight:bold;">BGMに合わせてタイミングよく叩け！</div>
+      <canvas id="rhythm-canvas" width="400" height="120"></canvas>
+      <div id="rhythm-feedback" class="rhythm-feedback"></div>
+      <button class="rhythm-tap-btn" id="rhythm-tap-btn">TAP !!</button>
     </div>
 
-    <div id="loading-msg" style="font-size:12px;color:#aaa;"></div>
-    
     <div class="btn-row">
-      <button class="home-btn" onclick="goHome()">🏠 もどる</button>
+      <button class="home-btn" onclick="goHome()">🏠 ホーム</button>
     </div>
   </div>
-
-  <div id="classroom-modal">
-    <div class="classroom-box">
-      <div class="classroom-title" id="classroom-title">座学</div>
-      <div class="classroom-text" id="classroom-text">説明文</div>
-      <button class="classroom-btn" onclick="startRhythmPhase()">音ゲーに挑戦！</button>
-    </div>
-  </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
 // =============================================
-// AUDIO ENGINE
+// 音響エンジン (AudioContext)
 // =============================================
 const AC = window.AudioContext || window.webkitAudioContext;
 let audioCtx = new AC();
@@ -306,18 +253,14 @@ document.addEventListener('touchstart', unlockAudio, { once: true });
 document.addEventListener('mousedown',  unlockAudio, { once: true });
 
 async function preloadAllNotes() {
-  const msg = document.getElementById('loading-msg');
   const midis = Object.values(noteToMidi);
-  let n = 0;
   await Promise.all(midis.map(async midi => {
     try {
       const r = await fetch(SOUNDFONT + midiFiles[midi] + '.mp3');
       const ab = await r.arrayBuffer();
       audioBuffers[midi] = await audioCtx.decodeAudioData(ab);
-    } catch(e) { console.warn('load fail', midi); }
-    if(msg) msg.textContent = `音源ロード中… (${++n}/${midis.length})`;
+    } catch(e) {}
   }));
-  if(msg) msg.textContent = '';
 }
 
 window.playPianoNote = function(noteName) {
@@ -325,15 +268,15 @@ window.playPianoNote = function(noteName) {
   const midi = noteToMidi[noteName];
   const buf  = audioBuffers[midi];
   if (buf) {
-    const src = audioCtx.createBufferSource();
+    const src  = audioCtx.createBufferSource();
     const gain = audioCtx.createGain();
     src.buffer = buf;
     gain.gain.setValueAtTime(1.0, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.0);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
     src.connect(gain); gain.connect(audioCtx.destination);
-    src.start();
+    src.start(); src.stop(audioCtx.currentTime + 3.0);
   } else {
-    playTone(noteFreq[noteName], 'triangle', 1.0);
+    playTone(noteFreq[noteName], 'triangle', 1.5);
   }
 };
 
@@ -346,27 +289,48 @@ function playTone(freq, type='sine', dur=0.5) {
   g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
   o.start(); o.stop(audioCtx.currentTime + dur);
 }
-function playDrum() { playTone(120, 'square', 0.1); }
 function playFanfare() {
   playTone(523.25,'triangle',0.2);
   setTimeout(()=>playTone(659.25,'triangle',0.2),150);
   setTimeout(()=>playTone(783.99,'triangle',0.4),300);
 }
 function playBuzzer() { playTone(150,'sawtooth',0.3); }
-function playChord(type) {
+
+// 和音再生用
+window.playChord = function(type) {
     if(type === 'maj') { playPianoNote('C'); playPianoNote('E'); playPianoNote('G'); }
     else { playPianoNote('A'); playPianoNote('C'); playPianoNote('E'); }
 }
 
-// =============================================
-// DATA (Stage 1 & 2 logic reused simply)
-// =============================================
-let currentStage = 1, currentLevel = 1, combo = 0, isExtreme = false;
-const qArea = document.getElementById('question-area');
-const kArea = document.getElementById('keyboard');
-const sArea = document.getElementById('sheet-area');
-const rArea = document.getElementById('rhythm-area');
+// BGM（ドラム）再生用
+let bgmNodes = [];
+function scheduleDrumBeat(time, isKick) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    
+    if(isKick) {
+        osc.frequency.setValueAtTime(150, time);
+        osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.1);
+        gain.gain.setValueAtTime(1.0, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+    } else {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, time);
+        gain.gain.setValueAtTime(0.3, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+    }
+    osc.start(time); osc.stop(time + 0.1);
+    bgmNodes.push(osc);
+}
+function stopBGM() {
+    bgmNodes.forEach(n => { try{ n.stop(); }catch(e){} });
+    bgmNodes = [];
+}
 
+// =============================================
+// キーボード構築 (元のまま)
+// =============================================
 const keysData = [
   {note:'C', name:'ド', type:'white'}, {note:'C#',name:'ド#', type:'black'},
   {note:'D', name:'レ', type:'white'}, {note:'D#',name:'レ#', type:'black'},
@@ -375,15 +339,131 @@ const keysData = [
   {note:'G#',name:'ソ#', type:'black'}, {note:'A', name:'ラ', type:'white'},
   {note:'A#',name:'ラ#', type:'black'}, {note:'B', name:'シ', type:'white'}
 ];
-
+const keyboardDiv = document.getElementById('keyboard');
 keysData.forEach(k => {
   const div = document.createElement('div');
   div.className = `key ${k.type}`; div.setAttribute('data-note', k.note); div.textContent = k.name;
-  const trigger = e => { e.preventDefault(); div.classList.add('active'); playPianoNote(k.note); onKeyPress(k.note); setTimeout(()=>div.classList.remove('active'), 200); };
+  const trigger = e => {
+    e.preventDefault(); div.classList.add('active');
+    playPianoNote(k.note); onKeyPress(k.note);
+    setTimeout(()=>div.classList.remove('active'), 200);
+  };
   div.addEventListener('touchstart', trigger, {passive:false});
-  div.addEventListener('mousedown', trigger);
-  kArea.appendChild(div);
+  div.addEventListener('mousedown',  trigger);
+  keyboardDiv.appendChild(div);
 });
+function updateKeyLabels(level) { document.querySelectorAll('.key').forEach(k => { k.classList.toggle('hide-label', level >= 4); }); }
+function flashKey(note, cls='highlight-correct') {
+  const el = document.querySelector(`.key[data-note="${note}"]`);
+  if (!el) return; el.classList.add(cls); setTimeout(()=>el.classList.remove(cls), 600);
+}
+
+// =============================================
+// ステージ1・2のデータ (元のまま)
+// =============================================
+const stage1Data = [
+  { level:1, type:'single', questions:[ { text:`「ド」の音はどこかな？`, target:['C'] } ] },
+  { level:2, type:'single', questions:[ { text:`「ド」のすぐ右の「レ」はどこかな？`, target:['D'] } ] },
+  { level:3, type:'sequence', questions:[ { text:`順番に！「ド」→「レ」→「ミ」！`, target:['C','D','E'] } ] },
+  { level:4, type:'single', questions:[ { text:`「ファ」のすぐ右の「ソ」はどこ？`, target:['G'] } ] },
+  { level:5, type:'single', questions:[ { text:`いちばん右のはしっこ「シ」をならして！`, target:['B'] } ] },
+  { level:6, type:'single', questions:[ { text:`黒い鍵盤の「ド#」はどこかな？`, target:['C#'] } ] },
+  { level:7, type:'ear', questions:[ { text:`【音当て】耳をすまして！<br><button class="play-audio-btn" onclick="playPianoNote('G')">▶️ 音をきく</button>`, target:['G'] } ] },
+  { level:8, type:'sequence', questions:[ { text:`「ファ」→「ソ」→「ラ」→「シ」！`, target:['F','G','A','B'] } ] },
+  { level:9, type:'sequence', questions:[ { text:`逆の階段！「ソ」→「ファ」→「ミ」→「レ」→「ド」！`, target:['G','F','E','D','C'] } ] },
+  { level:10, type:'sequence', questions:[ { text:`【きらきら星】「ド・ド・ソ・ソ・ラ・ラ・ソ」`, target:['C','C','G','G','A','A','G'] } ] }
+];
+
+const trebleNotes = [
+  {note:'C', oct:4, staff:-1, ledger:true, solfege:'ド'}, {note:'D', oct:4, staff:-0.5,ledger:false, solfege:'レ'},
+  {note:'E', oct:4, staff:0, ledger:false, solfege:'ミ'}, {note:'F', oct:4, staff:0.5, ledger:false, solfege:'ファ'},
+  {note:'G', oct:4, staff:1, ledger:false, solfege:'ソ'}, {note:'A', oct:4, staff:1.5, ledger:false, solfege:'ラ'}
+];
+const bassNotes = [
+  {note:'G', oct:2, staff:0, ledger:false, solfege:'ソ'}, {note:'A', oct:2, staff:0.5,ledger:false, solfege:'ラ'},
+  {note:'B', oct:2, staff:1, ledger:false, solfege:'シ'}, {note:'C', oct:3, staff:1.5,ledger:false, solfege:'ド'}
+];
+const stage2Data = [
+  { level:1, clef:'treble', notePool: trebleNotes.slice(0,3), hint:`五線譜の音符を見て、鍵盤をタッチ！` },
+  { level:2, clef:'treble', notePool: trebleNotes.slice(0,5), hint:`音符はどの鍵盤かな？` },
+  { level:6, clef:'bass', notePool: bassNotes.slice(0,3), hint:`ヘ音記号スタート！` },
+  { level:7, clef:'bass', notePool: bassNotes.slice(0,5), hint:`ヘ音記号の音符はどれかな？` }
+];
+
+const canvas = document.getElementById('sheet-canvas');
+const ctx2d  = canvas.getContext('2d');
+function drawStaff(clef, noteInfo) {
+  const W = canvas.width, H = canvas.height; ctx2d.clearRect(0, 0, W, H);
+  ctx2d.fillStyle = '#FFFEF5'; ctx2d.fillRect(0, 0, W, H);
+  const TOP = 36, LINEGAP = 16, STAFFH = LINEGAP * 4;
+  ctx2d.strokeStyle = '#333'; ctx2d.lineWidth = 1.5;
+  for (let i=0; i<5; i++) { const y = TOP + i*LINEGAP; ctx2d.beginPath(); ctx2d.moveTo(40,y); ctx2d.lineTo(W-20,y); ctx2d.stroke(); }
+  ctx2d.fillStyle = '#222';
+  if (clef === 'treble') { ctx2d.font = `${STAFFH*2.2}px serif`; ctx2d.fillText('𝄞', 42, TOP+STAFFH+8); }
+  else { ctx2d.font = `bold ${STAFFH*1.1}px serif`; ctx2d.fillText('𝄢', 42, TOP+LINEGAP*2.5); }
+  if (!noteInfo) return;
+  const noteX = W/2+10, R = LINEGAP*0.72, staffY = pos => TOP + (4-pos)*LINEGAP, noteY = staffY(noteInfo.staff);
+  if (noteInfo.ledger && noteInfo.staff < 0) {
+      const ledgerY = TOP + 4*LINEGAP; ctx2d.beginPath(); ctx2d.moveTo(noteX-R*1.6, ledgerY); ctx2d.lineTo(noteX+R*1.6, ledgerY); ctx2d.stroke();
+  }
+  ctx2d.fillStyle = '#1a1a2e'; ctx2d.beginPath(); ctx2d.ellipse(noteX, noteY, R, R*0.78, -0.3, 0, Math.PI*2); ctx2d.fill();
+  const stemDir = noteInfo.staff<2 ? -1 : 1, stemX = stemDir===-1 ? noteX+R*0.85 : noteX-R*0.85;
+  ctx2d.strokeStyle = '#1a1a2e'; ctx2d.lineWidth = 2; ctx2d.beginPath(); ctx2d.moveTo(stemX, noteY); ctx2d.lineTo(stemX, noteY+stemDir*LINEGAP*3.5); ctx2d.stroke();
+}
+
+// =============================================
+// クイズデータ (ステージ3前半・4・5・6・7)
+// =============================================
+const quizData = {
+  3: [ // リズムクイズ (Lv1-5)
+    { q: "四分音符（しぶおんぷ）の長さは、八分音符いくつ分？", opts: ["1個", "2個", "4個"], ans: 1 },
+    { q: "「タタ」と短く叩く音符はどれ？", opts: ["四分音符", "二分音符", "八分音符"], ans: 2 },
+    { q: "メトロノームの「♩=60」の意味は？", opts: ["60秒で終わる", "1分間に60回叩く", "60個の音を鳴らす"], ans: 1 },
+    { q: "一番長く伸ばす音符はどれ？", opts: ["全音符", "二分音符", "四分音符"], ans: 0 },
+    { q: "お休みを表す記号を何という？", opts: ["休符(きゅうふ)", "止符(しふ)", "音符(おんぷ)"], ans: 0 }
+  ],
+  4: [ // 音楽記号クイズ
+    { q: "「f (フォルテ)」の意味は？", opts: ["速く", "強く", "弱く"], ans: 1 },
+    { q: "「p (ピアノ)」の意味は？", opts: ["弱く", "遅く", "強く"], ans: 0 },
+    { q: "だんだん強くする記号は？", opts: ["クレッシェンド", "デクレッシェンド", "スタッカート"], ans: 0 },
+    { q: "音を短く切って弾く記号は？", opts: ["スラー", "タイ", "スタッカート"], ans: 2 },
+    { q: "「Allegro (アレグロ)」の意味は？", opts: ["速く", "歩くような速さで", "ゆっくり"], ans: 0 }
+  ],
+  5: [ // 和音クイズ
+    { q: "明るく楽しい響きがするのは？", opts: ["メジャーコード", "マイナーコード", "休符"], ans: 0 },
+    { q: "この音の響きはどっち？<br><button class='play-audio-btn' onclick='playChord(\"maj\")'>▶️ 聴く</button>", opts: ["明るい(メジャー)", "暗い(マイナー)"], ans: 0 },
+    { q: "この音の響きはどっち？<br><button class='play-audio-btn' onclick='playChord(\"min\")'>▶️ 聴く</button>", opts: ["明るい(メジャー)", "暗い(マイナー)"], ans: 1 },
+    { q: "「ド・ミ・ソ」の和音の名前は？", opts: ["Cコード", "Fコード", "Gコード"], ans: 0 },
+    { q: "和音のことを英語で何という？", opts: ["メロディ", "コード", "リズム"], ans: 1 }
+  ],
+  6: [ // 伴奏クイズ
+    { q: "メロディを支える一番低い音を何という？", opts: ["ベース音", "トップノート", "休符"], ans: 0 },
+    { q: "「Cコード」に合わせるベース音は？", opts: ["ド", "ファ", "ソ"], ans: 0 },
+    { q: "伴奏の役割として正しいのは？", opts: ["曲を終わらせる", "曲を支えて豊かにする", "歌の邪魔をする"], ans: 1 },
+    { q: "「Gコード」のベース音はどれ？", opts: ["ド", "ファ", "ソ"], ans: 2 },
+    { q: "バンドでベース音を担当する楽器は？", opts: ["ドラム", "ベースギター", "フルート"], ans: 1 }
+  ],
+  7: [ // アレンジクイズ
+    { q: "曲の雰囲気を変えるために工夫することを何という？", opts: ["アレンジ", "コピー", "メトロノーム"], ans: 0 },
+    { q: "悲しい曲を明るくするにはどうする？", opts: ["マイナーをメジャーにする", "テンポを遅くする", "音を小さくする"], ans: 0 },
+    { q: "曲を盛り上げたい時に使うテクニックは？", opts: ["音を全部消す", "音の数やリズムを増やす", "テンポを半分にする"], ans: 1 },
+    { q: "同じメロディでもリズムを変えるとどうなる？", opts: ["違う曲のように聴こえる", "全く同じに聴こえる", "音が鳴らなくなる"], ans: 0 },
+    { q: "自分だけの音楽を作ることを何という？", opts: ["作曲・アレンジ", "演奏", "暗譜(あんぷ)"], ans: 0 }
+  ]
+};
+
+// =============================================
+// ゲーム状態管理
+// =============================================
+let currentStage = 1;
+let currentLevel = 1;
+let combo = 0;
+let isLocked = false;
+let isExtreme = false;
+let extremeCount = 0;
+let currentQ = null;
+let seqIdx = 0;
+let s2CurrentNote = null;
 
 async function fetchPokemon() {
   try {
@@ -394,337 +474,262 @@ async function fetchPokemon() {
   } catch(e){}
 }
 
+function loadQuestion() {
+  isLocked = false; seqIdx = 0; stopBGM();
+  if(rhythmLoop) cancelAnimationFrame(rhythmLoop);
+
+  document.getElementById('level-display').textContent = isExtreme ? '∞' : currentLevel;
+  document.getElementById('combo-display').textContent = combo;
+
+  const qArea = document.getElementById('question-area');
+  const kArea = document.getElementById('keyboard');
+  const sArea = document.getElementById('sheet-area');
+  const cArea = document.getElementById('note-choices');
+  const rArea = document.getElementById('rhythm-area');
+  const instr = document.getElementById('instruction-box');
+
+  // UIリセット
+  qArea.style.display = 'flex'; kArea.style.display = 'none';
+  sArea.style.display = 'none'; cArea.style.display = 'none';
+  rArea.style.display = 'none';
+
+  if (currentStage === 1) {
+    // ステージ1: 鍵盤探し
+    kArea.style.display = 'flex'; updateKeyLabels(currentLevel);
+    let stageLevel = stage1Data.find(s => s.level === currentLevel) || stage1Data[stage1Data.length-1];
+    currentQ = stageLevel.questions[Math.floor(Math.random()*stageLevel.questions.length)];
+    instr.innerHTML = currentQ.text;
+  } 
+  else if (currentStage === 2) {
+    // ステージ2: 楽譜読み
+    kArea.style.display = 'flex'; updateKeyLabels(currentLevel); sArea.style.display = 'flex';
+    let stageLevel = stage2Data.find(s => s.level === currentLevel) || stage2Data[stage2Data.length-1];
+    s2CurrentNote = stageLevel.notePool[Math.floor(Math.random()*stageLevel.notePool.length)];
+    document.getElementById('sheet-label').textContent = stageLevel.clef === 'treble' ? 'ト音記号' : 'ヘ音記号';
+    drawStaff(stageLevel.clef, s2CurrentNote);
+    instr.innerHTML = stageLevel.hint + `<br>🎹 鍵盤をタッチ！`;
+  }
+  else if (currentStage === 3 && currentLevel >= 6) {
+    // ステージ3 後半: リズムゲーム
+    qArea.style.display = 'none'; rArea.style.display = 'flex';
+    startRhythmGame();
+  }
+  else {
+    // ステージ3前半・4・5・6・7: クイズ形式
+    cArea.style.display = 'flex';
+    let targetData = quizData[currentStage];
+    // レベルに応じた問題（Lv1〜5想定、ループする）
+    let qIdx = (currentLevel - 1) % targetData.length;
+    let quiz = targetData[qIdx];
+    instr.innerHTML = quiz.q;
+
+    cArea.innerHTML = '';
+    quiz.opts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'note-choice-btn';
+        btn.innerHTML = opt;
+        btn.onclick = () => {
+            if(isLocked) return;
+            isLocked = true;
+            if(idx === quiz.ans) {
+                btn.classList.add('correct'); handleCorrect();
+            } else {
+                btn.classList.add('wrong'); handleWrong();
+            }
+        };
+        cArea.appendChild(btn);
+    });
+  }
+}
+
 // =============================================
-// RHYTHM ENGINE (Stages 3 - 7)
+// キーボード入力ハンドラ (ステージ1・2用)
+// =============================================
+function onKeyPress(note) {
+  if (isLocked) return;
+  if (currentStage === 1) {
+    let stageLevel = stage1Data.find(s=>s.level===currentLevel) || stage1Data[stage1Data.length-1];
+    if (stageLevel.type === 'single' || stageLevel.type === 'ear') {
+      if (currentQ.target.includes(note)) handleCorrect(); else handleWrong();
+    } else if (stageLevel.type === 'sequence') {
+      if (note === currentQ.target[seqIdx]) {
+        seqIdx++; if (seqIdx === currentQ.target.length) handleCorrect();
+      } else { seqIdx = 0; handleWrong(); }
+    }
+  } else if (currentStage === 2) {
+    if (note === s2CurrentNote.note) handleCorrect(); else handleWrong();
+  }
+}
+
+// =============================================
+// 正解・不正解処理
+// =============================================
+function handleCorrect() {
+  isLocked = true; combo++;
+  document.getElementById('combo-display').textContent = combo;
+  if(currentStage <= 2) document.getElementById('instruction-box').innerHTML = `大正解！すごい！🎉`;
+
+  setTimeout(() => { playFanfare(); confetti({particleCount:100,spread:70,origin:{y:0.6}}); }, 300);
+
+  setTimeout(() => {
+    if (isExtreme) {
+      extremeCount++;
+      document.getElementById('extreme-count-display').innerHTML = `${extremeCount} 問正解！`;
+      currentLevel = Math.ceil(Math.random()*10);
+    } else {
+      if (currentLevel < 10) currentLevel++;
+      else {
+        isExtreme = true; extremeCount = 0;
+        document.getElementById('extreme-badge-wrap').style.display = 'block';
+        document.getElementById('level-pill').style.borderColor = 'var(--purple)';
+        confetti({particleCount:250,spread:120,origin:{y:0.5}});
+        currentLevel = Math.ceil(Math.random()*10);
+      }
+    }
+    fetchPokemon(); loadQuestion();
+  }, 2000);
+}
+
+function handleWrong() {
+  combo = 0; document.getElementById('combo-display').textContent = 0; playBuzzer();
+  const qa = document.getElementById(currentStage <= 2 ? 'question-area' : (currentStage===3 && currentLevel>=6 ? 'rhythm-area' : 'note-choices'));
+  qa.classList.add('shake'); setTimeout(()=>qa.classList.remove('shake'), 400);
+  isLocked = false;
+}
+
+// =============================================
+// リズムゲームエンジン (ステージ3 Lv6〜10専用)
 // =============================================
 const rCanvas = document.getElementById('rhythm-canvas');
 const rctx = rCanvas.getContext('2d');
-let rhythmLoopId = null;
-let RHYTHM = {
-  active: false,
-  startTime: 0,
-  notes: [],
-  speed: 150, // px per sec
-  hits: 0,
-  misses: 0,
-  targetX: 60,
-  feedback: { text: '', time: 0, color: '' }
-};
+let rhythmLoop = null;
+let RHYTHM = { active: false, startTime: 0, notes: [], speed: 180, hits: 0, misses: 0 };
 
-function getStageClassroom(stage, level) {
-  const lv = level > 10 ? 'EX' : level;
-  if(stage===3) return {
-    title: `リズムの基本 <small>Lv.${lv}</small>`,
-    text: level <= 3 ? "【座学】<br>四分音符（しぶおんぷ）は「タン」、八分音符は「タタ」と短くなるよ。<br><br>★遊び方：マークが線に重なったら「TAP」ボタンを押そう！" 
-                     : "【座学】<br>少し速いリズムに挑戦！リズムに乗ってノリノリで叩こう！"
-  };
-  if(stage===4) return {
-    title: `音楽記号 <small>Lv.${lv}</small>`,
-    text: level <= 3 ? "【座学】<br>「f（フォルテ）」は強く、「p（ピアノ）」は弱く演奏する記号だよ。<br><br>★遊び方：流れてくる記号に合わせてボタンを選ぼう！"
-                     : "【座学】<br>記号がどんどん切り替わるよ！間違えずにボタンを押せるかな？"
-  };
-  if(stage===5) return {
-    title: `和音＆コード <small>Lv.${lv}</small>`,
-    text: level <= 3 ? "【座学】<br>明るい響きの和音を「メジャー」、暗く悲しい響きを「マイナー」と呼ぶよ。<br><br>★遊び方：音が鳴ったら明るいか暗いかボタンで答えよう！"
-                     : "【座学】<br>響きを素早く聴き分けよう！連続で和音がやってくるぞ！"
-  };
-  if(stage===6) return {
-    title: `伴奏セッション <small>Lv.${lv}</small>`,
-    text: level <= 3 ? "【座学】<br>メロディを支える左手の音（ベース音）を入れると、曲がカッコよくなるよ！<br><br>★遊び方：C(ド)・F(ファ)・G(ソ)のボタンをタイミングよく押そう！"
-                     : "【座学】<br>バンドのベーシストになった気分で、正確にリズムを刻もう！"
-  };
-  if(stage===7) return {
-    title: `アレンジ創作 <small>Lv.${lv}</small>`,
-    text: level <= 3 ? "【座学】<br>同じ曲でも、リズムを変えたり音を増やすと雰囲気がガラッと変わるよ。<br><br>★遊び方：曲に合わせて、自由にTAPボタンを叩いてアレンジしてみよう！"
-                     : "【座学】<br>君だけのリズムで曲を盛り上げよう！たくさん叩いてコンボを稼げ！"
-  };
-  return {title:"座学", text:"説明"};
-}
-
-function generateRhythmTrack(stage, level) {
-  let notes = [];
-  let t = 1000;
-  const count = level > 10 ? 25 : 8 + level * 2;
-  const gap = level > 10 ? 400 : Math.max(500, 1200 - level * 80);
-
-  for(let i=0; i<count; i++) {
-    if(stage===3 || stage===7) {
-      notes.push({ time: t, type: 'tap', label: '♪' });
-      t += gap * (Math.random() > 0.7 ? 0.5 : 1);
-    } else if(stage===4) {
-      const isF = Math.random() > 0.5;
-      notes.push({ time: t, type: isF?'f':'p', label: isF?'f':'p' });
-      t += gap;
-    } else if(stage===5) {
-      const isMaj = Math.random() > 0.5;
-      notes.push({ time: t, type: isMaj?'maj':'min', label: isMaj?'明るい':'暗い' });
-      t += gap * 1.5;
-    } else if(stage===6) {
-      const types = ['c', 'f', 'g'];
-      const type = types[Math.floor(Math.random()*types.length)];
-      notes.push({ time: t, type: type, label: type.toUpperCase() });
-      t += gap;
+function startRhythmGame() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    RHYTHM.notes = []; RHYTHM.hits = 0; RHYTHM.misses = 0;
+    
+    // テンポ設定 (BPM120 => 1beat = 0.5s)
+    const beatTime = Math.max(0.3, 0.6 - (currentLevel * 0.03)); 
+    RHYTHM.speed = 150 + (currentLevel * 10);
+    
+    const now = audioCtx.currentTime + 1.0;
+    RHYTHM.startTime = now;
+    
+    // BGMスケジュールとノーツ生成 (4小節 = 16拍)
+    for(let i=0; i<16; i++) {
+        let t = now + (i * beatTime);
+        scheduleDrumBeat(t, i%2 === 0); // ドン・カッ・ドン・カッ
+        
+        // ノーツ配置: レベルが上がるほど複雑に
+        if(currentLevel <= 6 || i%2 === 0) {
+            RHYTHM.notes.push({ time: t, hit: false, miss: false });
+        } else if (currentLevel >= 8 && Math.random() > 0.5) {
+            // 裏拍
+            RHYTHM.notes.push({ time: t + (beatTime/2), hit: false, miss: false });
+        }
     }
-  }
-  return notes;
+    
+    RHYTHM.active = true;
+    document.getElementById('rhythm-feedback').textContent = '';
+    rhythmLoop = requestAnimationFrame(updateRhythm);
 }
-
-function setupRhythmControls(stage) {
-  const ctrl = document.getElementById('rhythm-controls');
-  ctrl.innerHTML = '';
-  if(stage===3 || stage===7) {
-    ctrl.innerHTML = `<button class="rb rb-tap" onmousedown="hitRhythm('tap')">TAP !</button>`;
-  } else if(stage===4) {
-    ctrl.innerHTML = `
-      <button class="rb rb-f" onmousedown="hitRhythm('f')">f (強く)</button>
-      <button class="rb rb-p" onmousedown="hitRhythm('p')">p (弱く)</button>`;
-  } else if(stage===5) {
-    ctrl.innerHTML = `
-      <button class="rb rb-maj" onmousedown="hitRhythm('maj')">メジャー(明)</button>
-      <button class="rb rb-min" onmousedown="hitRhythm('min')">マイナー(暗)</button>`;
-  } else if(stage===6) {
-    ctrl.innerHTML = `
-      <button class="rb rb-c" onmousedown="hitRhythm('c')">C (ド)</button>
-      <button class="rb rb-f2" onmousedown="hitRhythm('f')">F (ファ)</button>
-      <button class="rb rb-g" onmousedown="hitRhythm('g')">G (ソ)</button>`;
-  }
-}
-
-function startRhythmPhase() {
-  document.getElementById('classroom-modal').style.display = 'none';
-  rArea.style.display = 'flex';
-  
-  RHYTHM.notes = generateRhythmTrack(currentStage, currentLevel);
-  RHYTHM.hits = 0; RHYTHM.misses = 0; RHYTHM.speed = 100 + currentLevel * 10;
-  if(currentLevel > 10) RHYTHM.speed = 250;
-  RHYTHM.startTime = Date.now() + 1000;
-  RHYTHM.active = true;
-  RHYTHM.feedback = {text:'', time:0};
-  
-  setupRhythmControls(currentStage);
-  if(rhythmLoopId) cancelAnimationFrame(rhythmLoopId);
-  rhythmLoopId = requestAnimationFrame(updateRhythm);
-}
-
-function hitRhythm(type) {
-  if(!RHYTHM.active) return;
-  
-  if(currentStage === 3 || currentStage === 7) playDrum();
-  if(currentStage === 5) playChord(type);
-  if(currentStage === 6) {
-      if(type==='c') playPianoNote('C');
-      if(type==='f') playPianoNote('F');
-      if(type==='g') playPianoNote('G');
-  }
-
-  const now = Date.now();
-  const elapsed = now - RHYTHM.startTime;
-  
-  // Find closest note
-  let closest = null; let minDiff = 9999; let closestIdx = -1;
-  for(let i=0; i<RHYTHM.notes.length; i++) {
-    const n = RHYTHM.notes[i];
-    if(!n.hit && !n.miss) {
-      const diff = Math.abs(n.time - elapsed);
-      if(diff < minDiff) { minDiff = diff; closest = n; closestIdx = i; }
-    }
-  }
-
-  if(currentStage === 7) {
-    // Stage 7 is freeform arrange, any tap is good if near a beat, or just free
-    RHYTHM.hits++;
-    RHYTHM.feedback = {text:'COOL!', time:now, color:varCol('--cyan')};
-    if(closest && minDiff < 300) closest.hit = true;
-    checkRhythmClear();
-    return;
-  }
-
-  if(closest && minDiff < 300) {
-    // Stage 5 plays chord automatically when it reaches the line, 
-    // but user must classify it. We check type match.
-    if(closest.type === type || closest.type === 'tap') {
-      closest.hit = true; RHYTHM.hits++;
-      RHYTHM.feedback = {text:(minDiff<100?'PERFECT!':'GREAT!'), time:now, color:varCol('--green')};
-      combo++; document.getElementById('combo-display').textContent = combo;
-    } else {
-      closest.miss = true; RHYTHM.misses++;
-      RHYTHM.feedback = {text:'MISS', time:now, color:varCol('--red')};
-      combo = 0; document.getElementById('combo-display').textContent = 0; playBuzzer();
-    }
-  } else {
-    // Tapped nothing
-    RHYTHM.misses++; RHYTHM.feedback = {text:'MISS', time:now, color:varCol('--red')};
-    combo = 0; document.getElementById('combo-display').textContent = 0; playBuzzer();
-  }
-  checkRhythmClear();
-}
-
-function varCol(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
 function updateRhythm() {
-  if(!RHYTHM.active) return;
-  const now = Date.now();
-  const elapsed = now - RHYTHM.startTime;
-  const W = rCanvas.width; const H = rCanvas.height;
-  
-  rctx.clearRect(0,0,W,H);
-  
-  // Target Line
-  rctx.strokeStyle = 'rgba(255,255,255,0.5)';
-  rctx.lineWidth = 4;
-  rctx.beginPath(); rctx.moveTo(RHYTHM.targetX, 10); rctx.lineTo(RHYTHM.targetX, H-10); rctx.stroke();
-  
-  // Hit zone circle
-  rctx.beginPath(); rctx.arc(RHYTHM.targetX, H/2, 20, 0, Math.PI*2);
-  rctx.fillStyle = 'rgba(255,255,255,0.1)'; rctx.fill();
-  rctx.strokeStyle = 'white'; rctx.stroke();
-
-  let allDone = true;
-
-  RHYTHM.notes.forEach(n => {
-    if(n.hit || n.miss) return;
-    allDone = false;
+    if(!RHYTHM.active) return;
+    const now = audioCtx.currentTime;
+    const W = rCanvas.width, H = rCanvas.height, TARGET_X = 60;
     
-    // Auto play chord for Stage 5 when crossing line
-    if(currentStage === 5 && !n.played && elapsed >= n.time) {
-        playChord(n.type); n.played = true;
-    }
+    rctx.clearRect(0,0,W,H);
+    // 判定ライン
+    rctx.strokeStyle = 'rgba(255,255,255,0.5)'; rctx.lineWidth = 4;
+    rctx.beginPath(); rctx.moveTo(TARGET_X, 10); rctx.lineTo(TARGET_X, H-10); rctx.stroke();
+    rctx.beginPath(); rctx.arc(TARGET_X, H/2, 25, 0, Math.PI*2);
+    rctx.fillStyle = 'rgba(255,255,255,0.1)'; rctx.fill(); rctx.strokeStyle = 'white'; rctx.stroke();
 
-    const x = RHYTHM.targetX + (n.time - elapsed) * (RHYTHM.speed / 1000);
-    
-    if(x < -30) {
-      n.miss = true; RHYTHM.misses++;
-      RHYTHM.feedback = {text:'MISS', time:now, color:varCol('--red')};
-      combo = 0; document.getElementById('combo-display').textContent = 0; playBuzzer();
-      return;
-    }
-    
-    // Draw note
-    if(x < W + 30) {
-      rctx.beginPath();
-      rctx.arc(x, H/2, 22, 0, Math.PI*2);
-      
-      if(n.type==='f') rctx.fillStyle = varCol('--pink');
-      else if(n.type==='p') rctx.fillStyle = varCol('--blue');
-      else if(n.type==='maj') rctx.fillStyle = varCol('--orange');
-      else if(n.type==='min') rctx.fillStyle = varCol('--purple');
-      else if(n.type==='c') rctx.fillStyle = '#E53935';
-      else if(n.type==='f') rctx.fillStyle = '#43A047';
-      else if(n.type==='g') rctx.fillStyle = '#1E88E5';
-      else rctx.fillStyle = varCol('--green');
+    let allDone = true;
+    RHYTHM.notes.forEach(n => {
+        if(n.hit || n.miss) return;
+        allDone = false;
+        
+        // 描画位置の計算
+        const x = TARGET_X + (n.time - now) * RHYTHM.speed;
+        
+        if(x < -30) {
+            n.miss = true; RHYTHM.misses++;
+            showRhythmFeedback('MISS', 'var(--red)'); combo = 0;
+            document.getElementById('combo-display').textContent = 0; playBuzzer();
+        } else if (x < W + 30) {
+            // ノーツ描画
+            rctx.beginPath(); rctx.arc(x, H/2, 20, 0, Math.PI*2);
+            rctx.fillStyle = varCol('--orange'); rctx.fill();
+            rctx.strokeStyle = 'white'; rctx.lineWidth = 3; rctx.stroke();
+            rctx.fillStyle = 'white'; rctx.font = "bold 18px sans-serif";
+            rctx.textAlign = "center"; rctx.textBaseline = "middle"; rctx.fillText("♪", x, H/2);
+        }
+    });
 
-      rctx.fill(); rctx.strokeStyle = 'white'; rctx.lineWidth = 2; rctx.stroke();
-      
-      rctx.fillStyle = 'white';
-      rctx.font = "bold 16px sans-serif";
-      rctx.textAlign = "center"; rctx.textBaseline = "middle";
-      rctx.fillText(n.label, x, H/2);
-    }
-  });
-
-  // Feedback text
-  if(now - RHYTHM.feedback.time < 500) {
-    rctx.fillStyle = RHYTHM.feedback.color;
-    rctx.font = "bold 32px sans-serif";
-    rctx.textAlign = "center";
-    rctx.fillText(RHYTHM.feedback.text, W/2, H/2 - 40);
-  }
-
-  if(allDone) {
-    checkRhythmClear(true);
-  } else {
-    rhythmLoopId = requestAnimationFrame(updateRhythm);
-  }
-}
-
-function checkRhythmClear(force = false) {
-  const total = RHYTHM.notes.length;
-  const processed = RHYTHM.hits + RHYTHM.misses;
-  if(processed >= total || force) {
-    RHYTHM.active = false;
-    setTimeout(() => {
-       if(RHYTHM.hits >= total * 0.5 || currentStage === 7) { // 50% hit or Stage 7
-          handleCorrect();
-       } else {
-          // Failed
-          playBuzzer();
-          document.getElementById('classroom-title').innerHTML = "ざんねん！";
-          document.getElementById('classroom-text').innerHTML = "もういちどチャレンジしよう！";
-          document.getElementById('classroom-modal').style.display = 'flex';
-       }
-    }, 1000);
-  }
-}
-
-// =============================================
-// FLOW CONTROLLER
-// =============================================
-function loadQuestion() {
-  const levelDisp = document.getElementById('level-display');
-  const comboDisp = document.getElementById('combo-display');
-  levelDisp.textContent = isExtreme ? 'EX' : currentLevel;
-  comboDisp.textContent = combo;
-  
-  fetchPokemon();
-
-  if(currentStage <= 2) {
-    // Stage 1 & 2 logic (Simplified placeholder to ensure game runs)
-    qArea.style.display = 'flex'; kArea.style.display = 'flex';
-    document.getElementById('instruction-box').innerHTML = `ステージ${currentStage}のクイズ！<br>正しい鍵盤をタッチしてね！（※デモ用：どの鍵盤でもOK）`;
-    // For demo of integrated logic, any key press in Stage 1/2 will pass
-  } else {
-    // Stage 3-7 logic
-    qArea.style.display = 'none'; kArea.style.display = 'none'; sArea.style.display = 'none';
-    const cData = getStageClassroom(currentStage, currentLevel);
-    document.getElementById('classroom-title').innerHTML = cData.title;
-    document.getElementById('classroom-text').innerHTML = cData.text;
-    document.getElementById('classroom-modal').style.display = 'flex';
-  }
-}
-
-function onKeyPress(note) {
-  if(currentStage <= 2) {
-      handleCorrect(); // Simplified for Stage 1/2 demo
-  }
-}
-
-function handleCorrect() {
-  playFanfare();
-  confetti({particleCount:100,spread:70,origin:{y:0.6}});
-  
-  setTimeout(()=>{
-    if(isExtreme) {
-      currentLevel = Math.ceil(Math.random()*10);
+    if(allDone) {
+        RHYTHM.active = false;
+        setTimeout(() => {
+            if(RHYTHM.hits >= RHYTHM.notes.length * 0.6) handleCorrect(); // 60%以上でクリア
+            else { isLocked=true; handleWrong(); setTimeout(()=>loadQuestion(), 1500); }
+        }, 1000);
     } else {
-      if(currentLevel < 10) {
-        currentLevel++;
-      } else {
-        isExtreme = true; currentLevel = 1;
-        confetti({particleCount:250,spread:120,origin:{y:0.5}});
-      }
+        rhythmLoop = requestAnimationFrame(updateRhythm);
     }
-    loadQuestion();
-  }, 2500);
 }
 
+// TAPボタン処理
+document.getElementById('rhythm-tap-btn').addEventListener('mousedown', (e) => {
+    e.preventDefault(); if(!RHYTHM.active) return;
+    
+    // スピーカーで手動音を鳴らす（ドラム等）
+    playTone(300, 'triangle', 0.1);
+
+    const now = audioCtx.currentTime;
+    let closest = null; let minDiff = 999;
+    
+    RHYTHM.notes.forEach(n => {
+        if(!n.hit && !n.miss) {
+            let diff = Math.abs(n.time - now);
+            if(diff < minDiff) { minDiff = diff; closest = n; }
+        }
+    });
+
+    if(closest && minDiff < 0.2) { // 判定幅 ±0.2秒
+        closest.hit = true; RHYTHM.hits++; combo++;
+        document.getElementById('combo-display').textContent = combo;
+        showRhythmFeedback(minDiff < 0.08 ? 'PERFECT!' : 'GREAT!', 'var(--green)');
+    } else {
+        combo = 0; document.getElementById('combo-display').textContent = 0;
+        showRhythmFeedback('MISS', 'var(--red)'); playBuzzer();
+    }
+});
+document.getElementById('rhythm-tap-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault(); document.getElementById('rhythm-tap-btn').dispatchEvent(new Event('mousedown'));
+});
+
+function showRhythmFeedback(text, color) {
+    const fb = document.getElementById('rhythm-feedback');
+    fb.textContent = text; fb.style.color = color;
+}
+function varCol(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
 // =============================================
-// NAVIGATION
+// ナビゲーション
 // =============================================
 function startStage(n) {
-  currentStage = n; currentLevel = 1; combo = 0; isExtreme = false;
-  
-  const stagePill = document.getElementById('stage-pill');
-  stagePill.textContent = `ステージ${n}`;
-  
+  currentStage = n; currentLevel = 1; combo = 0; isExtreme = false; extremeCount = 0;
+  document.getElementById('stage-pill').textContent = `ステージ${n}`;
+  document.getElementById('extreme-badge-wrap').style.display = 'none';
+  document.getElementById('level-pill').style.borderColor = '';
   showScreen('screen-game');
-  loadQuestion();
+  fetchPokemon(); loadQuestion();
 }
 
 function goHome() {
-  if(rhythmLoopId) cancelAnimationFrame(rhythmLoopId);
-  RHYTHM.active = false;
-  document.getElementById('classroom-modal').style.display = 'none';
-  rArea.style.display = 'none';
+  stopBGM(); if(rhythmLoop) cancelAnimationFrame(rhythmLoop);
   showScreen('screen-select');
 }
 
@@ -733,9 +738,7 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-// =============================================
-// BOOT
-// =============================================
+// 起動時
 (async () => { await preloadAllNotes(); })();
 </script>
 </body>
