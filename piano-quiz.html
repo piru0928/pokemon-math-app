@@ -3,79 +3,1726 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ピアノ探検隊 Advanced</title>
+<title>ピアノ探検隊</title>
 <style>
-*, *::before, *::after { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-:root { --cream:#FFF9E6;--gold:#FFD700;--gold-dark:#E6B800;--blue:#004A99;--blue-light:#E6F7FF;--blue-border:#91D5FF;--orange:#FF9800;--orange-dark:#E65100;--green:#4CAF50;--green-dark:#2E7D32;--red:#F44336;--purple:#7C3AED;--purple-dark:#5B21B6; }
-body{margin:0;padding:0;background:var(--cream);font-family:'Hiragino Maru Gothic ProN','Rounded M+ 1c','BIZ UDPGothic',sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100dvh;overflow-y:auto;touch-action:manipulation;}
-#app{display:flex;flex-direction:column;align-items:center;width:100%;max-width:520px;min-height:100%;padding:12px 10px;gap:12px;}
-.screen{display:none;flex-direction:column;align-items:center;width:100%;gap:12px}.screen.active{display:flex}
-#screen-select{justify-content:flex-start;min-height:80dvh;gap:12px;padding:20px 0}.select-title{font-size:28px;font-weight:900;color:var(--blue);text-align:center;letter-spacing:2px;text-shadow:0 3px 0 rgba(0,74,153,.15);margin-bottom:5px}.select-title span{color:var(--gold-dark)}.select-subtitle{font-size:13px;color:#888;text-align:center;margin-bottom:10px}
-.stage-card{width:95%;background:#fff;border-radius:16px;border:3px solid var(--gold);padding:12px 16px;box-shadow:0 4px 0 rgba(0,0,0,.12);cursor:pointer;transition:transform .1s,box-shadow .1s;text-align:center;display:flex;align-items:center;text-align:left;gap:12px}.stage-card:active{transform:translateY(4px);box-shadow:0 0 0 rgba(0,0,0,.12)}.stage-card-icon{font-size:32px;flex-shrink:0}.stage-card-content{flex:1}.stage-card-title{font-size:16px;font-weight:900;color:var(--blue);margin-bottom:4px}.stage-card-desc{font-size:11px;color:#666;line-height:1.4}
-.game-header{width:100%;text-align:center}.status-bar{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.status-pill{font-size:15px;font-weight:bold;background:white;padding:6px 16px;border-radius:20px;border:3px solid var(--gold);color:#555;box-shadow:0 3px 0 rgba(0,0,0,.1)}.status-pill.extreme{border-color:var(--purple);color:var(--purple)}
-.question-area{display:flex;align-items:center;background:var(--blue-light);padding:12px 15px;border-radius:15px;border:3px solid var(--blue-border);width:100%;min-height:90px}#pokemon-img{width:50px;height:50px;object-fit:contain;margin-right:12px;flex-shrink:0;filter:drop-shadow(0 4px 4px rgba(0,0,0,.2));animation:float 2s ease-in-out infinite}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}.instruction{font-size:15px;font-weight:bold;color:var(--blue);line-height:1.6;flex:1;word-break:break-word}.instruction ruby{ruby-align:center}rt{font-size:.55em;font-weight:700;color:#777}.rationale-box{width:100%;background:#fff;border:3px solid var(--gold);border-radius:14px;padding:10px 12px;color:#444;font-size:13px;line-height:1.6;display:none;box-shadow:0 3px 0 rgba(0,0,0,.08)}.rationale-box.good{border-color:var(--green)}.rationale-box.bad{border-color:var(--red)}
-.play-audio-btn{display:inline-block;margin-top:6px;background:var(--green);color:white;border:none;padding:7px 14px;border-radius:18px;font-size:13px;font-weight:bold;cursor:pointer;box-shadow:0 3px 0 var(--green-dark)}.play-audio-btn:active{transform:translateY(3px);box-shadow:none}@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px) rotate(-2deg)}50%{transform:translateX(8px) rotate(2deg)}75%{transform:translateX(-8px) rotate(-2deg)}}.shake{animation:shake .4s ease-in-out;border-color:var(--red)!important}
-.keyboard{display:flex;position:relative;width:100%;height:26vh;min-height:160px;max-height:210px;background:#444;padding:5px;border-radius:8px;border-bottom:10px solid #222}.key{cursor:pointer;border-radius:0 0 6px 6px;display:flex;justify-content:center;align-items:flex-end;padding-bottom:12px;font-weight:bold;transition:background-color .08s}.key.white{flex:1;background:white;border:1px solid #ccc;z-index:1;color:#666;margin:0 2px;font-size:13px;box-shadow:inset 0 -8px 8px rgba(0,0,0,.05)}.key.black{position:absolute;width:calc((100% - 10px)/7*.65);height:60%;background:#222;color:white;z-index:2;top:5px;transform:translateX(-50%);font-size:10px;padding-bottom:7px;box-shadow:inset -2px -5px 5px rgba(255,255,255,.15)}.key.black[data-note="C#"]{left:calc((100% - 10px)/7*1 + 5px)}.key.black[data-note="D#"]{left:calc((100% - 10px)/7*2 + 5px)}.key.black[data-note="F#"]{left:calc((100% - 10px)/7*4 + 5px)}.key.black[data-note="G#"]{left:calc((100% - 10px)/7*5 + 5px)}.key.black[data-note="A#"]{left:calc((100% - 10px)/7*6 + 5px)}.key.active.white{background:#FFD666}.key.active.black{background:#777}.key.hide-label{color:transparent!important}.key.highlight-correct.white{background:#a8f0a8!important}.key.highlight-correct.black{background:#3a9a3a!important}
-.sheet-area{width:100%;background:white;border-radius:15px;border:3px solid var(--purple);padding:12px;display:none;flex-direction:column;align-items:center;gap:8px}.sheet-label{font-size:12px;font-weight:bold;color:var(--purple)}#sheet-canvas{display:block;max-width:100%;border-radius:8px}.note-choices{display:none;flex-wrap:wrap;justify-content:center;gap:8px;width:100%}.note-choice-btn{padding:12px 12px;font-size:14px;font-weight:bold;border-radius:14px;border:3px solid var(--blue-border);background:white;color:var(--blue);cursor:pointer;box-shadow:0 3px 0 rgba(0,74,153,.2);transition:transform .08s,box-shadow .08s;flex:1 1 40%;max-width:230px;text-align:center;line-height:1.45}.note-choice-btn:active{transform:translateY(3px);box-shadow:none}.note-choice-btn.correct{background:#a8f0a8;border-color:var(--green)}.note-choice-btn.wrong{background:#fca5a5;border-color:var(--red)}
-#rhythm-area{display:none;flex-direction:column;align-items:center;width:100%;gap:10px;background:#222;border-radius:15px;padding:15px;border:4px solid var(--orange)}#rhythm-canvas{width:100%;height:120px;background:#111;border-radius:8px;border:2px solid #555}.rhythm-tap-btn{width:100%;background:var(--orange);color:white;border:none;padding:20px;font-size:24px;font-weight:900;border-radius:12px;box-shadow:0 6px 0 var(--orange-dark);cursor:pointer}.rhythm-tap-btn:active{transform:translateY(6px);box-shadow:none;background:#FFB74D}.rhythm-feedback{font-size:20px;font-weight:bold;height:24px;color:var(--gold)}.btn-row{display:flex;gap:10px;justify-content:center;width:100%}.home-btn{background:#78909C;color:white;border:none;padding:11px 24px;font-size:15px;font-weight:bold;border-radius:22px;cursor:pointer;box-shadow:0 4px 0 #455A64;margin-bottom:16px;margin-top:6px}.home-btn:active{transform:translateY(4px);box-shadow:none}#extreme-badge-wrap{display:none;margin-top:6px;text-align:center}.extreme-badge{background:linear-gradient(135deg,var(--purple),#C026D3);color:white;font-size:13px;font-weight:900;padding:6px 18px;border-radius:20px;letter-spacing:2px;animation:pulse-badge 1.5s ease-in-out infinite}@keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}#extreme-count-display{font-size:13px;color:var(--purple);font-weight:bold;margin-top:4px}
+*, *::before, *::after {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --cream: #FFF9E6;
+  --gold: #FFD700;
+  --gold-dark: #E6B800;
+  --blue: #004A99;
+  --blue-light: #E6F7FF;
+  --blue-border: #91D5FF;
+  --orange: #FF9800;
+  --orange-dark: #E65100;
+  --green: #4CAF50;
+  --green-dark: #2E7D32;
+  --red: #F44336;
+  --purple: #7C3AED;
+  --purple-dark: #5B21B6;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--cream);
+  font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'BIZ UDPGothic', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100dvh;
+  overflow-y: auto;
+  touch-action: manipulation;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  min-height: 100%;
+  padding: 12px 10px;
+  gap: 12px;
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+.screen.active {
+  display: flex;
+}
+
+#screen-select {
+  justify-content: flex-start;
+  min-height: 80dvh;
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.select-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--blue);
+  text-align: center;
+  letter-spacing: 2px;
+  text-shadow: 0 3px 0 rgba(0,74,153,0.15);
+  margin-bottom: 5px;
+}
+
+.select-title span {
+  color: var(--gold-dark);
+}
+
+.select-subtitle {
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.stage-card {
+  width: 95%;
+  background: white;
+  border-radius: 16px;
+  border: 3px solid var(--gold);
+  padding: 12px 16px;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 12px;
+}
+
+.stage-card:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(0,0,0,0.12);
+}
+
+.stage-card-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.stage-card-content {
+  flex: 1;
+}
+
+.stage-card-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+
+.stage-card-desc {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.game-header {
+  width: 100%;
+  text-align: center;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  font-size: 15px;
+  font-weight: bold;
+  background: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 3px solid var(--gold);
+  color: #555;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+}
+
+.question-area {
+  display: flex;
+  align-items: center;
+  background: var(--blue-light);
+  padding: 12px 15px;
+  border-radius: 15px;
+  border: 3px solid var(--blue-border);
+  width: 100%;
+  min-height: 90px;
+}
+
+#pokemon-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  margin-right: 12px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+.instruction {
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--blue);
+  line-height: 1.6;
+  flex: 1;
+  word-break: break-word;
+}
+
+.instruction ruby {
+  ruby-align: center;
+}
+
+rt {
+  font-size: .55em;
+  font-weight: 700;
+  color: #777;
+}
+
+.music-symbol {
+  font-size: 1.3em;
+  font-weight: 900;
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
+}
+
+.play-audio-btn {
+  display: inline-block;
+  margin-top: 6px;
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--green-dark);
+}
+
+.play-audio-btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.rationale-box {
+  width: 100%;
+  background: white;
+  border: 3px solid var(--gold);
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: #444;
+  font-size: 13px;
+  line-height: 1.6;
+  display: none;
+  box-shadow: 0 3px 0 rgba(0,0,0,.08);
+}
+
+.rationale-box.good {
+  border-color: var(--green);
+}
+
+.rationale-box.bad {
+  border-color: var(--red);
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-8px) rotate(-2deg); }
+  50% { transform: translateX(8px) rotate(2deg); }
+  75% { transform: translateX(-8px) rotate(-2deg); }
+}
+
+.shake {
+  animation: shake 0.4s ease-in-out;
+  border-color: var(--red) !important;
+}
+
+.keyboard {
+  display: flex;
+  position: relative;
+  width: 100%;
+  height: 26vh;
+  min-height: 160px;
+  max-height: 210px;
+  background: #444;
+  padding: 5px;
+  border-radius: 8px;
+  border-bottom: 10px solid #222;
+}
+
+.key {
+  cursor: pointer;
+  border-radius: 0 0 6px 6px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 12px;
+  font-weight: bold;
+  transition: background-color 0.08s;
+}
+
+.key.white {
+  flex: 1;
+  background: white;
+  border: 1px solid #ccc;
+  z-index: 1;
+  color: #666;
+  margin: 0 2px;
+  font-size: 13px;
+  box-shadow: inset 0 -8px 8px rgba(0,0,0,0.05);
+}
+
+.key.black {
+  position: absolute;
+  width: calc((100% - 10px) / 7 * 0.65);
+  height: 60%;
+  background: #222;
+  color: white;
+  z-index: 2;
+  top: 5px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  padding-bottom: 7px;
+  box-shadow: inset -2px -5px 5px rgba(255,255,255,0.15);
+}
+
+.key.black[data-note="C#"] { left: calc((100% - 10px) / 7 * 1 + 5px); }
+.key.black[data-note="D#"] { left: calc((100% - 10px) / 7 * 2 + 5px); }
+.key.black[data-note="F#"] { left: calc((100% - 10px) / 7 * 4 + 5px); }
+.key.black[data-note="G#"] { left: calc((100% - 10px) / 7 * 5 + 5px); }
+.key.black[data-note="A#"] { left: calc((100% - 10px) / 7 * 6 + 5px); }
+
+.key.active.white {
+  background: #FFD666;
+}
+
+.key.active.black {
+  background: #777;
+}
+
+.key.hide-label {
+  color: transparent !important;
+}
+
+.sheet-area {
+  width: 100%;
+  background: white;
+  border-radius: 15px;
+  border: 3px solid var(--purple);
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.sheet-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--purple);
+}
+
+#sheet-canvas {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.note-choices {
+  display: none;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.note-choice-btn {
+  padding: 12px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 14px;
+  border: 3px solid var(--blue-border);
+  background: white;
+  color: var(--blue);
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,74,153,0.2);
+  transition: transform 0.08s, box-shadow 0.08s;
+  flex: 1 1 40%;
+  max-width: 230px;
+  text-align: center;
+  line-height: 1.45;
+}
+
+.note-choice-btn:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.note-choice-btn.correct {
+  background: #a8f0a8;
+  border-color: var(--green);
+}
+
+.note-choice-btn.wrong {
+  background: #fca5a5;
+  border-color: var(--red);
+}
+
+#rhythm-area {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  background: #222;
+  border-radius: 15px;
+  padding: 15px;
+  border: 4px solid var(--orange);
+}
+
+#rhythm-canvas {
+  width: 100%;
+  height: 120px;
+  background: #111;
+  border-radius: 8px;
+  border: 2px solid #555;
+}
+
+.rhythm-tap-btn {
+  width: 100%;
+  background: var(--orange);
+  color: white;
+  border: none;
+  padding: 20px;
+  font-size: 24px;
+  font-weight: 900;
+  border-radius: 12px;
+  box-shadow: 0 6px 0 var(--orange-dark);
+  cursor: pointer;
+}
+
+.rhythm-tap-btn:active {
+  transform: translateY(6px);
+  box-shadow: none;
+  background: #FFB74D;
+}
+
+.rhythm-feedback {
+  font-size: 20px;
+  font-weight: bold;
+  height: 24px;
+  color: var(--gold);
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.home-btn {
+  background: #78909C;
+  color: white;
+  border: none;
+  padding: 11px 24px;
+  font-size: 15px;
+  font-weight: bold;
+  border-radius: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #455A64;
+  margin-bottom: 16px;
+  margin-top: 6px;
+}
+
+.home-btn:active {
+  transform: translateY(4px);
+  box-shadow: none;
+}
+
+#extreme-badge-wrap {
+  display:none;
+  margin-top:6px;
+  text-align:center;
+}
+
+.extreme-badge {
+  background: linear-gradient(135deg, var(--purple), #C026D3);
+  color: white;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 6px 18px;
+  border-radius: 20px;
+  letter-spacing: 2px;
+  animation: pulse-badge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%,100% { transform:scale(1); }
+  50% { transform:scale(1.05); }
+}
+
+#extreme-count-display {
+  font-size: 13px;
+  color: var(--purple);
+  font-weight: bold;
+  margin-top: 4px;
+}
 </style>
 </head>
+
 <body>
 <div id="app">
+
   <div id="screen-select" class="screen active"></div>
+
   <div id="screen-game" class="screen">
-    <div class="game-header"><div class="status-bar"><div class="status-pill" id="stage-pill"></div><div class="status-pill" id="level-pill">Lv: <span id="level-display">1</span></div><div class="status-pill" id="combo-pill">🔥 <span id="combo-display">0</span></div></div><div id="extreme-badge-wrap"><div class="extreme-badge">⚡ EXTREME MODE ⚡</div><div id="extreme-count-display"></div></div></div>
-    <div class="question-area" id="question-area"><img id="pokemon-img" src="" alt=""><div id="instruction-box" class="instruction"></div></div>
-    <div class="sheet-area" id="sheet-area"><div class="sheet-label" id="sheet-label"></div><canvas id="sheet-canvas" width="360" height="150"></canvas></div>
-    <div class="note-choices" id="note-choices"></div><div id="rationale-box" class="rationale-box"></div><div class="keyboard" id="keyboard"></div>
-    <div id="rhythm-area"><div id="rhythm-title" style="color:white;font-size:14px;font-weight:bold;"></div><canvas id="rhythm-canvas" width="400" height="120"></canvas><div id="rhythm-feedback" class="rhythm-feedback"></div><button class="rhythm-tap-btn" id="rhythm-tap-btn">TAP !!</button></div>
-    <div class="btn-row"><button class="home-btn" onclick="goHome()" data-ruby="🏠 ホーム">🏠 ホーム</button></div>
+    <div class="game-header">
+      <div class="status-bar">
+        <div class="status-pill" id="stage-pill">ステージ1</div>
+        <div class="status-pill" id="level-pill">Lv: <span id="level-display">1</span></div>
+        <div class="status-pill" id="combo-pill">🔥 <span id="combo-display">0</span></div>
+      </div>
+      <div id="extreme-badge-wrap">
+        <div class="extreme-badge">⚡ EXTREME MODE ⚡</div>
+        <div id="extreme-count-display"></div>
+      </div>
+    </div>
+
+    <div class="question-area" id="question-area">
+      <img id="pokemon-img" src="" alt="">
+      <div id="instruction-box" class="instruction">読み込み中…</div>
+    </div>
+
+    <div class="sheet-area" id="sheet-area">
+      <div class="sheet-label" id="sheet-label">五線譜</div>
+      <canvas id="sheet-canvas" width="360" height="150"></canvas>
+    </div>
+
+    <div class="note-choices" id="note-choices"></div>
+    <div id="rationale-box" class="rationale-box"></div>
+
+    <div class="keyboard" id="keyboard"></div>
+
+    <div id="rhythm-area">
+      <div id="rhythm-title" style="color:white; font-size:14px; font-weight:bold;">
+        本格ドラムループに合わせてタイミングよく叩け！
+      </div>
+      <canvas id="rhythm-canvas" width="400" height="120"></canvas>
+      <div id="rhythm-feedback" class="rhythm-feedback"></div>
+      <button class="rhythm-tap-btn" id="rhythm-tap-btn">TAP !!</button>
+    </div>
+
+    <div class="btn-row">
+      <button class="home-btn" onclick="goHome()">🏠 ホーム</button>
+    </div>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 <script>
-const RUBY={探検隊:'たんけんたい',選:'えら',鍵盤:'けんばん',探:'さが',正:'ただ',楽譜:'がくふ',読:'よ',五線譜:'ごせんふ',音符:'おんぷ',答:'こた',聴音:'ちょうおん',後半:'こうはん',音:'おと',記号:'きごう',強弱:'きょうじゃく',意味:'いみ',覚:'おぼ',和音:'わおん',伴奏:'ばんそう',支:'ささ',知識:'ちしき',曲:'きょく',秘密:'ひみつ',解明:'かいめい',読み込み:'よみこみ',大正解:'だいせいかい',正解:'せいかい',不正解:'ふせいかい',問題:'もんだい',解説:'かいせつ',理由:'りゆう',背景:'はいけい',拍:'はく',小節:'しょうせつ',休符:'きゅうふ',全音符:'ぜんおんぷ',二分音符:'にぶおんぷ',四分音符:'しぶおんぷ',八分音符:'はちぶおんぷ',三連符:'さんれんぷ',付点:'ふてん',長:'なが',短:'みじか',速:'はや',遅:'おそ',弱:'よわ',強:'つよ',低:'ひく',高:'たか',明:'あか',暗:'くら',響:'ひび',機能:'きのう',代理:'だいり',和声:'わせい',進行:'しんこう',解決:'かいけつ',転調:'てんちょう',主音:'しゅおん',属音:'ぞくおん',下属音:'かぞくおん',旋律:'せんりつ',短調:'たんちょう',長調:'ちょうちょう',主和音:'しゅわおん',属和音:'ぞくわおん',終止:'しゅうし',導音:'どうおん',借用:'しゃくよう',裏:'うら',表:'おもて',半音:'はんおん',全音:'ぜんおん',音階:'おんかい',旋法:'せんぽう',歴史:'れきし',古典派:'こてんは',印象派:'いんしょうは',対位法:'たいいほう',複雑:'ふくざつ',拍子:'ひょうし',同期:'どうき',量子化:'りょうしか',録音:'ろくおん',編集:'へんしゅう',音源:'おんげん',打:'た',鳴:'な',触:'さわ',右:'みぎ',左:'ひだり',黒:'くろ',白:'しろ',耳:'みみ',順番:'じゅんばん',逆:'ぎゃく',階段:'かいだん',聴:'き',見:'み'};
-const rubyKeys=Object.keys(RUBY).sort((a,b)=>b.length-a.length);function rubyize(str){return String(str).replace(/<[^>]+>/g,m=>'\u0000'+m+'\u0000').split('\u0000').map(part=>part.startsWith('<')?part:rubyKeys.reduce((s,k)=>s.replaceAll(k,`<ruby>${k}<rt>${RUBY[k]}</rt></ruby>`),part)).join('')}
-function setHTML(id,html){document.getElementById(id).innerHTML=rubyize(html)}
-const stages=[['🎮','ステージ１：鍵盤探し','ポケモンのヒントを見て正しい鍵盤をタッチ！','var(--gold-dark)','var(--gold)'],['🎼','ステージ２：楽譜読み','五線譜の音符を読んで答えよう！','var(--purple)','var(--purple)'],['🥁','ステージ３：リズム＆聴音','【Lv1〜5】クイズ 【Lv6〜10】音ゲー！','var(--green-dark)','var(--green)'],['𝄆','ステージ４：音楽記号クイズ','強弱記号などの意味をクイズで覚えよう！','#E91E63','#E91E63'],['✨','ステージ５：上級和声クイズ','代理和音・借用和音・終止を考えよう！','#00838F','#00BCD4'],['🎸','ステージ６：モード＆リズム理論','旋法・複雑な拍子・音楽史を学ぼう！','var(--orange-dark)','var(--orange)'],['🎧','ステージ７：DAW＆アレンジ理論','録音・編集・音源・ミックスの知識に挑戦！','#3F51B5','#3F51B5']];
-function renderHome(){const root=document.getElementById('screen-select');root.innerHTML=`<div class="select-title">🎹 ピアノ<span>${rubyize('探検隊')}</span></div><div class="select-subtitle">${rubyize('ステージをえらんでね！')}</div>`+stages.map((s,i)=>`<div class="stage-card" onclick="startStage(${i+1})" style="border-color:${s[4]};"><div class="stage-card-icon">${s[0]}</div><div class="stage-card-content"><div class="stage-card-title" style="color:${s[3]};">${rubyize(s[1])}</div><div class="stage-card-desc">${rubyize(s[2])}</div></div></div>`).join('')}
-const AC=window.AudioContext||window.webkitAudioContext;let audioCtx=new AC(),audioUnlocked=false;const SOUNDFONT='https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_grand_piano-mp3/';const noteToMidi={'C':60,'C#':61,'D':62,'D#':63,'E':64,'F':65,'F#':66,'G':67,'G#':68,'A':69,'A#':70,'B':71};const midiFiles={60:'C4',61:'Cs4',62:'D4',63:'Ds4',64:'E4',65:'F4',66:'Fs4',67:'G4',68:'Gs4',69:'A4',70:'As4',71:'B4'};const noteFreq={'C':261.6,'C#':277.2,'D':293.7,'D#':311.1,'E':329.6,'F':349.2,'F#':370,'G':392,'G#':415.3,'A':440,'A#':466.2,'B':493.9};const audioBuffers={};
-function unlockAudio(){if(audioUnlocked)return;if(audioCtx.state==='suspended')audioCtx.resume();const o=audioCtx.createOscillator();o.connect(audioCtx.destination);o.start(0);o.stop(.001);audioUnlocked=true}document.addEventListener('touchstart',unlockAudio,{once:true});document.addEventListener('mousedown',unlockAudio,{once:true});
-async function preloadAllNotes(){await Promise.all(Object.values(noteToMidi).map(async midi=>{try{const r=await fetch(SOUNDFONT+midiFiles[midi]+'.mp3');audioBuffers[midi]=await audioCtx.decodeAudioData(await r.arrayBuffer())}catch(e){}}))}
-function playPianoNote(noteName,when=audioCtx.currentTime,dur=2.2,vol=.9){if(audioCtx.state==='suspended')audioCtx.resume();const midi=noteToMidi[noteName],buf=audioBuffers[midi];if(buf){const src=audioCtx.createBufferSource(),gain=audioCtx.createGain();src.buffer=buf;gain.gain.setValueAtTime(vol,when);gain.gain.exponentialRampToValueAtTime(.001,when+dur);src.connect(gain);gain.connect(audioCtx.destination);src.start(when);src.stop(when+dur)}else playTone(noteFreq[noteName], 'triangle', dur, vol, when)}
-function playTone(freq,type='sine',dur=.5,vol=.3,when=audioCtx.currentTime){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=freq;o.type=type;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(vol,when);g.gain.exponentialRampToValueAtTime(.001,when+dur);o.start(when);o.stop(when+dur)}function playFanfare(){[523.25,659.25,783.99].forEach((f,i)=>playTone(f,'triangle',i===2?.45:.2,.3,audioCtx.currentTime+i*.15))}function playBuzzer(){playTone(150,'sawtooth',.3,.35)}
-function playChordQuality(type){const map={maj:['C','E','G'],min:['A','C','E'],dim:['B','D','F'],dom7:['G','B','D','F'],maj7:['C','E','G','B'],min7:['A','C','E','G']};(map[type]||map.maj).forEach(n=>playPianoNote(n,audioCtx.currentTime,2,.55))}window.playChordQuality=playChordQuality;
-const keysData=[{note:'C',name:'ド',type:'white'},{note:'C#',name:'ド#',type:'black'},{note:'D',name:'レ',type:'white'},{note:'D#',name:'レ#',type:'black'},{note:'E',name:'ミ',type:'white'},{note:'F',name:'ファ',type:'white'},{note:'F#',name:'ファ#',type:'black'},{note:'G',name:'ソ',type:'white'},{note:'G#',name:'ソ#',type:'black'},{note:'A',name:'ラ',type:'white'},{note:'A#',name:'ラ#',type:'black'},{note:'B',name:'シ',type:'white'}];
-const keyboardDiv=document.getElementById('keyboard');keysData.forEach(k=>{const div=document.createElement('div');div.className=`key ${k.type}`;div.dataset.note=k.note;div.textContent=k.name;const trigger=e=>{e.preventDefault();div.classList.add('active');playPianoNote(k.note);onKeyPress(k.note);setTimeout(()=>div.classList.remove('active'),200)};div.addEventListener('touchstart',trigger,{passive:false});div.addEventListener('mousedown',trigger);keyboardDiv.appendChild(div)});function updateKeyLabels(level){document.querySelectorAll('.key').forEach(k=>k.classList.toggle('hide-label',level>=4))}
-const S1=[['「ド」の音はどこかな？',['C'],1],['「レ」の音をさがそう！',['D'],1],['「ミ」をタッチしてね！',['E'],1],['「ファ」はどこかな？',['F'],2],['「ソ」を鳴らしてみよう！',['G'],2],['「ラ」を見つけよう！',['A'],2],['「シ」をタッチ！',['B'],2],['順番に！「ド」→「レ」→「ミ」！',['C','D','E'],3],['「ミ」→「ファ」→「ソ」！',['E','F','G'],3],['逆の階段！「ソ」→「ファ」→「ミ」！',['G','F','E'],3],['いちばん左の白い鍵盤をタッチ！',['C'],4],['いちばん右の白い鍵盤をタッチ！',['B'],4],['黒い鍵盤の「ド#」はどこかな？',['C#'],5],['黒い鍵盤の「レ#」をさがそう！',['D#'],5],['黒い鍵盤の「ファ#」をタッチ！',['F#'],6],['黒い鍵盤の「ソ#」をタッチ！',['G#'],6],['黒い鍵盤の「ラ#」をタッチ！',['A#'],6],[`【音当て】耳をすまして！<br><button class="play-audio-btn" onclick="playPianoNote('G')">▶️ 音をきく</button>`,['G'],7],[`【音当て】この音はどこ？<br><button class="play-audio-btn" onclick="playPianoNote('E')">▶️ 音をきく</button>`,['E'],7],['「ファ」→「ソ」→「ラ」→「シ」！',['F','G','A','B'],8],['「シ」→「ラ」→「ソ」→「ファ」！',['B','A','G','F'],8],['「ド・ド・ソ・ソ・ラ・ラ・ソ」',['C','C','G','G','A','A','G'],9],['「ソ・ソ・ファ・ファ・ミ・ミ・レ」',['G','G','F','F','E','E','D'],10],['黒い鍵盤だけ！「ド#」→「レ#」→「ファ#」',['C#','D#','F#'],10]].map(x=>({text:x[0],target:x[1],level:x[2],type:x[1].length>1?'sequence':(x[0].includes('音当て')?'ear':'single')}));
-const trebleNotes=[{note:'C',staff:-1,ledger:true,solfege:'ド'},{note:'D',staff:-.5,ledger:false,solfege:'レ'},{note:'E',staff:0,ledger:false,solfege:'ミ'},{note:'F',staff:.5,ledger:false,solfege:'ファ'},{note:'G',staff:1,ledger:false,solfege:'ソ'},{note:'A',staff:1.5,ledger:false,solfege:'ラ'},{note:'B',staff:2,ledger:false,solfege:'シ'},{note:'C',staff:2.5,ledger:false,solfege:'ド'}];const bassNotes=[{note:'G',staff:0,ledger:false,solfege:'ソ'},{note:'A',staff:.5,ledger:false,solfege:'ラ'},{note:'B',staff:1,ledger:false,solfege:'シ'},{note:'C',staff:1.5,ledger:false,solfege:'ド'},{note:'D',staff:2,ledger:false,solfege:'レ'},{note:'E',staff:2.5,ledger:false,solfege:'ミ'}];
-const S2=[...trebleNotes.map((n,i)=>({clef:'treble',note:n,level:Math.min(5,1+i)})),...bassNotes.map((n,i)=>({clef:'bass',note:n,level:6+i})),...trebleNotes.map((n,i)=>({clef:'treble',note:n,level:8+(i%3)})),...bassNotes.map((n,i)=>({clef:'bass',note:n,level:8+(i%3)}))];
-const quizData={
-3:[['四分音符の長さは、八分音符いくつ分？',['1個','2個','4個'],1,'四分音符は八分音符2つ分です。拍を細かく分ける考え方がリズムの土台です。'],['「タタ」と短く叩く音符はどれ？',['四分音符','二分音符','八分音符'],2,'八分音符は四分音符の半分の長さです。軽く細かい動きに向いています。'],['♩=60 の意味は？',['60秒で終わる','1分間に60拍','60個の音を鳴らす'],1,'BPM60は1分間に60拍です。1秒に1回のテンポになります。'],['一番長く伸ばす音符はどれ？',['全音符','二分音符','四分音符'],0,'全音符は4拍分伸ばす音符です。4/4拍子では1小節ぶんになります。'],['お休みを表す記号は？',['休符','止符','音符'],0,'音を出さない時間を示す記号が休符です。休みも音楽の大事なリズムです。'],['付点四分音符は何拍？',['1拍','1.5拍','2拍'],1,'付点は元の長さの半分を足します。四分音符1拍に0.5拍を足して1.5拍です。'],['三連符の考え方は？',['2つを3等分','1拍を3等分','3拍を1つにする'],1,'三連符は通常2等分する場所を3等分します。跳ねるリズムの理解に役立ちます。'],['4/4拍子の強拍はどこ？',['1拍目','2拍目','4拍目'],0,'4/4拍子では1拍目がもっとも強く感じられます。曲の重心になります。'],['シンコペーションとは？',['弱拍や裏拍を強調','音を全部伸ばす','テンポを止める'],0,'シンコペーションは本来弱い場所を目立たせる技法です。ポップスでよく使います。'],['八分休符の長さは？',['0.5拍','1拍','2拍'],0,'八分休符は八分音符と同じ長さの休みです。'],['2/4拍子は何拍で1小節？',['2拍','3拍','4拍'],0,'2/4拍子は四分音符が2つで1小節です。行進曲に多い拍子です。'],['6/8拍子は大きく何拍に感じやすい？',['2拍','3拍','4拍'],0,'6/8拍子は八分音符6つですが、大きく2拍に感じることが多いです。'],['裏拍はどこ？',['拍と拍の間','小節の最後だけ','休符だけ'],0,'裏拍は表の拍の間にある位置です。ノリを作る重要な場所です。'],['タイの役割は？',['同じ高さの音をつなぐ','音を短く切る','強く弾く'],0,'タイは同じ高さの音をつないで長くします。'],['スウィングの特徴は？',['均等な八分音符','跳ねた八分音符','全部休む'],1,'スウィングは八分音符を均等にせず、跳ねた感じにします。'],['アウフタクトとは？',['弱起','終止','転調'],0,'アウフタクトは小節の頭より前から始まる弱起です。'],['ポリリズムとは？',['異なるリズムの同時進行','同じ音の反復','速さの固定'],0,'複数の拍の感じ方が同時に進むリズムです。'],['クラーベは何の土台？',['ラテン音楽','古典派ソナタ','聖歌'],0,'クラーベはラテン音楽のリズムの骨格です。'],['ゴーストノートとは？',['小さく入れる装飾的な音','一番大きい音','完全な休符'],0,'ゴーストノートは弱く入れる音です。グルーヴを細かく作ります。'],['メトロノーム練習で大切なのは？',['毎回速くする','拍の位置を感じる','音量だけ上げる'],1,'クリックに合わせるだけでなく、拍の内側を感じることが大切です。']],
-4:[['f の意味は？',['速く','強く','弱く'],1,'f はフォルテで強く演奏します。'],['p の意味は？',['弱く','遅く','強く'],0,'p はピアノで弱く演奏します。楽器名のピアノとは別の意味でも使います。'],['だんだん強くする記号は？',['クレッシェンド','デクレッシェンド','スタッカート'],0,'クレッシェンドは音量を少しずつ大きくします。'],['音を短く切る記号は？',['スラー','タイ','スタッカート'],2,'スタッカートは音を短く軽く切ります。'],['Allegro の意味は？',['速く','歩く速さで','ゆっくり'],0,'Allegro は快活に速くという意味です。'],['Andante の意味は？',['歩くような速さで','とても速く','非常に弱く'],0,'Andante は歩くようなテンポです。'],['rit. の意味は？',['だんだん遅く','だんだん強く','急に止まる'],0,'ritardando はだんだん遅くする指示です。'],['D.C. はどこへ戻る？',['最初','次の小節','最後'],0,'Da Capo は曲の最初へ戻る意味です。'],['D.S. はどこへ戻る？',['セーニョ記号','最初','終止線'],0,'Dal Segno はセーニョ記号へ戻ります。'],['Fine の意味は？',['終わり','強く','繰り返し'],0,'Fine はそこで終わる指示です。'],['アクセント記号は？',['その音を強調','その音を休む','その音を遅く'],0,'アクセントは特定の音を目立たせます。'],['テヌートの意味は？',['音を十分に保つ','短く切る','速くする'],0,'テヌートは音価を保って弾く指示です。'],['スラーの意味は？',['なめらかにつなぐ','同音を伸ばす','必ず強く'],0,'スラーは異なる音をなめらかにつなぎます。'],['タイの意味は？',['同じ音をつなぐ','違う音をつなぐ','音を短く'],0,'タイは同じ高さの音をつないで長くします。'],['フェルマータの意味は？',['ほどよく伸ばす','すぐ切る','半音上げる'],0,'フェルマータは音や休みを長めに保ちます。'],['♯ の意味は？',['半音上げる','半音下げる','元に戻す'],0,'シャープは音を半音上げます。'],['♭ の意味は？',['半音下げる','半音上げる','1オクターブ上げる'],0,'フラットは音を半音下げます。'],['ナチュラルの意味は？',['変化記号を取り消す','強くする','速くする'],0,'ナチュラルはシャープやフラットを取り消します。'],['反復記号の役割は？',['同じ部分を繰り返す','転調する','音を弱くする'],0,'反復記号は指定された範囲を繰り返します。'],['8va の意味は？',['1オクターブ上で弾く','8拍休む','8回繰り返す'],0,'8va は書かれた音より1オクターブ高く弾く指示です。']],
-5:[['Cメジャーで G7 の代理として使いやすい和音は？',['Db7','Am','C'],0,'Db7は裏コードです。G7と三全音を共有し、Cへ半音で解決できます。'],['ii-V-I の ii の機能は？',['下属機能','属機能','主機能'],0,'iiは下属機能を持ち、Vへ進んで終止感を準備します。'],['セカンダリードミナントの目的は？',['一時的に次の和音を主和音のように強める','曲を必ず短調にする','音量を上げる'],0,'一時的なVを作り、次に来る和音への引力を強めます。'],['Cメジャーの V/ii は？',['A7','D7','G7'],0,'iiはDmなので、その属和音はA7です。C#が借用されます。'],['借用和音 bVII はどこから来やすい？',['ミクソリディアン','ロクリアン','全音音階'],0,'bVIIはミクソリディアン的な色を作り、ロックでもよく使われます。'],['ナポリの六の典型的な役割は？',['下属的に属和音へ進む','必ず終止する','主和音の代理だけ'],0,'ナポリの六はbIIの第一転回形で、強い下属的緊張を作ります。'],['トライトーン・サブで共有される音程は？',['増4度/減5度','完全5度','長3度'],0,'属七の3度と7度が作る三全音を共有します。'],['C△7 の構成音は？',['C E G B','C Eb G Bb','C F G B'],0,'メジャー7thコードは根音・長3度・完全5度・長7度です。'],['Cm7 の構成音は？',['C Eb G Bb','C E G B','C E Gb Bb'],0,'マイナー7thは短3度と短7度を含みます。'],['ディミニッシュ7thの特徴は？',['短3度が積み重なる','完全5度が積み重なる','長2度だけ'],0,'減七和音は短3度の連続ででき、転回しても形が保たれます。'],['モーダルインターチェンジとは？',['同主調や同主旋法から和音を借りる','テンポを変える','音源を変える'],0,'同じ主音を持つ短調や旋法から和音を借り、色彩を増やします。'],['Cメジャーで ivm はどんな効果？',['切ない下属感','完全な終止感','無調になる'],0,'F minorはCマイナーからの借用で、明るい中に切なさを足します。'],['プラガル終止は？',['IV-I','V-I','ii-V'],0,'IV-Iはアーメン終止とも呼ばれ、柔らかい終止感があります。'],['完全終止に近い進行は？',['V-I','IV-I','I-vi'],0,'V-Iは導音と属音の解決により強い終止感を作ります。'],['偽終止の例は？',['V-vi','V-I','IV-I'],0,'VのあとIへ行かずviへ進むと、終わりそうで続く感じになります。'],['sus4コードの特徴は？',['3度の代わりに4度を置く','5度を消す','根音を半音下げる'],0,'sus4は3度を保留し、解決を待つ響きを作ります。'],['テンション9thは何度上の音？',['2度を1オクターブ上げた音','3度','7度'],0,'9thは2度の音をオクターブ上に重ねたテンションです。'],['avoid noteになりやすい音は？',['和音構成音と短9度でぶつかる音','必ず根音','完全5度'],0,'短9度の強い濁りを作る音は、文脈によって避けられます。'],['ドミナントでaltテンションを使う目的は？',['解決前の緊張を高める','完全に安定させる','拍子を変える'],0,'b9や#9などはV-Iの解決をドラマチックにします。'],['この響きは？<br><button class="play-audio-btn" onclick="playChordQuality(\'dom7\')">▶️ 聴く</button>',['ドミナント7th','メジャー7th','マイナー7th'],0,'G-B-D-FはG7です。Cへ解決したくなる属七の響きです。']],
-6:[['ドリアンの特徴音は？',['長6度','短2度','長7度'],0,'ドリアンは短3度を持ちながら長6度があり、暗すぎない響きになります。'],['リディアンの特徴音は？',['#4','b2','b6'],0,'リディアンは#4が浮遊感を作ります。映画音楽でもよく使われます。'],['ミクソリディアンが合いやすいコードは？',['7thコード','m7b5','dim7'],0,'ミクソリディアンは短7度を持ち、ドミナント7thと相性が良いです。'],['ロクリアンが合う代表コードは？',['m7b5','maj7','sus2'],0,'ロクリアンはb5を含むため、ハーフディミニッシュに合います。'],['ブルーノートで代表的なのは？',['b3・b5・b7','#4だけ','長7度だけ'],0,'ブルースではb3、b5、b7が表情を作ります。'],['5/4拍子の代表的な感覚は？',['3+2や2+3','4+4','1拍だけ'],0,'5拍を3+2などに分けると感じやすくなります。'],['7/8拍子でよくある分け方は？',['2+2+3','4+4','3+3+3'],0,'7/8は2+2+3などに分けると演奏しやすくなります。'],['ヘミオラとは？',['3拍系と2拍系の感じが重なる','半音上げる','全部休む'],0,'ヘミオラは拍の感じ方が一時的に変わる効果です。'],['ポリメーターとは？',['異なる拍子が同時に進む','同じ音だけを弾く','音量を固定する'],0,'拍子の周期が違うパートが同時に進む技法です。'],['印象派音楽でよく使われた音階は？',['全音音階','長音階だけ','半音階禁止'],0,'全音音階はドビュッシーなどの浮遊感に関わります。'],['古典派の代表的な形式は？',['ソナタ形式','12小節ブルース','EDMドロップ'],0,'古典派では主題提示・展開・再現を持つソナタ形式が重要です。'],['バロックで重要な技法は？',['対位法','サイドチェイン','量子化'],0,'バロックでは複数の旋律を組み合わせる対位法が発達しました。'],['ジャズで II-V-I が重要な理由は？',['調性の流れを作りやすい','必ず速くなる','ドラムだけの進行'],0,'ii-V-Iは下属から属、主へ向かう基本的な流れです。'],['ペンタトニックは何音音階？',['5音','6音','7音'],0,'ペンタは5音音階です。余分な半音衝突が少なく使いやすいです。'],['ハーモニックマイナーの特徴は？',['短調で7度を上げる','4度を上げる','2度を下げる'],0,'導音を作るために7度を上げます。V-Iの解決が強くなります。'],['メロディックマイナー上行の特徴は？',['6度と7度を上げる','3度を上げる','全部半音'],0,'上行では6度と7度を上げ、旋律をなめらかにします。'],['アッパーストラクチャートライアドとは？',['上部に別の三和音を重ねる','低音だけ弾く','拍子を変える'],0,'テンションを整理して響かせるために上部三和音を使います。'],['リハーモナイズとは？',['旋律に対する和音を置き換える','録音を消す','音量を固定する'],0,'同じ旋律でも和音を変えると曲の印象が大きく変わります。'],['ペダルポイントとは？',['低音などを保ちながら和音を変える','全音符だけ使う','テンポを揺らす'],0,'一定の音を保つことで安定感や緊張感を作れます。'],['モード奏法で最初に意識したいことは？',['特徴音を目立たせる','全音を均等に弾く','必ず速く弾く'],0,'モードらしさは特徴音をどう聴かせるかで決まります。']],
-7:[['DAWのMIDIは何を記録する？',['音の高さや長さなどの演奏情報','空気の波形そのもの','部屋の温度'],0,'MIDIは音声ではなく演奏データです。あとから音源を差し替えられます。'],['オーディオ録音が記録するものは？',['波形','コード名だけ','譜面だけ'],0,'オーディオは実際の音の波形を記録します。'],['量子化の目的は？',['タイミングをグリッドへ近づける','音色を変える','音を消す'],0,'量子化は演奏タイミングを拍の位置に補正します。'],['ベロシティは何に関係する？',['打鍵の強さ','音の名前','曲名'],0,'ベロシティはMIDIノートの強さです。音量や音色に影響します。'],['サイドチェインコンプの定番用途は？',['キックに合わせてベースを下げる','譜面を表示する','音程を直す'],0,'キックの瞬間に低域を整理し、ダンス系のうねりも作れます。'],['EQのハイパスは？',['低音を削る','高音を削る','音を遅らせる'],0,'ハイパスは高い音を通し、不要な低域を整理します。'],['コンプレッサーの主な役割は？',['音量差を整える','音程を変える','拍子を変える'],0,'大きい音を抑え、全体の音量感を整えます。'],['リバーブは何を加える？',['空間の響き','音程の補正','テンポ変更'],0,'リバーブは部屋やホールのような残響を加えます。'],['ディレイは？',['遅れて返る反復音','音を半音上げる','完全な無音'],0,'ディレイは山びこのような反復を作ります。'],['パンニングは？',['左右の位置決め','音程決め','コード進行作成'],0,'パンは音を左右のどこに置くかを決めます。'],['ステムとは？',['楽器ごとなどにまとめた音声','1つの音符','休符の名前'],0,'ドラム、ボーカルなどパート別に書き出した音声をステムと呼びます。'],['バス処理とは？',['複数トラックをまとめて処理する','音を全部モノにする','録音を禁止する'],0,'同じ種類の音をまとめてEQやコンプで整えられます。'],['ゲインステージングの目的は？',['適切な音量余裕を保つ','必ず最大音量にする','テンポを固定する'],0,'クリップを避け、後段の処理が自然に働くようにします。'],['クリッピングとは？',['音量超過で波形が歪む','音が半音下がる','拍が増える'],0,'信号が上限を超えると波形がつぶれて歪みます。'],['サチュレーションの効果は？',['倍音や温かさを足す','完全に無音にする','譜面を作る'],0,'軽い歪みにより倍音が増え、音が前に出やすくなります。'],['オートメーションとは？',['時間に沿って値を変化させる','鍵盤を固定する','音源を削除する'],0,'音量やエフェクト量を曲中で動かせます。'],['サンプラーの役割は？',['録音素材を音階やパッドで鳴らす','拍子を解析するだけ','歌詞を作るだけ'],0,'サンプルを楽器のように演奏できます。'],['レイテンシーとは？',['入力から音が出るまでの遅れ','音の高さ','拍子の種類'],0,'録音時の遅れです。バッファサイズなどが関係します。'],['マスタリングの目的は？',['最終的な音量と質感を整える','作曲だけをする','MIDIを消す'],0,'配信やCDなどに向け、全体の仕上がりを整える工程です。'],['アレンジで音数を引く理由は？',['主役を目立たせるため','必ず寂しくするため','テンポを止めるため'],0,'余白を作るとボーカルやメロディが聴こえやすくなります。']]
+// =============================================
+// ルビ設定
+// 重複ルビを防ぐため、左から最長一致で1回だけ付与
+// =============================================
+const RUBY = {
+  探検隊:'たんけんたい',
+  鍵盤探し:'けんばんさがし',
+  楽譜読み:'がくふよみ',
+  音楽記号:'おんがくきごう',
+  上級和声:'じょうきゅうわせい',
+  モード奏法:'もーどそうほう',
+  音楽史:'おんがくし',
+  DAW:'だう',
+
+  鍵盤:'けんばん',
+  楽譜:'がくふ',
+  五線譜:'ごせんふ',
+  音符:'おんぷ',
+  聴音:'ちょうおん',
+  記号:'きごう',
+  強弱:'きょうじゃく',
+  和音:'わおん',
+  和声:'わせい',
+  伴奏:'ばんそう',
+  旋法:'せんぽう',
+  音階:'おんかい',
+  拍子:'ひょうし',
+  音源:'おんげん',
+  録音:'ろくおん',
+  編集:'へんしゅう',
+  同期:'どうき',
+  量子化:'りょうしか',
+  代理和音:'だいりわおん',
+  借用和音:'しゃくようわおん',
+  主和音:'しゅわおん',
+  属和音:'ぞくわおん',
+  終止:'しゅうし',
+  導音:'どうおん',
+  転調:'てんちょう',
+  主音:'しゅおん',
+  属音:'ぞくおん',
+  下属音:'かぞくおん',
+  旋律:'せんりつ',
+  長調:'ちょうちょう',
+  短調:'たんちょう',
+  対位法:'たいいほう',
+  古典派:'こてんは',
+  印象派:'いんしょうは',
+  複雑:'ふくざつ',
+  問題:'もんだい',
+  解説:'かいせつ',
+  理由:'りゆう',
+  背景:'はいけい',
+  意味:'いみ',
+  知識:'ちしき',
+  秘密:'ひみつ',
+  解明:'かいめい',
+  順番:'じゅんばん',
+  階段:'かいだん',
+  後半:'こうはん',
+  読み込み:'よみこみ',
+  休符:'きゅうふ',
+  全音符:'ぜんおんぷ',
+  二分音符:'にぶおんぷ',
+  四分音符:'しぶおんぷ',
+  八分音符:'はちぶおんぷ',
+  三連符:'さんれんぷ',
+  付点:'ふてん',
+  小節:'しょうせつ',
+
+  正解:'せいかい',
+  不正解:'ふせいかい',
+  大正解:'だいせいかい',
+
+  選:'えら',
+  探:'さが',
+  読:'よ',
+  見:'み',
+  答:'こた',
+  覚:'おぼ',
+  支:'ささ',
+  打:'た',
+  鳴:'な',
+  触:'さわ',
+  右:'みぎ',
+  左:'ひだり',
+  黒:'くろ',
+  白:'しろ',
+  耳:'みみ',
+  逆:'ぎゃく',
+
+  音:'おと',
+  曲:'きょく',
+  拍:'はく',
+  長:'なが',
+  短:'みじか',
+  速:'はや',
+  遅:'おそ',
+  弱:'よわ',
+  強:'つよ',
+  低:'ひく',
+  高:'たか',
+  明:'あか',
+  暗:'くら',
+  響:'ひび',
+  機能:'きのう',
+  進行:'しんこう',
+  解決:'かいけつ',
+  裏:'うら',
+  表:'おもて',
+  半音:'はんおん',
+  全音:'ぜんおん',
+  歴史:'れきし'
 };
-Object.keys(quizData).forEach(k=>quizData[k]=quizData[k].map(x=>({q:x[0],opts:x[1],ans:x[2],rationale:x[3]})));
-let currentStage=1,currentLevel=1,combo=0,isLocked=false,isExtreme=false,extremeCount=0,currentQ=null,seqIdx=0,s2CurrentNote=null,recent={1:[],2:[],3:[],4:[],5:[],6:[],7:[]};function pickFresh(arr,stage){const pool=arr.filter((_,i)=>!recent[stage].includes(i));const src=pool.length?pool:arr;const item=src[Math.floor(Math.random()*src.length)];const idx=arr.indexOf(item);recent[stage].push(idx);if(recent[stage].length>8)recent[stage].shift();return item}
-async function fetchPokemon(){try{const id=Math.floor(Math.random()*151)+1,res=await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`),d=await res.json();document.getElementById('pokemon-img').src=d.sprites.front_default}catch(e){}}
-const canvas=document.getElementById('sheet-canvas'),ctx2d=canvas.getContext('2d');function drawStaff(clef,noteInfo){const W=canvas.width,H=canvas.height;ctx2d.clearRect(0,0,W,H);ctx2d.fillStyle='#FFFEF5';ctx2d.fillRect(0,0,W,H);const TOP=36,LINEGAP=16,STAFFH=LINEGAP*4;ctx2d.strokeStyle='#333';ctx2d.lineWidth=1.5;for(let i=0;i<5;i++){const y=TOP+i*LINEGAP;ctx2d.beginPath();ctx2d.moveTo(40,y);ctx2d.lineTo(W-20,y);ctx2d.stroke()}ctx2d.fillStyle='#222';if(clef==='treble'){ctx2d.font=`${STAFFH*2.2}px serif`;ctx2d.fillText('𝄞',42,TOP+STAFFH+8)}else{ctx2d.font=`bold ${STAFFH*1.1}px serif`;ctx2d.fillText('𝄢',42,TOP+LINEGAP*2.5)}if(!noteInfo)return;const noteX=W/2+10,R=LINEGAP*.72,staffY=pos=>TOP+(4-pos)*LINEGAP,noteY=staffY(noteInfo.staff);if(noteInfo.ledger&&noteInfo.staff<0){ctx2d.beginPath();ctx2d.moveTo(noteX-R*1.6,TOP+4*LINEGAP);ctx2d.lineTo(noteX+R*1.6,TOP+4*LINEGAP);ctx2d.stroke()}ctx2d.fillStyle='#1a1a2e';ctx2d.beginPath();ctx2d.ellipse(noteX,noteY,R,R*.78,-.3,0,Math.PI*2);ctx2d.fill();const stemDir=noteInfo.staff<2?-1:1,stemX=stemDir===-1?noteX+R*.85:noteX-R*.85;ctx2d.strokeStyle='#1a1a2e';ctx2d.lineWidth=2;ctx2d.beginPath();ctx2d.moveTo(stemX,noteY);ctx2d.lineTo(stemX,noteY+stemDir*LINEGAP*3.5);ctx2d.stroke()}
-function loadQuestion(){isLocked=false;seqIdx=0;stopBGM();if(rhythmLoop)cancelAnimationFrame(rhythmLoop);document.getElementById('level-display').textContent=isExtreme?'∞':currentLevel;document.getElementById('combo-display').textContent=combo;['question-area','keyboard','sheet-area','note-choices','rhythm-area'].forEach(id=>document.getElementById(id).style.display='none');const rb=document.getElementById('rationale-box');rb.style.display='none';rb.className='rationale-box';if(currentStage===1){keyboard.style.display='flex';questionArea(true);updateKeyLabels(currentLevel);currentQ=pickFresh(S1.filter(q=>q.level<=currentLevel+1),1);setHTML('instruction-box',currentQ.text)}else if(currentStage===2){keyboard.style.display='flex';questionArea(true);document.getElementById('sheet-area').style.display='flex';updateKeyLabels(currentLevel);const choices=S2.filter(q=>q.level<=currentLevel+1);const item=pickFresh(choices,2);s2CurrentNote=item.note;setHTML('sheet-label',item.clef==='treble'?'ト音記号':'ヘ音記号');drawStaff(item.clef,s2CurrentNote);setHTML('instruction-box','五線譜の音符を見て、鍵盤をタッチ！')}else if(currentStage===3&&currentLevel>=6){document.getElementById('rhythm-area').style.display='flex';setHTML('rhythm-title','本格ドラムループに合わせてタイミングよく叩け！');startRhythmGame()}else{questionArea(true);const cArea=document.getElementById('note-choices');cArea.style.display='flex';const quiz=pickFresh(quizData[currentStage],currentStage);setHTML('instruction-box',quiz.q);cArea.innerHTML='';quiz.opts.forEach((opt,idx)=>{const btn=document.createElement('button');btn.className='note-choice-btn';btn.innerHTML=rubyize(opt);btn.onclick=()=>answerQuiz(btn,idx,quiz);cArea.appendChild(btn)})}}
-function questionArea(show){document.getElementById('question-area').style.display=show?'flex':'none'}
-function answerQuiz(btn,idx,quiz){if(isLocked)return;isLocked=true;const ok=idx===quiz.ans;btn.classList.add(ok?'correct':'wrong');if(!ok)document.querySelectorAll('.note-choice-btn')[quiz.ans]?.classList.add('correct');showRationale(ok,quiz);ok?handleCorrect(true):handleWrong(true)}
-function showRationale(ok,quiz){const rb=document.getElementById('rationale-box');rb.className='rationale-box '+(ok?'good':'bad');rb.style.display='block';rb.innerHTML=rubyize(`${ok?'正解！':'不正解！'}<br>${quiz.rationale}`)}
-function onKeyPress(note){if(isLocked)return;if(currentStage===1){if(currentQ.type==='single'||currentQ.type==='ear'){note===currentQ.target[0]?handleCorrect():handleWrong()}else{if(note===currentQ.target[seqIdx]){seqIdx++;if(seqIdx===currentQ.target.length)handleCorrect()}else{seqIdx=0;handleWrong()}}}else if(currentStage===2){note===s2CurrentNote.note?handleCorrect():handleWrong()}}
-function handleCorrect(hasRationale=false){isLocked=true;combo++;document.getElementById('combo-display').textContent=combo;if(currentStage<=2)setHTML('instruction-box','大正解！すごい！🎉');setTimeout(()=>{playFanfare();confetti({particleCount:100,spread:70,origin:{y:.6}})},250);setTimeout(()=>{if(isExtreme){extremeCount++;document.getElementById('extreme-count-display').innerHTML=rubyize(`${extremeCount} 問正解！`);currentLevel=Math.ceil(Math.random()*10)}else{if(currentLevel<10)currentLevel++;else{isExtreme=true;extremeCount=0;document.getElementById('extreme-badge-wrap').style.display='block';document.getElementById('level-pill').style.borderColor='var(--purple)';confetti({particleCount:250,spread:120,origin:{y:.5}});currentLevel=Math.ceil(Math.random()*10)}}fetchPokemon();loadQuestion()},hasRationale?3600:1900)}
-function handleWrong(hasRationale=false){combo=0;document.getElementById('combo-display').textContent=0;playBuzzer();const target=document.getElementById(currentStage===3&&currentLevel>=6?'rhythm-area':(currentStage<=2?'question-area':'note-choices'));target.classList.add('shake');setTimeout(()=>target.classList.remove('shake'),400);setTimeout(()=>{isLocked=false;if(hasRationale)loadQuestion()},hasRationale?4200:450)}
-let bgmNodes=[],rhythmLoop=null,RHYTHM={active:false,startTime:0,notes:[],speed:180,hits:0,misses:0,bpm:120};function noiseBurst(time,dur,vol,filterFreq,type='bandpass'){const buffer=audioCtx.createBuffer(1,audioCtx.sampleRate*dur,audioCtx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;const src=audioCtx.createBufferSource(),f=audioCtx.createBiquadFilter(),g=audioCtx.createGain();src.buffer=buffer;f.type=type;f.frequency.setValueAtTime(filterFreq,time);g.gain.setValueAtTime(vol,time);g.gain.exponentialRampToValueAtTime(.001,time+dur);src.connect(f);f.connect(g);g.connect(audioCtx.destination);src.start(time);src.stop(time+dur);bgmNodes.push(src)}
-function kick(t){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(45,t+.13);g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.28);o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.3);bgmNodes.push(o)}function snare(t){noiseBurst(t,.16,.45,1800);playTone(190,'triangle',.12,.18,t)}function hat(t,open=false){noiseBurst(t,open?.18:.05,open?.18:.09,8000,'highpass')}function clap(t){noiseBurst(t+.015,.08,.22,2200);noiseBurst(t+.045,.08,.18,2200)}
-function scheduleDrumPattern(start,beat,bpm){for(let bar=0;bar<4;bar++){for(let step=0;step<16;step++){const t=start+(bar*16+step)*(beat/4);if([0,7,10].includes(step))kick(t);if([4,12].includes(step)){snare(t);clap(t)}if(step%2===0)hat(t,step===14);if(bpm>128&&[3,11,15].includes(step))hat(t,false)}}}
-function stopBGM(){bgmNodes.forEach(n=>{try{n.stop()}catch(e){}});bgmNodes=[]}
-const rCanvas=document.getElementById('rhythm-canvas'),rctx=rCanvas.getContext('2d');function startRhythmGame(){if(audioCtx.state==='suspended')audioCtx.resume();RHYTHM.notes=[];RHYTHM.hits=0;RHYTHM.misses=0;RHYTHM.bpm=104+currentLevel*8+(isExtreme?12:0);const beat=60/RHYTHM.bpm;RHYTHM.speed=180+currentLevel*14;const now=audioCtx.currentTime+1;RHYTHM.startTime=now;scheduleDrumPattern(now,beat,RHYTHM.bpm);for(let bar=0;bar<4;bar++){for(let step=0;step<16;step++){const hit=[0,4,8,12].includes(step)||(currentLevel>=7&&[2,10].includes(step))||(currentLevel>=8&&[7,14].includes(step))||(currentLevel>=9&&[3,11,15].includes(step));if(hit)RHYTHM.notes.push({time:now+(bar*16+step)*(beat/4),hit:false,miss:false})}}RHYTHM.active=true;document.getElementById('rhythm-feedback').textContent=`BPM ${RHYTHM.bpm}`;rhythmLoop=requestAnimationFrame(updateRhythm)}
-function updateRhythm(){if(!RHYTHM.active)return;const now=audioCtx.currentTime,W=rCanvas.width,H=rCanvas.height,TARGET_X=60;rctx.clearRect(0,0,W,H);rctx.fillStyle='#111';rctx.fillRect(0,0,W,H);rctx.strokeStyle='rgba(255,255,255,.5)';rctx.lineWidth=4;rctx.beginPath();rctx.moveTo(TARGET_X,10);rctx.lineTo(TARGET_X,H-10);rctx.stroke();rctx.beginPath();rctx.arc(TARGET_X,H/2,25,0,Math.PI*2);rctx.fillStyle='rgba(255,255,255,.1)';rctx.fill();rctx.strokeStyle='white';rctx.stroke();let allDone=true;RHYTHM.notes.forEach(n=>{if(n.hit||n.miss)return;allDone=false;const x=TARGET_X+(n.time-now)*RHYTHM.speed;if(x<-30){n.miss=true;RHYTHM.misses++;showRhythmFeedback('MISS','var(--red)');combo=0;document.getElementById('combo-display').textContent=0;playBuzzer()}else if(x<W+30){rctx.beginPath();rctx.arc(x,H/2,20,0,Math.PI*2);rctx.fillStyle=varCol('--orange');rctx.fill();rctx.strokeStyle='white';rctx.lineWidth=3;rctx.stroke();rctx.fillStyle='white';rctx.font='bold 18px sans-serif';rctx.textAlign='center';rctx.textBaseline='middle';rctx.fillText('♪',x,H/2)}});if(allDone){RHYTHM.active=false;setTimeout(()=>{RHYTHM.hits>=RHYTHM.notes.length*.62?handleCorrect():handleWrong()},900)}else rhythmLoop=requestAnimationFrame(updateRhythm)}
-document.getElementById('rhythm-tap-btn').addEventListener('mousedown',e=>{e.preventDefault();if(!RHYTHM.active)return;hat(audioCtx.currentTime,false);const now=audioCtx.currentTime;let closest=null,minDiff=999;RHYTHM.notes.forEach(n=>{if(!n.hit&&!n.miss){const diff=Math.abs(n.time-now);if(diff<minDiff){minDiff=diff;closest=n}}});if(closest&&minDiff<.18){closest.hit=true;RHYTHM.hits++;combo++;document.getElementById('combo-display').textContent=combo;showRhythmFeedback(minDiff<.07?'PERFECT!':'GREAT!','var(--green)')}else{combo=0;document.getElementById('combo-display').textContent=0;showRhythmFeedback('MISS','var(--red)');playBuzzer()}});document.getElementById('rhythm-tap-btn').addEventListener('touchstart',e=>{e.preventDefault();document.getElementById('rhythm-tap-btn').dispatchEvent(new Event('mousedown'))});function showRhythmFeedback(text,color){const fb=document.getElementById('rhythm-feedback');fb.textContent=text;fb.style.color=color}function varCol(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
-function startStage(n){currentStage=n;currentLevel=1;combo=0;isExtreme=false;extremeCount=0;setHTML('stage-pill',`ステージ${n}`);document.getElementById('extreme-badge-wrap').style.display='none';document.getElementById('level-pill').style.borderColor='';showScreen('screen-game');fetchPokemon();loadQuestion()}function goHome(){stopBGM();if(rhythmLoop)cancelAnimationFrame(rhythmLoop);showScreen('screen-select')}function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}renderHome();(async()=>{await preloadAllNotes()})();
+
+const rubyKeys = Object.keys(RUBY).sort((a, b) => b.length - a.length);
+
+function rubyize(str) {
+  const parts = String(str)
+    .replace(/<[^>]+>/g, m => '\u0000' + m + '\u0000')
+    .split('\u0000');
+
+  return parts.map(part => {
+    if (part.startsWith('<')) return part;
+
+    let result = '';
+    let i = 0;
+
+    while (i < part.length) {
+      let matched = '';
+
+      for (const key of rubyKeys) {
+        if (part.startsWith(key, i)) {
+          matched = key;
+          break;
+        }
+      }
+
+      if (matched) {
+        result += `<ruby>${matched}<rt>${RUBY[matched]}</rt></ruby>`;
+        i += matched.length;
+      } else {
+        result += part[i];
+        i++;
+      }
+    }
+
+    return result;
+  }).join('');
+}
+
+function setHTML(id, html) {
+  document.getElementById(id).innerHTML = rubyize(html);
+}
+
+// =============================================
+// ホーム画面
+// =============================================
+const stages = [
+  ['🎮', 'ステージ１：鍵盤探し', 'ポケモンのヒントを見て正しい鍵盤をタッチ！', 'var(--gold-dark)', 'var(--gold)'],
+  ['🎼', 'ステージ２：楽譜読み', '五線譜の音符を読んで答えよう！', 'var(--purple)', 'var(--purple)'],
+  ['🥁', 'ステージ３：リズム＆聴音', '【Lv1〜5】クイズ 【Lv6〜10】音ゲー！', 'var(--green-dark)', 'var(--green)'],
+  ['𝄆', 'ステージ４：音楽記号クイズ', '強弱記号などの意味をクイズで覚えよう！', '#E91E63', '#E91E63'],
+  ['✨', 'ステージ５：上級和声クイズ', '代理和音・借用和音・終止を考えよう！', '#00838F', '#00BCD4'],
+  ['🎸', 'ステージ６：モード＆リズム理論', '旋法・複雑な拍子・音楽史を学ぼう！', 'var(--orange-dark)', 'var(--orange)'],
+  ['🎧', 'ステージ７：DAW＆アレンジ理論', '録音・編集・音源・ミックスの知識に挑戦！', '#3F51B5', '#3F51B5']
+];
+
+function renderHome() {
+  const root = document.getElementById('screen-select');
+
+  root.innerHTML =
+    `<div class="select-title">🎹 ピアノ<span>${rubyize('探検隊')}</span></div>
+     <div class="select-subtitle">${rubyize('ステージをえらんでね！')}</div>` +
+    stages.map((s, i) => `
+      <div class="stage-card" onclick="startStage(${i + 1})" style="border-color:${s[4]};">
+        <div class="stage-card-icon">${s[0]}</div>
+        <div class="stage-card-content">
+          <div class="stage-card-title" style="color:${s[3]};">${rubyize(s[1])}</div>
+          <div class="stage-card-desc">${rubyize(s[2])}</div>
+        </div>
+      </div>
+    `).join('');
+}
+
+// =============================================
+// 音響エンジン
+// =============================================
+const AC = window.AudioContext || window.webkitAudioContext;
+let audioCtx = new AC();
+let audioUnlocked = false;
+
+const SOUNDFONT = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_grand_piano-mp3/';
+
+const noteToMidi = {
+  'C':60, 'C#':61, 'D':62, 'D#':63, 'E':64, 'F':65,
+  'F#':66, 'G':67, 'G#':68, 'A':69, 'A#':70, 'B':71
+};
+
+const midiFiles = {
+  60:'C4', 61:'Cs4', 62:'D4', 63:'Ds4', 64:'E4', 65:'F4',
+  66:'Fs4', 67:'G4', 68:'Gs4', 69:'A4', 70:'As4', 71:'B4'
+};
+
+const noteFreq = {
+  'C':261.6, 'C#':277.2, 'D':293.7, 'D#':311.1, 'E':329.6, 'F':349.2,
+  'F#':370, 'G':392, 'G#':415.3, 'A':440, 'A#':466.2, 'B':493.9
+};
+
+const audioBuffers = {};
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const o = audioCtx.createOscillator();
+  o.connect(audioCtx.destination);
+  o.start(0);
+  o.stop(0.001);
+
+  audioUnlocked = true;
+}
+
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('mousedown', unlockAudio, { once: true });
+
+async function preloadAllNotes() {
+  await Promise.all(Object.values(noteToMidi).map(async midi => {
+    try {
+      const res = await fetch(SOUNDFONT + midiFiles[midi] + '.mp3');
+      const ab = await res.arrayBuffer();
+      audioBuffers[midi] = await audioCtx.decodeAudioData(ab);
+    } catch(e) {}
+  }));
+}
+
+function playTone(freq, type = 'sine', dur = 0.5, vol = 0.3, when = audioCtx.currentTime) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+
+  o.frequency.value = freq;
+  o.type = type;
+
+  o.connect(g);
+  g.connect(audioCtx.destination);
+
+  g.gain.setValueAtTime(vol, when);
+  g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+
+  o.start(when);
+  o.stop(when + dur);
+}
+
+function playPianoNote(noteName, when = audioCtx.currentTime, dur = 2.2, vol = 0.9) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  const midi = noteToMidi[noteName];
+  const buf = audioBuffers[midi];
+
+  if (buf) {
+    const src = audioCtx.createBufferSource();
+    const gain = audioCtx.createGain();
+
+    src.buffer = buf;
+    gain.gain.setValueAtTime(vol, when);
+    gain.gain.exponentialRampToValueAtTime(0.001, when + dur);
+
+    src.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    src.start(when);
+    src.stop(when + dur);
+  } else {
+    playTone(noteFreq[noteName], 'triangle', dur, vol, when);
+  }
+}
+
+window.playPianoNote = playPianoNote;
+
+function playFanfare() {
+  playTone(523.25, 'triangle', 0.2, 0.3);
+  setTimeout(() => playTone(659.25, 'triangle', 0.2, 0.3), 150);
+  setTimeout(() => playTone(783.99, 'triangle', 0.4, 0.3), 300);
+}
+
+function playBuzzer() {
+  playTone(150, 'sawtooth', 0.3, 0.35);
+}
+
+function playChordQuality(type) {
+  const map = {
+    maj: ['C','E','G'],
+    min: ['A','C','E'],
+    dim: ['B','D','F'],
+    dom7: ['G','B','D','F'],
+    maj7: ['C','E','G','B'],
+    min7: ['A','C','E','G']
+  };
+
+  const notes = map[type] || map.maj;
+  notes.forEach(n => playPianoNote(n, audioCtx.currentTime, 2, 0.55));
+}
+
+window.playChordQuality = playChordQuality;
+
+// =============================================
+// キーボード
+// =============================================
+const keysData = [
+  {note:'C', name:'ド', type:'white'},
+  {note:'C#', name:'ド#', type:'black'},
+  {note:'D', name:'レ', type:'white'},
+  {note:'D#', name:'レ#', type:'black'},
+  {note:'E', name:'ミ', type:'white'},
+  {note:'F', name:'ファ', type:'white'},
+  {note:'F#', name:'ファ#', type:'black'},
+  {note:'G', name:'ソ', type:'white'},
+  {note:'G#', name:'ソ#', type:'black'},
+  {note:'A', name:'ラ', type:'white'},
+  {note:'A#', name:'ラ#', type:'black'},
+  {note:'B', name:'シ', type:'white'}
+];
+
+const keyboardDiv = document.getElementById('keyboard');
+
+keysData.forEach(k => {
+  const div = document.createElement('div');
+  div.className = `key ${k.type}`;
+  div.dataset.note = k.note;
+  div.textContent = k.name;
+
+  const trigger = e => {
+    e.preventDefault();
+    div.classList.add('active');
+    playPianoNote(k.note);
+    onKeyPress(k.note);
+    setTimeout(() => div.classList.remove('active'), 200);
+  };
+
+  div.addEventListener('touchstart', trigger, { passive: false });
+  div.addEventListener('mousedown', trigger);
+
+  keyboardDiv.appendChild(div);
+});
+
+function updateKeyLabels(level) {
+  document.querySelectorAll('.key').forEach(k => {
+    k.classList.toggle('hide-label', level >= 4);
+  });
+}
+
+// =============================================
+// ステージ1：鍵盤探し
+// =============================================
+const S1 = [
+  ['「ド」の音はどこかな？', ['C'], 1],
+  ['「レ」の音をさがそう！', ['D'], 1],
+  ['「ミ」をタッチしてね！', ['E'], 1],
+  ['「ファ」はどこかな？', ['F'], 2],
+  ['「ソ」を鳴らしてみよう！', ['G'], 2],
+  ['「ラ」を見つけよう！', ['A'], 2],
+  ['「シ」をタッチ！', ['B'], 2],
+  ['順番に！「ド」→「レ」→「ミ」！', ['C','D','E'], 3],
+  ['「ミ」→「ファ」→「ソ」！', ['E','F','G'], 3],
+  ['逆の階段！「ソ」→「ファ」→「ミ」！', ['G','F','E'], 3],
+  ['いちばん左の白い鍵盤をタッチ！', ['C'], 4],
+  ['いちばん右の白い鍵盤をタッチ！', ['B'], 4],
+  ['黒い鍵盤の「ド#」はどこかな？', ['C#'], 5],
+  ['黒い鍵盤の「レ#」をさがそう！', ['D#'], 5],
+  ['黒い鍵盤の「ファ#」をタッチ！', ['F#'], 6],
+  ['黒い鍵盤の「ソ#」をタッチ！', ['G#'], 6],
+  ['黒い鍵盤の「ラ#」をタッチ！', ['A#'], 6],
+  [`【音当て】耳をすまして！<br><button class="play-audio-btn" onclick="playPianoNote('G')">▶️ 音をきく</button>`, ['G'], 7],
+  [`【音当て】この音はどこ？<br><button class="play-audio-btn" onclick="playPianoNote('E')">▶️ 音をきく</button>`, ['E'], 7],
+  ['「ファ」→「ソ」→「ラ」→「シ」！', ['F','G','A','B'], 8],
+  ['「シ」→「ラ」→「ソ」→「ファ」！', ['B','A','G','F'], 8],
+  ['「ド・ド・ソ・ソ・ラ・ラ・ソ」', ['C','C','G','G','A','A','G'], 9],
+  ['「ソ・ソ・ファ・ファ・ミ・ミ・レ」', ['G','G','F','F','E','E','D'], 10],
+  ['黒い鍵盤だけ！「ド#」→「レ#」→「ファ#」', ['C#','D#','F#'], 10]
+].map(x => ({
+  text: x[0],
+  target: x[1],
+  level: x[2],
+  type: x[1].length > 1 ? 'sequence' : (x[0].includes('音当て') ? 'ear' : 'single')
+}));
+
+// =============================================
+// ステージ2：楽譜読み
+// =============================================
+const trebleNotes = [
+  {note:'C', staff:-1, ledger:true, solfege:'ド'},
+  {note:'D', staff:-0.5, ledger:false, solfege:'レ'},
+  {note:'E', staff:0, ledger:false, solfege:'ミ'},
+  {note:'F', staff:0.5, ledger:false, solfege:'ファ'},
+  {note:'G', staff:1, ledger:false, solfege:'ソ'},
+  {note:'A', staff:1.5, ledger:false, solfege:'ラ'},
+  {note:'B', staff:2, ledger:false, solfege:'シ'},
+  {note:'C', staff:2.5, ledger:false, solfege:'ド'}
+];
+
+const bassNotes = [
+  {note:'G', staff:0, ledger:false, solfege:'ソ'},
+  {note:'A', staff:0.5, ledger:false, solfege:'ラ'},
+  {note:'B', staff:1, ledger:false, solfege:'シ'},
+  {note:'C', staff:1.5, ledger:false, solfege:'ド'},
+  {note:'D', staff:2, ledger:false, solfege:'レ'},
+  {note:'E', staff:2.5, ledger:false, solfege:'ミ'}
+];
+
+const S2 = [
+  ...trebleNotes.map((n, i) => ({clef:'treble', note:n, level:Math.min(5, 1 + i)})),
+  ...bassNotes.map((n, i) => ({clef:'bass', note:n, level:6 + i})),
+  ...trebleNotes.map((n, i) => ({clef:'treble', note:n, level:8 + (i % 3)})),
+  ...bassNotes.map((n, i) => ({clef:'bass', note:n, level:8 + (i % 3)}))
+];
+
+const canvas = document.getElementById('sheet-canvas');
+const ctx2d = canvas.getContext('2d');
+
+function drawStaff(clef, noteInfo) {
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx2d.clearRect(0, 0, W, H);
+  ctx2d.fillStyle = '#FFFEF5';
+  ctx2d.fillRect(0, 0, W, H);
+
+  const TOP = 36;
+  const LINEGAP = 16;
+  const STAFFH = LINEGAP * 4;
+
+  ctx2d.strokeStyle = '#333';
+  ctx2d.lineWidth = 1.5;
+
+  for (let i = 0; i < 5; i++) {
+    const y = TOP + i * LINEGAP;
+    ctx2d.beginPath();
+    ctx2d.moveTo(40, y);
+    ctx2d.lineTo(W - 20, y);
+    ctx2d.stroke();
+  }
+
+  ctx2d.fillStyle = '#222';
+
+  if (clef === 'treble') {
+    ctx2d.font = `${STAFFH * 2.2}px serif`;
+    ctx2d.fillText('𝄞', 42, TOP + STAFFH + 8);
+  } else {
+    ctx2d.font = `bold ${STAFFH * 1.1}px serif`;
+    ctx2d.fillText('𝄢', 42, TOP + LINEGAP * 2.5);
+  }
+
+  if (!noteInfo) return;
+
+  const noteX = W / 2 + 10;
+  const R = LINEGAP * 0.72;
+  const staffY = pos => TOP + (4 - pos) * LINEGAP;
+  const noteY = staffY(noteInfo.staff);
+
+  if (noteInfo.ledger && noteInfo.staff < 0) {
+    const ledgerY = TOP + 4 * LINEGAP;
+    ctx2d.beginPath();
+    ctx2d.moveTo(noteX - R * 1.6, ledgerY);
+    ctx2d.lineTo(noteX + R * 1.6, ledgerY);
+    ctx2d.stroke();
+  }
+
+  ctx2d.fillStyle = '#1a1a2e';
+  ctx2d.beginPath();
+  ctx2d.ellipse(noteX, noteY, R, R * 0.78, -0.3, 0, Math.PI * 2);
+  ctx2d.fill();
+
+  const stemDir = noteInfo.staff < 2 ? -1 : 1;
+  const stemX = stemDir === -1 ? noteX + R * 0.85 : noteX - R * 0.85;
+
+  ctx2d.strokeStyle = '#1a1a2e';
+  ctx2d.lineWidth = 2;
+  ctx2d.beginPath();
+  ctx2d.moveTo(stemX, noteY);
+  ctx2d.lineTo(stemX, noteY + stemDir * LINEGAP * 3.5);
+  ctx2d.stroke();
+}
+
+// =============================================
+// クイズデータ
+// =============================================
+const quizData = {
+  3: [
+    ['四分音符の長さは、八分音符いくつ分？', ['1個', '2個', '4個'], 1, '四分音符は八分音符2つ分です。拍を細かく分ける考え方がリズムの土台です。'],
+    ['「タタ」と短く叩く音符はどれ？', ['四分音符', '二分音符', '八分音符'], 2, '八分音符は四分音符の半分の長さです。軽く細かい動きに向いています。'],
+    ['♩=60 の意味は？', ['60秒で終わる', '1分間に60拍', '60個の音を鳴らす'], 1, 'BPM60は1分間に60拍です。1秒に1回のテンポになります。'],
+    ['一番長く伸ばす音符はどれ？', ['全音符', '二分音符', '四分音符'], 0, '全音符は4拍分伸ばす音符です。4/4拍子では1小節ぶんになります。'],
+    ['お休みを表す記号は？', ['休符', '止符', '音符'], 0, '音を出さない時間を示す記号が休符です。休みも音楽の大事なリズムです。'],
+    ['付点四分音符は何拍？', ['1拍', '1.5拍', '2拍'], 1, '付点は元の長さの半分を足します。四分音符1拍に0.5拍を足して1.5拍です。'],
+    ['三連符の考え方は？', ['1拍を3等分', '3拍を1つにする', '全部速くする'], 0, '三連符は通常2等分する場所を3等分します。跳ねるリズムの理解に役立ちます。'],
+    ['4/4拍子で一番重く感じやすい拍は？', ['1拍目', '2拍目', '4拍目'], 0, '4/4拍子では1拍目がもっとも強く感じられます。曲の重心になります。'],
+    ['シンコペーションとは？', ['弱拍や裏拍を強調', '音を全部伸ばす', 'テンポを止める'], 0, 'シンコペーションは本来弱い場所を目立たせる技法です。ポップスでよく使います。'],
+    ['八分休符の長さは？', ['0.5拍', '1拍', '2拍'], 0, '八分休符は八分音符と同じ長さの休みです。'],
+    ['2/4拍子は何拍で1小節？', ['2拍', '3拍', '4拍'], 0, '2/4拍子は四分音符が2つで1小節です。行進曲に多い拍子です。'],
+    ['6/8拍子は大きく何拍に感じやすい？', ['2拍', '3拍', '4拍'], 0, '6/8拍子は八分音符6つですが、大きく2拍に感じることが多いです。'],
+    ['裏拍はどこ？', ['拍と拍の間', '小節の最後だけ', '休符だけ'], 0, '裏拍は表の拍の間にある位置です。ノリを作る重要な場所です。'],
+    ['タイの役割は？', ['同じ高さの音をつなぐ', '音を短く切る', '強く弾く'], 0, 'タイは同じ高さの音をつないで長くします。'],
+    ['スウィングの特徴は？', ['均等な八分音符', '跳ねた八分音符', '全部休む'], 1, 'スウィングは八分音符を均等にせず、跳ねた感じにします。'],
+    ['アウフタクトとは？', ['弱起', '終止', '転調'], 0, 'アウフタクトは小節の頭より前から始まる弱起です。'],
+    ['ポリリズムとは？', ['異なるリズムの同時進行', '同じ音の反復', '速さの固定'], 0, '複数の拍の感じ方が同時に進むリズムです。'],
+    ['クラーベは何の土台？', ['ラテン音楽', '古典派ソナタ', '聖歌'], 0, 'クラーベはラテン音楽のリズムの骨格です。'],
+    ['ゴーストノートとは？', ['小さく入れる装飾的な音', '一番大きい音', '完全な休符'], 0, 'ゴーストノートは弱く入れる音です。グルーヴを細かく作ります。'],
+    ['メトロノーム練習で大切なのは？', ['毎回速くする', '拍の位置を感じる', '音量だけ上げる'], 1, 'クリックに合わせるだけでなく、拍の内側を感じることが大切です。']
+  ],
+
+  4: [
+    ['「f（フォルテ）」の意味は？', ['強く', '弱く', '速く'], 0, 'f はフォルテで、強く演奏する記号です。ダイナミクス記号の基本です。'],
+    ['「p（ピアノ）」の意味は？', ['弱く', '強く', 'だんだん強く'], 0, 'p はピアノで、弱くやさしく演奏する記号です。'],
+    ['だんだん強くする記号はどれ？', ['<span class="music-symbol">&lt;</span>（クレッシェンド）', '<span class="music-symbol">&gt;</span>（デクレッシェンド）', '<span class="music-symbol">・</span>（スタッカート）'], 0, 'クレッシェンドは音量を少しずつ大きくします。'],
+    ['だんだん弱くする記号はどれ？', ['<span class="music-symbol">&gt;</span>（デクレッシェンド）', '<span class="music-symbol">&lt;</span>（クレッシェンド）', '<span class="music-symbol">𝄐</span>（フェルマータ）'], 0, 'デクレッシェンドは音量を少しずつ小さくします。'],
+    ['音を短く切る記号はどれ？', ['<span class="music-symbol">・</span>（スタッカート）', '<span class="music-symbol">⌒</span>（スラー）', '<span class="music-symbol">𝄐</span>（フェルマータ）'], 0, 'スタッカートは音を短く軽く切って演奏します。'],
+    ['音をなめらかにつなぐ記号はどれ？', ['<span class="music-symbol">⌒</span>（スラー）', '<span class="music-symbol">・</span>（スタッカート）', '<span class="music-symbol">&gt;</span>（アクセント）'], 0, 'スラーは複数の音をなめらかに演奏する記号です。'],
+    ['同じ高さの音をつないで長くする記号はどれ？', ['<span class="music-symbol">⌒</span>（タイ）', '<span class="music-symbol">⌒</span>（スラー）', '<span class="music-symbol">𝄇</span>（終止線）'], 0, 'タイは同じ高さの音同士をつないで長さを足します。'],
+    ['音を十分にのばす記号はどれ？', ['<span class="music-symbol">𝄐</span>（フェルマータ）', '<span class="music-symbol">𝄎</span>（コーダ）', '<span class="music-symbol">𝄋</span>（セーニョ）'], 0, 'フェルマータは音や休符を十分に保つ指示です。'],
+    ['「mf（メゾフォルテ）」はどの強さ？', ['少し強く', 'とても弱く', 'だんだん速く'], 0, 'mf は mezzo forte で、やや強くという意味です。'],
+    ['「mp（メゾピアノ）」はどの強さ？', ['少し弱く', 'とても強く', '急に強く'], 0, 'mp は mezzo piano で、やや弱くという意味です。'],
+    ['「ff（フォルティッシモ）」の意味は？', ['とても強く', 'とても弱く', '少し速く'], 0, 'ff はフォルテよりさらに強く演奏します。'],
+    ['「pp（ピアニッシモ）」の意味は？', ['とても弱く', 'とても強く', 'なめらかに'], 0, 'pp はピアノよりさらに弱く演奏します。'],
+    ['「rit.（リタルダンド）」の意味は？', ['だんだん遅く', 'だんだん速く', 'もとの速さで'], 0, 'rit. は少しずつテンポを落とす指示です。'],
+    ['「a tempo（ア テンポ）」の意味は？', ['もとの速さで', '自由な速さで', '急に止まる'], 0, 'a tempo は変化したあと、元のテンポに戻る指示です。'],
+    ['「♯（シャープ）」の意味は？', ['半音上げる', '半音下げる', '音を消す'], 0, 'シャープは音を半音高くする記号です。'],
+    ['「♭（フラット）」の意味は？', ['半音下げる', '半音上げる', '同じ音をつなぐ'], 0, 'フラットは音を半音低くする記号です。'],
+    ['「♮（ナチュラル）」の意味は？', ['臨時記号を打ち消す', '半音上げる', '半音下げる'], 0, 'ナチュラルはシャープやフラットの効果を元に戻します。'],
+    ['繰り返し記号「||: :||」の意味は？', ['その部分をくり返す', 'そこで終わる', '一番最初へ戻る'], 0, '反復記号は、はさまれた部分を繰り返して演奏します。'],
+    ['「D.C. al Fine」の意味は？', ['最初に戻って Fine まで', 'コーダへ飛ぶ', 'その場で止まる'], 0, 'D.C. は Da Capo で最初に戻る指示です。Fine で終わります。'],
+    ['「𝄋（セーニョ）」に関係する指示はどれ？', ['Dal Segno', 'Da Capo', 'Fine だけ'], 0, 'Dal Segno はセーニョ記号に戻る指示です。']
+  ],
+
+  5: [
+    ['Cメジャーコードの構成音は？', ['ド・ミ・ソ', 'ド・ミ♭・ソ', 'ド・ファ・ソ'], 0, 'Cメジャーは根音、長3度、完全5度で作られます。'],
+    ['Cマイナーコードの特徴は？', ['ミが半音低い', 'ソが半音高い', 'ドが消える'], 0, 'メジャーとマイナーの違いは主に3度です。Cマイナーはミ♭を使います。'],
+    ['ドミナント7thの役割は？', ['主和音へ解決したくなる', '必ず曲を終わらせない', '音量を下げる'], 0, 'ドミナント7thは強い緊張を持ち、主和音へ進みやすい和音です。'],
+    ['G7→C は何終止？', ['完全終止', '偽終止', '半終止'], 0, '属和音から主和音へ進むため、完全終止の代表例です。'],
+    ['Am は Cメジャーにおける何度の和音？', ['vi', 'IV', 'V'], 0, 'CメジャーではAを根音にするAmはviの和音です。'],
+    ['代理和音とは？', ['似た機能の和音で置き換える', '音を全部休む', 'テンポを変える'], 0, '代理和音は機能が近い和音で置き換える考え方です。'],
+    ['Cの代理として使いやすい和音は？', ['Am', 'G7', 'F#dim'], 0, 'CとAmは構成音が近いため、トニック代理として使いやすいです。'],
+    ['セカンダリードミナントとは？', ['一時的な属和音', '必ず最後の和音', '打楽器の名前'], 0, '一時的に別の和音を主役に見せるためのドミナントです。'],
+    ['Cメジャーで D7→G は何の例？', ['セカンダリードミナント', '平行調', '休符'], 0, 'D7はGへ向かう一時的な属和音として働きます。'],
+    ['借用和音とは？', ['同主短調などから借りる和音', '音源を借りること', '楽器を交換すること'], 0, '同じ主音を持つ短調などから和音を借りると、色合いが変わります。'],
+    ['Cメジャーで Fm を使うと？', ['少し切ない響きになる', '必ず転調する', 'リズムが速くなる'], 0, 'FmはCマイナー側から借りた和音として、切ない色を作ります。'],
+    ['サブドミナントの代表は？', ['F', 'G', 'C'], 0, 'CメジャーではFがIVで、サブドミナントの代表です。'],
+    ['トニックの代表は？', ['C', 'G', 'D'], 0, 'CメジャーではCが主和音で、安定した響きを持ちます。'],
+    ['ディミニッシュコードの響きは？', ['不安定で緊張感がある', '必ず明るい', '完全に無音'], 0, 'ディミニッシュは短3度を重ねた緊張感のある和音です。'],
+    ['メジャー7thの響きは？', ['都会的でやわらかい', '必ず怖い', 'リズムだけになる'], 0, 'メジャー7thは長7度を加えた、広がりのある響きです。'],
+    ['テンション9thとは？', ['1オクターブ上の2度', '半音下の音', '根音だけ'], 0, '9thは2度をオクターブ上に置いたテンションです。'],
+    ['裏コードとは？', ['三全音を共有する代理ドミナント', '低音だけのコード', '休符の名前'], 0, '裏コードはドミナントの代理として使われ、半音進行を作りやすいです。'],
+    ['Cに対する裏コードの代表は？', ['D♭7', 'G', 'Am'], 0, 'G7の代理としてD♭7を使うと、半音下行でCへ進めます。'],
+    ['循環コードの例は？', ['C-Am-F-G', 'C-C-C-C', 'G-F-E-D'], 0, 'C-Am-F-Gはポップスでもよく使う循環進行です。'],
+    ['偽終止の代表例は？', ['G→Am', 'G→C', 'F→C'], 0, 'VからIに行かずviへ進むと、終わりそうで続く感じが出ます。']
+  ],
+
+  6: [
+    ['アイオニアンは何に近い？', ['長音階', '短音階', '全音音階'], 0, 'アイオニアンは一般的なメジャースケールと同じ並びです。'],
+    ['ドリアンの特徴音は？', ['長6度', '短2度', '増4度'], 0, 'ドリアンはマイナー系ですが長6度が明るい特徴を作ります。'],
+    ['フリジアンの特徴音は？', ['短2度', '長7度', '増5度'], 0, 'フリジアンは短2度が強い個性を作ります。'],
+    ['リディアンの特徴音は？', ['増4度', '短3度', '短6度'], 0, 'リディアンは4度が半音上がり、浮遊感のある響きになります。'],
+    ['ミクソリディアンの特徴は？', ['短7度を持つ長調系', '短3度を持つ', '半音がない'], 0, 'ミクソリディアンはメジャー系ですが7度が低く、ブルージーに響きます。'],
+    ['エオリアンは何に近い？', ['自然短音階', '長音階', '全音音階'], 0, 'エオリアンはナチュラルマイナーと同じ並びです。'],
+    ['ロクリアンの特徴は？', ['不安定な減5度', '完全に明るい', '主音がない'], 0, 'ロクリアンは減5度を持つため、とても不安定に響きます。'],
+    ['5/4拍子の感じ方で使いやすい分け方は？', ['3+2', '4+4', '2+2+2'], 0, '5拍を3+2などに分けると感じやすくなります。'],
+    ['7/8拍子でよくある分け方は？', ['2+2+3', '4+4', '3+3+3'], 0, '7/8は2+2+3などに分けると演奏しやすくなります。'],
+    ['ヘミオラとは？', ['3拍系と2拍系の感じが重なる', '半音上げる', '全部休む'], 0, 'ヘミオラは拍の感じ方が一時的に変わる効果です。'],
+    ['ポリメーターとは？', ['異なる拍子が同時に進む', '同じ音だけを弾く', '音量を固定する'], 0, '拍子の周期が違うパートが同時に進む技法です。'],
+    ['印象派音楽でよく使われた音階は？', ['全音音階', '長音階だけ', '半音階禁止'], 0, '全音音階はドビュッシーなどの浮遊感に関わります。'],
+    ['古典派の代表的な形式は？', ['ソナタ形式', '12小節ブルース', 'EDMドロップ'], 0, '古典派では主題提示・展開・再現を持つソナタ形式が重要です。'],
+    ['バロックで重要な技法は？', ['対位法', 'サイドチェイン', '量子化'], 0, 'バロックでは複数の旋律を組み合わせる対位法が発達しました。'],
+    ['ジャズで II-V-I が重要な理由は？', ['調性の流れを作りやすい', '必ず速くなる', 'ドラムだけの進行'], 0, 'ii-V-Iは下属から属、主へ向かう基本的な流れです。'],
+    ['ペンタトニックは何音音階？', ['5音', '6音', '7音'], 0, 'ペンタは5音音階です。余分な半音衝突が少なく使いやすいです。'],
+    ['ハーモニックマイナーの特徴は？', ['短調で7度を上げる', '4度を上げる', '2度を下げる'], 0, '導音を作るために7度を上げます。V-Iの解決が強くなります。'],
+    ['メロディックマイナー上行の特徴は？', ['6度と7度を上げる', '3度を上げる', '全部半音'], 0, '上行では6度と7度を上げ、旋律をなめらかにします。'],
+    ['リハーモナイズとは？', ['旋律に対する和音を置き換える', '録音を消す', '音量を固定する'], 0, '同じ旋律でも和音を変えると曲の印象が大きく変わります。'],
+    ['モード奏法で最初に意識したいことは？', ['特徴音を目立たせる', '全音を均等に弾く', '必ず速く弾く'], 0, 'モードらしさは特徴音をどう聴かせるかで決まります。']
+  ],
+
+  7: [
+    ['DAWのMIDIは何を記録する？', ['音の高さや長さなどの演奏情報', '空気の波形そのもの', '部屋の温度'], 0, 'MIDIは音声ではなく演奏データです。あとから音源を差し替えられます。'],
+    ['オーディオ録音が記録するものは？', ['波形', 'コード名だけ', '譜面だけ'], 0, 'オーディオは実際の音の波形を記録します。'],
+    ['量子化の目的は？', ['タイミングをグリッドへ近づける', '音色を変える', '音を消す'], 0, '量子化は演奏タイミングを拍の位置に補正します。'],
+    ['ベロシティは何に関係する？', ['打鍵の強さ', '音の名前', '曲名'], 0, 'ベロシティはMIDIノートの強さです。音量や音色に影響します。'],
+    ['サイドチェインコンプの定番用途は？', ['キックに合わせてベースを下げる', '譜面を表示する', '音程を直す'], 0, 'キックの瞬間に低域を整理し、ダンス系のうねりも作れます。'],
+    ['EQのハイパスは？', ['低音を削る', '高音を削る', '音を遅らせる'], 0, 'ハイパスは高い音を通し、不要な低域を整理します。'],
+    ['コンプレッサーの主な役割は？', ['音量差を整える', '音程を変える', '拍子を変える'], 0, '大きい音を抑え、全体の音量感を整えます。'],
+    ['リバーブは何を加える？', ['空間の響き', '音程の補正', 'テンポ変更'], 0, 'リバーブは部屋やホールのような残響を加えます。'],
+    ['ディレイは？', ['遅れて返る反復音', '音を半音上げる', '完全な無音'], 0, 'ディレイは山びこのような反復を作ります。'],
+    ['パンニングは？', ['左右の位置決め', '音程決め', 'コード進行作成'], 0, 'パンは音を左右のどこに置くかを決めます。'],
+    ['ステムとは？', ['楽器ごとなどにまとめた音声', '1つの音符', '休符の名前'], 0, 'ドラム、ボーカルなどパート別に書き出した音声をステムと呼びます。'],
+    ['バス処理とは？', ['複数トラックをまとめて処理する', '音を全部モノにする', '録音を禁止する'], 0, '同じ種類の音をまとめてEQやコンプで整えられます。'],
+    ['ゲインステージングの目的は？', ['適切な音量余裕を保つ', '必ず最大音量にする', 'テンポを固定する'], 0, 'クリップを避け、後段の処理が自然に働くようにします。'],
+    ['クリッピングとは？', ['音量超過で波形が歪む', '音が半音下がる', '拍が増える'], 0, '信号が上限を超えると波形がつぶれて歪みます。'],
+    ['サチュレーションの効果は？', ['倍音や温かさを足す', '完全に無音にする', '譜面を作る'], 0, '軽い歪みにより倍音が増え、音が前に出やすくなります。'],
+    ['オートメーションとは？', ['時間に沿って値を変化させる', '鍵盤を固定する', '音源を削除する'], 0, '音量やエフェクト量を曲中で動かせます。'],
+    ['サンプラーの役割は？', ['録音素材を音階やパッドで鳴らす', '拍子を解析するだけ', '歌詞を作るだけ'], 0, 'サンプルを楽器のように演奏できます。'],
+    ['レイテンシーとは？', ['入力から音が出るまでの遅れ', '音の高さ', '拍子の種類'], 0, '録音時の遅れです。バッファサイズなどが関係します。'],
+    ['マスタリングの目的は？', ['最終的な音量と質感を整える', '作曲だけをする', 'MIDIを消す'], 0, '配信やCDなどに向け、全体の仕上がりを整える工程です。'],
+    ['アレンジで音数を引く理由は？', ['主役を目立たせるため', '必ず寂しくするため', 'テンポを止めるため'], 0, '余白を作るとボーカルやメロディが聴こえやすくなります。']
+  ]
+};
+
+Object.keys(quizData).forEach(k => {
+  quizData[k] = quizData[k].map(x => ({
+    q: x[0],
+    opts: x[1],
+    ans: x[2],
+    rationale: x[3]
+  }));
+});
+
+// =============================================
+// 状態管理
+// =============================================
+let currentStage = 1;
+let currentLevel = 1;
+let combo = 0;
+let isLocked = false;
+let isExtreme = false;
+let extremeCount = 0;
+let currentQ = null;
+let seqIdx = 0;
+let s2CurrentNote = null;
+
+let recent = {
+  1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []
+};
+
+function pickFresh(arr, stage) {
+  const pool = arr.filter((_, i) => !recent[stage].includes(i));
+  const src = pool.length ? pool : arr;
+  const item = src[Math.floor(Math.random() * src.length)];
+  const idx = arr.indexOf(item);
+
+  recent[stage].push(idx);
+  if (recent[stage].length > 8) recent[stage].shift();
+
+  return item;
+}
+
+async function fetchPokemon() {
+  try {
+    const id = Math.floor(Math.random() * 151) + 1;
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    const d = await res.json();
+    document.getElementById('pokemon-img').src = d.sprites.front_default;
+  } catch(e) {}
+}
+
+// =============================================
+// 出題処理
+// =============================================
+function loadQuestion() {
+  isLocked = false;
+  seqIdx = 0;
+
+  stopBGM();
+  if (rhythmLoop) cancelAnimationFrame(rhythmLoop);
+
+  document.getElementById('level-display').textContent = isExtreme ? '∞' : currentLevel;
+  document.getElementById('combo-display').textContent = combo;
+
+  document.getElementById('question-area').style.display = 'none';
+  document.getElementById('keyboard').style.display = 'none';
+  document.getElementById('sheet-area').style.display = 'none';
+  document.getElementById('note-choices').style.display = 'none';
+  document.getElementById('rhythm-area').style.display = 'none';
+
+  const rb = document.getElementById('rationale-box');
+  rb.style.display = 'none';
+  rb.className = 'rationale-box';
+
+  if (currentStage === 1) {
+    document.getElementById('question-area').style.display = 'flex';
+    document.getElementById('keyboard').style.display = 'flex';
+
+    updateKeyLabels(currentLevel);
+
+    const candidates = S1.filter(q => q.level <= currentLevel + 1);
+    currentQ = pickFresh(candidates, 1);
+
+    setHTML('instruction-box', currentQ.text);
+  }
+
+  else if (currentStage === 2) {
+    document.getElementById('question-area').style.display = 'flex';
+    document.getElementById('keyboard').style.display = 'flex';
+    document.getElementById('sheet-area').style.display = 'flex';
+
+    updateKeyLabels(currentLevel);
+
+    const choices = S2.filter(q => q.level <= currentLevel + 1);
+    const item = pickFresh(choices, 2);
+
+    s2CurrentNote = item.note;
+
+    setHTML('sheet-label', item.clef === 'treble' ? 'ト音記号' : 'ヘ音記号');
+    drawStaff(item.clef, s2CurrentNote);
+    setHTML('instruction-box', '五線譜の音符を見て、鍵盤をタッチ！');
+  }
+
+  else if (currentStage === 3 && currentLevel >= 6) {
+    document.getElementById('rhythm-area').style.display = 'flex';
+    setHTML('rhythm-title', '本格ドラムループに合わせてタイミングよく叩け！');
+    startRhythmGame();
+  }
+
+  else {
+    document.getElementById('question-area').style.display = 'flex';
+    const cArea = document.getElementById('note-choices');
+    cArea.style.display = 'flex';
+
+    const quiz = pickFresh(quizData[currentStage], currentStage);
+
+    setHTML('instruction-box', quiz.q);
+
+    cArea.innerHTML = '';
+
+    quiz.opts.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'note-choice-btn';
+      btn.innerHTML = rubyize(opt);
+      btn.onclick = () => answerQuiz(btn, idx, quiz);
+      cArea.appendChild(btn);
+    });
+  }
+}
+
+function answerQuiz(btn, idx, quiz) {
+  if (isLocked) return;
+
+  isLocked = true;
+
+  const ok = idx === quiz.ans;
+  btn.classList.add(ok ? 'correct' : 'wrong');
+
+  if (!ok) {
+    const buttons = document.querySelectorAll('.note-choice-btn');
+    if (buttons[quiz.ans]) buttons[quiz.ans].classList.add('correct');
+  }
+
+  showRationale(ok, quiz);
+
+  if (ok) {
+    handleCorrect(true);
+  } else {
+    handleWrong(true);
+  }
+}
+
+function showRationale(ok, quiz) {
+  const rb = document.getElementById('rationale-box');
+  rb.className = 'rationale-box ' + (ok ? 'good' : 'bad');
+  rb.style.display = 'block';
+  rb.innerHTML = rubyize(`${ok ? '正解！' : '不正解！'}<br>${quiz.rationale}`);
+}
+
+// =============================================
+// キーボード入力
+// =============================================
+function onKeyPress(note) {
+  if (isLocked) return;
+
+  if (currentStage === 1) {
+    if (currentQ.type === 'single' || currentQ.type === 'ear') {
+      note === currentQ.target[0] ? handleCorrect() : handleWrong();
+    } else {
+      if (note === currentQ.target[seqIdx]) {
+        seqIdx++;
+        if (seqIdx === currentQ.target.length) handleCorrect();
+      } else {
+        seqIdx = 0;
+        handleWrong();
+      }
+    }
+  }
+
+  else if (currentStage === 2) {
+    note === s2CurrentNote.note ? handleCorrect() : handleWrong();
+  }
+}
+
+// =============================================
+// 正解・不正解
+// =============================================
+function handleCorrect(hasRationale = false) {
+  isLocked = true;
+  combo++;
+
+  document.getElementById('combo-display').textContent = combo;
+
+  if (currentStage <= 2) {
+    setHTML('instruction-box', '大正解！すごい！🎉');
+  }
+
+  setTimeout(() => {
+    playFanfare();
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  }, 250);
+
+  setTimeout(() => {
+    if (isExtreme) {
+      extremeCount++;
+      document.getElementById('extreme-count-display').innerHTML =
+        rubyize(`${extremeCount} 問正解！`);
+      currentLevel = Math.ceil(Math.random() * 10);
+    } else {
+      if (currentLevel < 10) {
+        currentLevel++;
+      } else {
+        isExtreme = true;
+        extremeCount = 0;
+
+        document.getElementById('extreme-badge-wrap').style.display = 'block';
+        document.getElementById('level-pill').style.borderColor = 'var(--purple)';
+
+        confetti({
+          particleCount: 250,
+          spread: 120,
+          origin: { y: 0.5 }
+        });
+
+        currentLevel = Math.ceil(Math.random() * 10);
+      }
+    }
+
+    fetchPokemon();
+    loadQuestion();
+  }, hasRationale ? 3600 : 1900);
+}
+
+function handleWrong(hasRationale = false) {
+  combo = 0;
+  document.getElementById('combo-display').textContent = 0;
+
+  playBuzzer();
+
+  const target = document.getElementById(
+    currentStage === 3 && currentLevel >= 6
+      ? 'rhythm-area'
+      : currentStage <= 2
+        ? 'question-area'
+        : 'note-choices'
+  );
+
+  target.classList.add('shake');
+  setTimeout(() => target.classList.remove('shake'), 400);
+
+  setTimeout(() => {
+    isLocked = false;
+    if (hasRationale) loadQuestion();
+  }, hasRationale ? 4200 : 450);
+}
+
+// =============================================
+// リズムゲーム
+// ステージ3 Lv6〜10のみ
+// =============================================
+let bgmNodes = [];
+let rhythmLoop = null;
+
+let RHYTHM = {
+  active: false,
+  startTime: 0,
+  notes: [],
+  speed: 180,
+  hits: 0,
+  misses: 0,
+  bpm: 120
+};
+
+function noiseBurst(time, dur, vol, filterFreq, type = 'bandpass') {
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < data.length; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+
+  const src = audioCtx.createBufferSource();
+  const f = audioCtx.createBiquadFilter();
+  const g = audioCtx.createGain();
+
+  src.buffer = buffer;
+  f.type = type;
+  f.frequency.setValueAtTime(filterFreq, time);
+
+  g.gain.setValueAtTime(vol, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+  src.connect(f);
+  f.connect(g);
+  g.connect(audioCtx.destination);
+
+  src.start(time);
+  src.stop(time + dur);
+
+  bgmNodes.push(src);
+}
+
+function kick(t) {
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+
+  o.type = 'sine';
+  o.frequency.setValueAtTime(130, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + 0.13);
+
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+
+  o.connect(g);
+  g.connect(audioCtx.destination);
+
+  o.start(t);
+  o.stop(t + 0.3);
+
+  bgmNodes.push(o);
+}
+
+function snare(t) {
+  noiseBurst(t, 0.16, 0.45, 1800);
+  playTone(190, 'triangle', 0.12, 0.18, t);
+}
+
+function hat(t, open = false) {
+  noiseBurst(t, open ? 0.18 : 0.05, open ? 0.18 : 0.09, 8000, 'highpass');
+}
+
+function clap(t) {
+  noiseBurst(t + 0.015, 0.08, 0.22, 2200);
+  noiseBurst(t + 0.045, 0.08, 0.18, 2200);
+}
+
+function scheduleDrumPattern(start, beat, bpm) {
+  for (let bar = 0; bar < 4; bar++) {
+    for (let step = 0; step < 16; step++) {
+      const t = start + (bar * 16 + step) * (beat / 4);
+
+      if ([0, 7, 10].includes(step)) kick(t);
+
+      if ([4, 12].includes(step)) {
+        snare(t);
+        clap(t);
+      }
+
+      if (step % 2 === 0) hat(t, step === 14);
+
+      if (bpm > 128 && [3, 11, 15].includes(step)) {
+        hat(t, false);
+      }
+    }
+  }
+}
+
+function stopBGM() {
+  bgmNodes.forEach(n => {
+    try { n.stop(); } catch(e) {}
+  });
+  bgmNodes = [];
+}
+
+const rCanvas = document.getElementById('rhythm-canvas');
+const rctx = rCanvas.getContext('2d');
+
+function startRhythmGame() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  RHYTHM.notes = [];
+  RHYTHM.hits = 0;
+  RHYTHM.misses = 0;
+  RHYTHM.bpm = 104 + currentLevel * 8 + (isExtreme ? 12 : 0);
+
+  const beat = 60 / RHYTHM.bpm;
+  RHYTHM.speed = 180 + currentLevel * 14;
+
+  const now = audioCtx.currentTime + 1;
+  RHYTHM.startTime = now;
+
+  scheduleDrumPattern(now, beat, RHYTHM.bpm);
+
+  for (let bar = 0; bar < 4; bar++) {
+    for (let step = 0; step < 16; step++) {
+      const hit =
+        [0, 4, 8, 12].includes(step) ||
+        (currentLevel >= 7 && [2, 10].includes(step)) ||
+        (currentLevel >= 8 && [7, 14].includes(step)) ||
+        (currentLevel >= 9 && [3, 11, 15].includes(step));
+
+      if (hit) {
+        RHYTHM.notes.push({
+          time: now + (bar * 16 + step) * (beat / 4),
+          hit: false,
+          miss: false
+        });
+      }
+    }
+  }
+
+  RHYTHM.active = true;
+
+  document.getElementById('rhythm-feedback').textContent = `BPM ${RHYTHM.bpm}`;
+  rhythmLoop = requestAnimationFrame(updateRhythm);
+}
+
+function updateRhythm() {
+  if (!RHYTHM.active) return;
+
+  const now = audioCtx.currentTime;
+  const W = rCanvas.width;
+  const H = rCanvas.height;
+  const TARGET_X = 60;
+
+  rctx.clearRect(0, 0, W, H);
+  rctx.fillStyle = '#111';
+  rctx.fillRect(0, 0, W, H);
+
+  rctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  rctx.lineWidth = 4;
+  rctx.beginPath();
+  rctx.moveTo(TARGET_X, 10);
+  rctx.lineTo(TARGET_X, H - 10);
+  rctx.stroke();
+
+  rctx.beginPath();
+  rctx.arc(TARGET_X, H / 2, 25, 0, Math.PI * 2);
+  rctx.fillStyle = 'rgba(255,255,255,0.1)';
+  rctx.fill();
+  rctx.strokeStyle = 'white';
+  rctx.stroke();
+
+  let allDone = true;
+
+  RHYTHM.notes.forEach(n => {
+    if (n.hit || n.miss) return;
+
+    allDone = false;
+
+    const x = TARGET_X + (n.time - now) * RHYTHM.speed;
+
+    if (x < -30) {
+      n.miss = true;
+      RHYTHM.misses++;
+      showRhythmFeedback('MISS', 'var(--red)');
+      combo = 0;
+      document.getElementById('combo-display').textContent = 0;
+      playBuzzer();
+    } else if (x < W + 30) {
+      rctx.beginPath();
+      rctx.arc(x, H / 2, 20, 0, Math.PI * 2);
+      rctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--orange').trim();
+      rctx.fill();
+
+      rctx.strokeStyle = 'white';
+      rctx.lineWidth = 3;
+      rctx.stroke();
+
+      rctx.fillStyle = 'white';
+      rctx.font = 'bold 18px sans-serif';
+      rctx.textAlign = 'center';
+      rctx.textBaseline = 'middle';
+      rctx.fillText('♪', x, H / 2);
+    }
+  });
+
+  if (allDone) {
+    RHYTHM.active = false;
+
+    setTimeout(() => {
+      if (RHYTHM.hits >= RHYTHM.notes.length * 0.62) {
+        handleCorrect();
+      } else {
+        handleWrong();
+      }
+    }, 900);
+  } else {
+    rhythmLoop = requestAnimationFrame(updateRhythm);
+  }
+}
+
+document.getElementById('rhythm-tap-btn').addEventListener('mousedown', e => {
+  e.preventDefault();
+
+  if (!RHYTHM.active) return;
+
+  hat(audioCtx.currentTime, false);
+
+  const now = audioCtx.currentTime;
+  let closest = null;
+  let minDiff = 999;
+
+  RHYTHM.notes.forEach(n => {
+    if (!n.hit && !n.miss) {
+      const diff = Math.abs(n.time - now);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = n;
+      }
+    }
+  });
+
+  if (closest && minDiff < 0.18) {
+    closest.hit = true;
+    RHYTHM.hits++;
+    combo++;
+
+    document.getElementById('combo-display').textContent = combo;
+    showRhythmFeedback(minDiff < 0.07 ? 'PERFECT!' : 'GREAT!', 'var(--green)');
+  } else {
+    combo = 0;
+    document.getElementById('combo-display').textContent = 0;
+    showRhythmFeedback('MISS', 'var(--red)');
+    playBuzzer();
+  }
+});
+
+document.getElementById('rhythm-tap-btn').addEventListener('touchstart', e => {
+  e.preventDefault();
+  document.getElementById('rhythm-tap-btn').dispatchEvent(new Event('mousedown'));
+});
+
+function showRhythmFeedback(text, color) {
+  const fb = document.getElementById('rhythm-feedback');
+  fb.textContent = text;
+  fb.style.color = color;
+}
+
+// =============================================
+// ナビゲーション
+// =============================================
+function startStage(n) {
+  currentStage = n;
+  currentLevel = 1;
+  combo = 0;
+  isExtreme = false;
+  extremeCount = 0;
+
+  setHTML('stage-pill', `ステージ${n}`);
+
+  document.getElementById('extreme-badge-wrap').style.display = 'none';
+  document.getElementById('level-pill').style.borderColor = '';
+
+  showScreen('screen-game');
+
+  fetchPokemon();
+  loadQuestion();
+}
+
+function goHome() {
+  stopBGM();
+
+  if (rhythmLoop) cancelAnimationFrame(rhythmLoop);
+
+  showScreen('screen-select');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// =============================================
+// 起動
+// =============================================
+renderHome();
+
+(async () => {
+  await preloadAllNotes();
+})();
 </script>
 </body>
 </html>
