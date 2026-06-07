@@ -5,72 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ピアノ探検隊</title>
     <style>
-        body { margin: 0; padding: 20px; font-family: sans-serif; background: #fcf8e8; touch-action: manipulation; }
-        #app { max-width: 500px; margin: 0 auto; text-align: center; }
-        .instruction { font-size: 1.2rem; margin: 20px 0; padding: 15px; background: #e6f7ff; border-radius: 10px; }
+        body { margin: 0; padding: 10px; font-family: sans-serif; background: #fdf6e3; touch-action: manipulation; }
+        #app { max-width: 400px; margin: 0 auto; text-align: center; }
+        .meta { font-size: 0.7rem; color: #888; margin-bottom: 10px; }
+        .status { display: flex; justify-content: space-around; font-weight: bold; margin: 10px 0; }
+        #pokemon-img { height: 100px; }
+        .instruction { font-size: 1.1rem; margin: 10px 0; padding: 10px; background: #fff; border-radius: 10px; }
         
-        .keyboard { display: flex; justify-content: center; height: 150px; margin-top: 20px; }
-        .key { flex: 1; border: 1px solid #999; background: white; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; font-weight: bold; }
-        .key.black { flex: 0.6; background: #333; color: white; margin: 0 -5%; z-index: 1; }
-        .key:active, .key.active { background: #ffd666; }
+        /* ピアノ鍵盤の形 */
+        .keyboard { display: flex; position: relative; height: 180px; margin-top: 20px; border: 2px solid #333; }
+        .white { flex: 1; border: 1px solid #ccc; background: white; z-index: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; font-size: 0.8rem; }
+        .black { width: 10%; height: 110px; background: #333; color: white; margin: 0 -5%; z-index: 2; font-size: 0.6rem; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; }
+        
+        button { padding: 10px 20px; margin-top: 20px; font-size: 1rem; border-radius: 10px; border: none; background: #ffd666; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <h2 id="title">ドを探せ！</h2>
-    <div class="instruction" id="msg">「2つのお山」の左下にある「ド」をタッチしてね！</div>
+    <div class="meta">v1.1.0 | 更新: 2026/06/07</div>
+    <div class="status"><span>レベル: <span id="lv">1</span></span><span>連続正解: <span id="combo">0</span></span></div>
+    <img id="pokemon-img" src="" alt="pokemon">
+    <div class="instruction" id="msg"><ruby>音<rt>おと</rt></ruby>をきいて、「ド」をさわってね！</div>
     
     <div class="keyboard" id="keyboard">
-        <div class="key" data-note="261.63" data-name="ド">ド</div>
-        <div class="key black" data-note="277.18">ド#</div>
-        <div class="key" data-note="293.66" data-name="レ">レ</div>
-        <div class="key black" data-note="311.13">レ#</div>
-        <div class="key" data-note="329.63" data-name="ミ">ミ</div>
-        <div class="key" data-note="349.23" data-name="ファ">ファ</div>
-        <div class="key black" data-note="369.99">ファ#</div>
-        <div class="key" data-note="392.00" data-name="ソ">ソ</div>
-        <div class="key black" data-note="415.30">ソ#</div>
-        <div class="key" data-note="440.00" data-name="ラ">ラ</div>
-        <div class="key black" data-note="466.16">ラ#</div>
-        <div class="key" data-note="493.88" data-name="シ">シ</div>
+        <div class="white" onclick="check('ド')">ド</div><div class="black">ド#</div>
+        <div class="white" onclick="check('レ')">レ</div><div class="black">レ#</div>
+        <div class="white" onclick="check('ミ')">ミ</div>
+        <div class="white" onclick="check('ファ')">ファ</div><div class="black">ファ#</div>
+        <div class="white" onclick="check('ソ')">ソ</div><div class="black">ソ#</div>
+        <div class="white" onclick="check('ラ')">ラ</div><div class="black">ラ#</div>
+        <div class="white" onclick="check('シ')">シ</div>
     </div>
+    
+    <button onclick="location.href='https://piru0928.github.io/pokemon-math-app/'">もどる</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let combo = 0;
+    let lv = 1;
 
-    function playNote(freq) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 1);
+    async function fetchPokemon() {
+        const id = Math.floor(Math.random() * 150) + 1;
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        const data = await res.json();
+        document.getElementById('pokemon-img').src = data.sprites.front_default;
     }
 
-    document.querySelectorAll('.key').forEach(key => {
-        // タッチとクリックの両方に対応
-        const handler = (e) => {
-            e.preventDefault();
-            const freq = key.getAttribute('data-note');
-            playNote(freq);
-            
-            // 正解判定ロジック
-            if(key.getAttribute('data-name') === 'ド') {
-                document.getElementById('msg').innerText = "大正解！ドだね！";
-            } else if(key.getAttribute('data-name')) {
-                document.getElementById('msg').innerText = "ちがうよ！「ド」を探してみよう！";
-            }
-        };
-
-        key.addEventListener('touchstart', handler, {passive: false});
-        key.addEventListener('mousedown', handler);
-    });
+    function check(note) {
+        if(note === 'ド') {
+            combo++;
+            lv = Math.min(5, Math.floor(combo/3) + 1);
+            document.getElementById('msg').innerText = "大正解！すごいね！";
+            document.getElementById('combo').innerText = combo;
+            document.getElementById('lv').innerText = lv;
+            confetti();
+            new Audio('https://actions.google.com/sounds/v1/cartoon/success_fanfare.ogg').play();
+            setTimeout(fetchPokemon, 1000);
+        } else {
+            combo = 0;
+            document.getElementById('msg').innerText = "おしい！もういちど！";
+            document.getElementById('combo').innerText = combo;
+        }
+    }
+    fetchPokemon();
 </script>
 </body>
 </html>
