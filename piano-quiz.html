@@ -5,405 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ピアノ探検隊</title>
     <style>
-        body {
-            font-family: 'Hiragino Kaku Gothic ProN', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #fcf8e8;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-
-        #app-container {
-            width: 375px; /* 基本サイズ（iPhone 13 mini） */
-            height: 812px;
-            background: white;
-            border-radius: 40px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 10px solid #f2cf6f; /* 画像のフレーム色 */
-            position: relative;
-        }
-
-        /* 画面上部のステータスバーを模倣 */
-        #status-bar-mock {
-            height: 44px;
-            background-color: transparent;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            color: black;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        #time-mock {
-            flex: 1;
-        }
-        #icons-mock {
-            display: flex;
-            gap: 5px;
-        }
-
-        /* コンテンツエリア */
-        #game-area {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        h1#stage-title {
-            font-size: 32px;
-            font-weight: 800;
-            margin-top: 20px;
-            margin-bottom: 30px;
-            color: #333;
-        }
-
-        #instruction-text {
-            font-size: 20px;
-            font-weight: bold;
-            background-color: #e6f7ff;
-            color: #003a8c;
-            padding: 15px 25px;
-            border-radius: 15px;
-            border: 2px solid #91d5ff;
-            text-align: center;
-            width: 80%;
-            margin-bottom: 40px;
-        }
-
-        /* 鍵盤エリア */
-        #keyboard-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
-            overflow: hidden; /* はみ出し防止 */
-        }
-
-        .piano-wrapper {
-            display: flex;
-            width: auto;
-            max-width: 100%; /* これで画面幅に合わせる */
-            position: relative;
-        }
-
-        .white-key {
-            width: calc((375px - 40px) / 7.5); /* 7.5個分の白鍵 */
-            height: calc(calc((375px - 40px) / 7.5) * 3);
-            background: white;
-            border: 1px solid #ccc;
-            border-bottom: 5px solid #bbb;
-            border-radius: 0 0 8px 8px;
-            box-sizing: border-box;
-            position: relative;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 5px;
-            color: #999;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .black-key {
-            width: calc(calc((375px - 40px) / 7.5) * 0.7);
-            height: calc(calc(calc((375px - 40px) / 7.5) * 3) * 0.6);
-            background: #222;
-            position: absolute;
-            top: 0;
-            z-index: 2;
-            cursor: pointer;
-            border-radius: 0 0 5px 5px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            padding-bottom: 2px;
-            color: #eee;
-            font-weight: bold;
-            font-size: 10px;
-        }
-
-        /* ターゲット鍵盤の強調表示 */
-        .key-target {
-            border: 4px solid #1890ff; /* ターゲット色 */
-            box-shadow: 0 0 10px rgba(24, 144, 255, 0.7);
-        }
-
-        /* 正解アニメーション */
-        @keyframes correct-flash {
-            0% { background-color: #f6ffed; }
-            50% { background-color: #b7eb8f; }
-            100% { background-color: white; }
-        }
-        .key-correct {
-            animation: correct-flash 0.5s ease;
-        }
-
-        /* 不正解アニメーション */
-        @keyframes wrong-shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-        .key-wrong {
-            background-color: #fff1f0;
-            border-color: #ff4d4f;
-            animation: wrong-shake 0.3s ease-in-out;
-        }
-
-        /* ポップアップメッセージ */
-        #message-popup {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0,0,0,0.85);
-            color: white;
-            padding: 30px;
-            border-radius: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            display: none;
-            z-index: 10;
-        }
-
-        #close-popup-btn {
-            background-color: white;
-            color: black;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        /* 戻るボタン */
-        #back-button-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        #back-button {
-            display: flex;
-            align-items: center;
-            background-color: #f2cf6f;
-            color: #333;
-            border: 3px solid #e0b04e;
-            border-radius: 15px;
-            padding: 10px 20px;
-            font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        #back-button i { margin-right: 5px; }
-
+        body { margin: 0; padding: 20px; font-family: sans-serif; background: #fcf8e8; touch-action: manipulation; }
+        #app { max-width: 500px; margin: 0 auto; text-align: center; }
+        .instruction { font-size: 1.2rem; margin: 20px 0; padding: 15px; background: #e6f7ff; border-radius: 10px; }
+        
+        .keyboard { display: flex; justify-content: center; height: 150px; margin-top: 20px; }
+        .key { flex: 1; border: 1px solid #999; background: white; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px; font-weight: bold; }
+        .key.black { flex: 0.6; background: #333; color: white; margin: 0 -5%; z-index: 1; }
+        .key:active, .key.active { background: #ffd666; }
     </style>
 </head>
 <body>
 
-    <div id="app-container">
-        <div id="status-bar-mock">
-            <div id="time-mock">10:13</div>
-            <div id="icons-mock">
-                <span>📶</span>
-                <span>4G</span>
-                <span>78</span>
-            </div>
-        </div>
-
-        <div id="game-area">
-            <h1 id="stage-title">ドを探せ！</h1>
-            <div id="instruction-text">「2つのお山」の左下にある「ド」をタッチ！</div>
-
-            <div id="keyboard-container">
-                <div class="piano-wrapper">
-                    <div class="white-key" data-note="c1" data-target="true">ド</div>
-                    <div class="black-key" data-note="c#1" style="left: calc((375px - 40px) / 7.5 * 0.7); display:none;">ド#</div>
-                    <div class="white-key" data-note="d1">レ</div>
-                    <div class="black-key" data-note="d#1" style="left: calc((375px - 40px) / 7.5 * 1.7); display:none;">レ#</div>
-                    <div class="white-key" data-note="e1">ミ</div>
-                    <div class="white-key" data-note="f1">ファ</div>
-                    <div class="black-key" data-note="f#1" style="left: calc((375px - 40px) / 7.5 * 3.7); display:none;">ファ#</div>
-                    <div class="white-key" data-note="g1">ソ</div>
-                    <div class="black-key" data-note="g#1" style="left: calc((375px - 40px) / 7.5 * 4.7); display:none;">ソ#</div>
-                    <div class="white-key" data-note="a1">ラ</div>
-                    <div class="black-key" data-note="a#1" style="left: calc((375px - 40px) / 7.5 * 5.7); display:none;">ラ#</div>
-                    <div class="white-key" data-note="b1">シ</div>
-                </div>
-            </div>
-
-            <div id="message-popup">
-                <p id="popup-text">レだね！その調子！</p>
-                <button id="close-popup-btn">閉じる</button>
-            </div>
-
-            <div id="back-button-container">
-                <button id="back-button">
-                    <i>←</i> もどる
-                </button>
-            </div>
-        </div>
+<div id="app">
+    <h2 id="title">ドを探せ！</h2>
+    <div class="instruction" id="msg">「2つのお山」の左下にある「ド」をタッチしてね！</div>
+    
+    <div class="keyboard" id="keyboard">
+        <div class="key" data-note="261.63" data-name="ド">ド</div>
+        <div class="key black" data-note="277.18">ド#</div>
+        <div class="key" data-note="293.66" data-name="レ">レ</div>
+        <div class="key black" data-note="311.13">レ#</div>
+        <div class="key" data-note="329.63" data-name="ミ">ミ</div>
+        <div class="key" data-note="349.23" data-name="ファ">ファ</div>
+        <div class="key black" data-note="369.99">ファ#</div>
+        <div class="key" data-note="392.00" data-name="ソ">ソ</div>
+        <div class="key black" data-note="415.30">ソ#</div>
+        <div class="key" data-note="440.00" data-name="ラ">ラ</div>
+        <div class="key black" data-note="466.16">ラ#</div>
+        <div class="key" data-note="493.88" data-name="シ">シ</div>
     </div>
+</div>
 
-    <script>
-        const appContainer = document.getElementById('app-container');
-        const stageTitle = document.getElementById('stage-title');
-        const instructionText = document.getElementById('instruction-text');
-        const keyboard = document.querySelector('.piano-wrapper');
-        const popup = document.getElementById('message-popup');
-        const popupText = document.getElementById('popup-text');
-        const closePopupBtn = document.getElementById('close-popup-btn');
-        const backButton = document.getElementById('back-button');
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // 音声・効果音（本番では外部ファイルを用意してください）
-        // 簡易的にWeb Audio APIを使用
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playNote(freq) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1);
+    }
 
-        function playNote(freq, type = 'sine', duration = 0.5) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            osc.type = type;
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.currentTime + duration);
-            osc.start(audioCtx.currentTime);
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        // 音符と周波数のマップ
-        const noteFrequencies = {
-            'c1': 261.63, 'c#1': 277.18, 'd1': 293.66, 'd#1': 311.13, 'e1': 329.63,
-            'f1': 349.23, 'f#1': 369.99, 'g1': 392.00, 'g#1': 415.30, 'a1': 440.00,
-            'a#1': 466.16, 'b1': 493.88,
+    document.querySelectorAll('.key').forEach(key => {
+        // タッチとクリックの両方に対応
+        const handler = (e) => {
+            e.preventDefault();
+            const freq = key.getAttribute('data-note');
+            playNote(freq);
+            
+            // 正解判定ロジック
+            if(key.getAttribute('data-name') === 'ド') {
+                document.getElementById('msg').innerText = "大正解！ドだね！";
+            } else if(key.getAttribute('data-name')) {
+                document.getElementById('msg').innerText = "ちがうよ！「ド」を探してみよう！";
+            }
         };
 
-        let currentStage = 0;
-        let isCorrect = false;
-
-        const stages = [
-            {
-                title: "ドを探せ！",
-                instruction: "「2つのお山」の左下にある「ド」をタッチ！",
-                targets: ["c1"],
-                blackKeysDisplay: "block" // ステージ2以降は黒鍵を表示
-            },
-            {
-                title: "黒鍵の森",
-                instruction: "「3つのお山」をタッチして！",
-                targets: ["f#1", "g#1", "a#1"],
-                blackKeysDisplay: "block"
-            },
-            {
-                title: "ミを探そう！",
-                instruction: "「2つのお山」の右下は「ミ」だよ！",
-                targets: ["e1"],
-                blackKeysDisplay: "block"
-            }
-        ];
-
-        function setupStage(stageIndex) {
-            const stage = stages[stageIndex];
-            stageTitle.innerText = stage.title;
-            instructionText.innerText = stage.instruction;
-            currentStage = stageIndex;
-            isCorrect = false;
-
-            // ターゲット鍵盤の強調をリセット
-            const keys = keyboard.querySelectorAll('.white-key, .black-key');
-            keys.forEach(key => {
-                key.classList.remove('key-target', 'key-correct', 'key-wrong');
-                key.removeAttribute('data-target');
-            });
-
-            // 黒鍵の表示設定
-            const blackKeys = keyboard.querySelectorAll('.black-key');
-            blackKeys.forEach(key => {
-                key.style.display = stage.blackKeysDisplay;
-            });
-
-            // 新しいターゲットを設定
-            stage.targets.forEach(note => {
-                const targetKey = keyboard.querySelector(`[data-note="${note}"]`);
-                if (targetKey) {
-                    targetKey.classList.add('key-target');
-                    targetKey.setAttribute('data-target', 'true');
-                }
-            });
-        }
-
-        function showPopup(text) {
-            popupText.innerText = text;
-            popup.style.display = 'block';
-        }
-
-        function closePopup() {
-            popup.style.display = 'none';
-            if (isCorrect) {
-                // 正解なら次のステージへ
-                setupStage((currentStage + 1) % stages.length);
-            }
-        }
-
-        // イベントリスナー
-        keyboard.addEventListener('click', (e) => {
-            if (e.target.classList.contains('white-key') || e.target.classList.contains('black-key')) {
-                const clickedKey = e.target;
-                const note = clickedKey.getAttribute('data-note');
-                const isTarget = clickedKey.getAttribute('data-target') === 'true';
-
-                // 音を鳴らす
-                playNote(noteFrequencies[note]);
-
-                if (isTarget) {
-                    // 正解
-                    clickedKey.classList.remove('key-target');
-                    clickedKey.classList.add('key-correct');
-                    isCorrect = true;
-                    setTimeout(() => {
-                        showPopup(`ドだね！大正解！次のステージへ行こう！`);
-                        playNote(noteFrequencies['c1'] * 2, 'square', 0.1); // 正解の効果音
-                    }, 300);
-                } else {
-                    // 不正解
-                    clickedKey.classList.add('key-wrong');
-                    setTimeout(() => clickedKey.classList.remove('key-wrong'), 300);
-                    playNote(100, 'sawtooth', 0.2); // 不正解の効果音
-                }
-            }
-        });
-
-        closePopupBtn.addEventListener('click', closePopup);
-        backButton.addEventListener('click', () => {
-            // ステージ1に戻る
-            setupStage(0);
-        });
-
-        // 初期セットアップ
-        setupStage(0);
-
-    </script>
+        key.addEventListener('touchstart', handler, {passive: false});
+        key.addEventListener('mousedown', handler);
+    });
+</script>
 </body>
 </html>
