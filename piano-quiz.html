@@ -1,75 +1,343 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja"> 
 <head>
+    <style>
+        /* リセットと基本設定 */
+* {
+    box-sizing: border-box;
+    user-select: none; /* テキスト選択防止 */
+    -webkit-tap-highlight-color: transparent; /* タップ時のハイライト消去 */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #FFF9E6; /* 目に優しいクリーム色 */
+    font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden; /* スクロール防止 */
+    touch-action: manipulation; /* ダブルタップズーム防止 */
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    height: 100%;
+    padding: 15px 10px;
+}
+
+/* ヘッダー・ステータス表示 */
+header { width: 100%; text-align: center; }
+.meta-info { font-size: 10px; color: #888; margin-bottom: 8px; }
+.status {
+    font-size: 18px;
+    font-weight: bold;
+    background: #fff;
+    padding: 8px 20px;
+    border-radius: 25px;
+    border: 3px solid #FFD700;
+    display: inline-block;
+    color: #555;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+}
+
+/* キャラクター表示エリア */
+.pokemon-container { height: 130px; display: flex; justify-content: center; align-items: center; }
+#pokemon-img { max-height: 100%; object-fit: contain; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); }
+
+/* 指示文ボックス */
+.instruction {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    background: #E6F7FF;
+    padding: 15px;
+    border-radius: 15px;
+    border: 3px solid #91D5FF;
+    width: 95%;
+    min-height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #004A99;
+}
+
+/* 鍵盤レイアウト (z-indexによる階層化) */
+.keyboard {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 30vh; /* スマホ画面の約3割の高さ */
+    max-height: 220px;
+    background: #444;
+    padding: 5px;
+    border-radius: 8px;
+    border-bottom: 10px solid #222;
+}
+
+.key {
+    cursor: pointer;
+    border-radius: 0 0 6px 6px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 15px;
+    font-weight: bold;
+    transition: background-color 0.1s;
+}
+
+/* 白鍵: フレックスボックスで均等配置 */
+.key.white {
+    flex: 1;
+    background: white;
+    border: 1px solid #ccc;
+    z-index: 1;
+    color: #666;
+    margin: 0 2px;
+    font-size: 14px;
+    box-shadow: inset 0 -10px 10px rgba(0,0,0,0.05);
+}
+
+/* 黒鍵: 白鍵の幅を基準に絶対配置 */
+.key.black {
+    position: absolute;
+    width: calc((100% - 10px) / 7 * 0.65);
+    height: 60%;
+    background: #222;
+    color: white;
+    z-index: 2;
+    top: 5px;
+    transform: translateX(-50%);
+    font-size: 11px;
+    padding-bottom: 8px;
+    box-shadow: inset -2px -5px 5px rgba(255,255,255,0.2);
+}
+
+/* 黒鍵の配置座標 (C D E F G A B の7鍵盤基準) */
+.key.black[data-note="C#"] { left: calc((100% - 10px) / 7 * 1 + 5px); }
+.key.black[data-note="D#"] { left: calc((100% - 10px) / 7 * 2 + 5px); }
+.key.black[data-note="F#"] { left: calc((100% - 10px) / 7 * 4 + 5px); }
+.key.black[data-note="G#"] { left: calc((100% - 10px) / 7 * 5 + 5px); }
+.key.black[data-note="A#"] { left: calc((100% - 10px) / 7 * 6 + 5px); }
+
+/* タップ・エラー時の視覚効果 */
+.key.active.white { background: #FFD666; }
+.key.active.black { background: #666; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px) rotate(-2deg); }
+    50% { transform: translateX(8px) rotate(2deg); }
+    75% { transform: translateX(-8px) rotate(-2deg); }
+}
+.shake { animation: shake 0.4s ease-in-out; border: 2px solid red !important; }
+
+/* 戻るボタン */
+.back-btn {
+    background: #FF9800;
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #E65100;
+    margin-bottom: 10px;
+}
+.back-btn:active { transform: translateY(5px); box-shadow: none; }
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ピアノ探検隊</title>
-    <style>
-        body { margin: 0; padding: 10px; font-family: sans-serif; background: #fdf6e3; touch-action: manipulation; }
-        #app { max-width: 400px; margin: 0 auto; text-align: center; }
-        .meta { font-size: 0.7rem; color: #888; margin-bottom: 10px; }
-        .status { display: flex; justify-content: space-around; font-weight: bold; margin: 10px 0; }
-        #pokemon-img { height: 100px; }
-        .instruction { font-size: 1.1rem; margin: 10px 0; padding: 10px; background: #fff; border-radius: 10px; }
-        
-        /* ピアノ鍵盤の形 */
-        .keyboard { display: flex; position: relative; height: 180px; margin-top: 20px; border: 2px solid #333; }
-        .white { flex: 1; border: 1px solid #ccc; background: white; z-index: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; font-size: 0.8rem; }
-        .black { width: 10%; height: 110px; background: #333; color: white; margin: 0 -5%; z-index: 2; font-size: 0.6rem; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px; }
-        
-        button { padding: 10px 20px; margin-top: 20px; font-size: 1rem; border-radius: 10px; border: none; background: #ffd666; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="app">
+        <header>
+            <div class="meta-info">
+                v1.1.0 | <ruby>更新<rt>こうしん</rt></ruby><ruby>日時<rt>にちじ</rt></ruby>: 2026/06/07
+            </div>
+            <div class="status">
+                <ruby>階級<rt>レベル</rt></ruby>: <span id="level-display">1</span> | 
+                <ruby>連続<rt>れんぞく</rt></ruby><ruby>正解<rt>せいかい</rt></ruby>: <span id="combo-display">0</span>
+            </div>
+        </header>
 
-<div id="app">
-    <div class="meta">v1.1.0 | 更新: 2026/06/07</div>
-    <div class="status"><span>レベル: <span id="lv">1</span></span><span>連続正解: <span id="combo">0</span></span></div>
-    <img id="pokemon-img" src="" alt="pokemon">
-    <div class="instruction" id="msg"><ruby>音<rt>おと</rt></ruby>をきいて、「ド」をさわってね！</div>
-    
-    <div class="keyboard" id="keyboard">
-        <div class="white" onclick="check('ド')">ド</div><div class="black">ド#</div>
-        <div class="white" onclick="check('レ')">レ</div><div class="black">レ#</div>
-        <div class="white" onclick="check('ミ')">ミ</div>
-        <div class="white" onclick="check('ファ')">ファ</div><div class="black">ファ#</div>
-        <div class="white" onclick="check('ソ')">ソ</div><div class="black">ソ#</div>
-        <div class="white" onclick="check('ラ')">ラ</div><div class="black">ラ#</div>
-        <div class="white" onclick="check('シ')">シ</div>
+        <div class="pokemon-container">
+            <img id="pokemon-img" src="" alt="ポケモン">
+        </div>
+
+        <div id="instruction-box" class="instruction">
+            </div>
+
+        <div class="keyboard" id="keyboard">
+            </div>
+
+        <button class="back-btn" onclick="location.href='https://piru0928.github.io/pokemon-math-app/'">
+            <ruby>戻<rt>もど</rt></ruby>る
+        </button>
     </div>
-    
-    <button onclick="location.href='https://piru0928.github.io/pokemon-math-app/'">もどる</button>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-<script>
-    let combo = 0;
-    let lv = 1;
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Web Audio APIの初期化
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    async function fetchPokemon() {
-        const id = Math.floor(Math.random() * 150) + 1;
+// 鍵盤の周波数データ
+const noteFreq = {
+    'C': 261.6, 'C#': 277.2, 'D': 293.7, 'D#': 311.1, 'E': 329.6, 'F': 349.2,
+    'F#': 370.0, 'G': 392.0, 'G#': 415.3, 'A': 440.0, 'A#': 466.2, 'B': 493.9
+};
+
+// 鍵盤の定義データ
+const keysData = [
+    { note: 'C', name: 'ド', type: 'white' }, { note: 'C#', name: 'ド#', type: 'black' },
+    { note: 'D', name: 'レ', type: 'white' }, { note: 'D#', name: 'レ#', type: 'black' },
+    { note: 'E', name: 'ミ', type: 'white' }, { note: 'F', name: 'ファ', type: 'white' },
+    { note: 'F#', name: 'ファ#', type: 'black' }, { note: 'G', name: 'ソ', type: 'white' },
+    { note: 'G#', name: 'ソ#', type: 'black' }, { note: 'A', name: 'ラ', type: 'white' },
+    { note: 'A#', name: 'ラ#', type: 'black' }, { note: 'B', name: 'シ', type: 'white' }
+];
+
+// 5段階のステージロジック
+const stages = [
+    { level: 1, instruction: `<ruby>二<rt>ふた</rt></ruby>つのお<ruby>山<rt>やま</rt></ruby>の<ruby>左<rt>ひだり</rt></ruby><ruby>下<rt>した</rt></ruby>、「ド」をタッチしてね！`, type: 'single', target: ['C'] },
+    { level: 2, instruction: `<ruby>黒<rt>くろ</rt></ruby>いお<ruby>山<rt>やま</rt></ruby>をどれか<ruby>一<rt>ひと</rt></ruby>つタッチしてね！`, type: 'single', target: ['C#', 'D#', 'F#', 'G#', 'A#'] },
+    { level: 3, instruction: `<ruby>二<rt>ふた</rt></ruby>つのお<ruby>山<rt>やま</rt></ruby>の<ruby>右<rt>みぎ</rt></ruby><ruby>下<rt>した</rt></ruby>、「ミ」をタッチしてね！`, type: 'single', target: ['E'] },
+    { level: 4, instruction: `<ruby>階段<rt>かいだん</rt></ruby>だよ！「ド」→「レ」→「ミ」の<ruby>順番<rt>じゅんばん</rt></ruby>にタッチして！`, type: 'sequence', target: ['C', 'D', 'E'], currentSeq: 0 },
+    { level: 5, instruction: `「ド」のお<ruby>隣<rt>となり</rt></ruby>さん、「レ」はどこかな？`, type: 'single', target: ['D'] }
+];
+
+let currentLevel = 1;
+let combo = 0;
+
+// UI要素の取得
+const keyboardDiv = document.getElementById('keyboard');
+const instructionBox = document.getElementById('instruction-box');
+const levelDisplay = document.getElementById('level-display');
+const comboDisplay = document.getElementById('combo-display');
+const pokemonImg = document.getElementById('pokemon-img');
+
+// ピアノの音を鳴らす関数
+function playTone(freq, type = 'sine') {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq;
+    osc.type = type;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 1);
+}
+
+// 効果音の再生
+function playFanfare() {
+    playTone(523.25, 'triangle'); // ド
+    setTimeout(() => playTone(659.25, 'triangle'), 150); // ミ
+    setTimeout(() => playTone(783.99, 'triangle'), 300); // ソ
+}
+function playBuzzer() {
+    playTone(150, 'sawtooth'); // 低いブー音
+}
+
+// PokeAPIから画像をランダム取得
+async function fetchPokemon() {
+    try {
+        const id = Math.floor(Math.random() * 151) + 1; // 初代151匹からランダム
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
         const data = await res.json();
-        document.getElementById('pokemon-img').src = data.sprites.front_default;
+        pokemonImg.src = data.sprites.front_default;
+    } catch (e) {
+        console.error("ポケモン取得エラー", e);
     }
+}
 
-    function check(note) {
-        if(note === 'ド') {
-            combo++;
-            lv = Math.min(5, Math.floor(combo/3) + 1);
-            document.getElementById('msg').innerText = "大正解！すごいね！";
-            document.getElementById('combo').innerText = combo;
-            document.getElementById('lv').innerText = lv;
-            confetti();
-            new Audio('https://actions.google.com/sounds/v1/cartoon/success_fanfare.ogg').play();
-            setTimeout(fetchPokemon, 1000);
+// 画面の更新
+function updateUI() {
+    const stage = stages[currentLevel - 1];
+    instructionBox.innerHTML = stage.instruction;
+    levelDisplay.innerText = currentLevel;
+    comboDisplay.innerText = combo;
+    if (stage.type === 'sequence') stage.currentSeq = 0; // シーケンスリセット
+}
+
+// 正解時の処理
+function handleCorrect() {
+    combo++;
+    playFanfare();
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    
+    setTimeout(() => {
+        if (currentLevel < 5) currentLevel++; // レベルアップ（最大5）
+        fetchPokemon();
+        updateUI();
+    }, 1500); // 演出後に次へ
+}
+
+// 不正解時の処理
+function handleWrong() {
+    combo = 0;
+    playBuzzer();
+    instructionBox.classList.add('shake');
+    setTimeout(() => instructionBox.classList.remove('shake'), 400);
+    updateUI();
+}
+
+// 判定ロジック
+function checkAnswer(note) {
+    const stage = stages[currentLevel - 1];
+    
+    if (stage.type === 'single') {
+        if (stage.target.includes(note)) handleCorrect();
+        else handleWrong();
+    } else if (stage.type === 'sequence') {
+        if (note === stage.target[stage.currentSeq]) {
+            stage.currentSeq++;
+            if (stage.currentSeq === stage.target.length) handleCorrect(); // 最後まで弾けたら正解
         } else {
-            combo = 0;
-            document.getElementById('msg').innerText = "おしい！もういちど！";
-            document.getElementById('combo').innerText = combo;
+            handleWrong();
         }
     }
-    fetchPokemon();
-</script>
+}
+
+// 鍵盤の初期生成
+keysData.forEach(k => {
+    const keyDiv = document.createElement('div');
+    keyDiv.className = `key ${k.type}`;
+    keyDiv.setAttribute('data-note', k.note);
+    keyDiv.innerText = k.name;
+
+    // タッチ＆クリックイベント（スマホ対応）
+    const triggerEvent = (e) => {
+        e.preventDefault();
+        keyDiv.classList.add('active');
+        playTone(noteFreq[k.note]);
+        checkAnswer(k.note);
+        setTimeout(() => keyDiv.classList.remove('active'), 200);
+    };
+
+    keyDiv.addEventListener('touchstart', triggerEvent, { passive: false });
+    keyDiv.addEventListener('mousedown', triggerEvent);
+    
+    keyboardDiv.appendChild(keyDiv);
+});
+
+// アプリの起動
+fetchPokemon();
+updateUI();
+
+    </script>
 </body>
 </html>
