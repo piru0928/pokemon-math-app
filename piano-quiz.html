@@ -19,9 +19,9 @@
             font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            align-items: flex-start; /* 中央揃えから上揃えに変更して見切れ防止 */
+            min-height: 100dvh; /* スマホのバーを除いた正確な高さ */
+            overflow-y: auto; /* はみ出た場合はスクロール可能にする */
             touch-action: manipulation;
         }
 
@@ -29,16 +29,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; /* 画面に均等に配置 */
             width: 100%;
             max-width: 500px;
-            height: 100%;
-            padding: 20px 10px;
+            min-height: 100%;
+            padding: 15px 10px;
+            gap: 15px; /* 要素間の隙間を均等に */
         }
 
         /* ヘッダー・ステータス表示 */
         header { width: 100%; text-align: center; }
-        .meta-info { font-size: 10px; color: #888; margin-bottom: 8px; }
+        .meta-info { font-size: 10px; color: #888; margin-bottom: 5px; }
         .status {
             font-size: 18px;
             font-weight: bold;
@@ -59,35 +59,41 @@
             padding: 15px;
             border-radius: 15px;
             border: 3px solid #91D5FF;
-            width: 95%;
+            width: 100%;
             min-height: 100px;
-            margin: 10px 0;
         }
 
-        /* ポケモンのふわふわアニメーション */
         #pokemon-img {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             object-fit: contain;
-            margin-right: 15px;
+            margin-right: 10px;
+            flex-shrink: 0; /* 画像が潰れるのを防ぐ */
             filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
             animation: float 2s ease-in-out infinite;
         }
 
         @keyframes float {
-            0% { transform: translateY(0px); }
+            0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
         }
 
-        /* 指示文（ルビが崩れないように修正） */
+        /* 指示文（見切れ防止を強化） */
         .instruction {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
             color: #004A99;
-            line-height: 1.8;
-            word-break: keep-all; /* 文字の途中で改行させない */
+            line-height: 1.6;
             flex: 1;
+            /* 以下の設定で文字が枠をはみ出さずに改行されます */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+        
+        .instruction ruby {
+            /* ルビの改行崩れを防ぐ */
+            ruby-align: center;
         }
 
         /* 鍵盤レイアウト */
@@ -95,7 +101,8 @@
             display: flex;
             position: relative;
             width: 100%;
-            height: 30vh;
+            height: 28vh; /* ボタンのスペース確保のために少し縮小 */
+            min-height: 180px;
             max-height: 220px;
             background: #444;
             padding: 5px;
@@ -114,7 +121,6 @@
             transition: background-color 0.1s;
         }
 
-        /* 白鍵 */
         .key.white {
             flex: 1;
             background: white;
@@ -126,7 +132,6 @@
             box-shadow: inset 0 -10px 10px rgba(0,0,0,0.05);
         }
 
-        /* 黒鍵 */
         .key.black {
             position: absolute;
             width: calc((100% - 10px) / 7 * 0.65);
@@ -150,7 +155,6 @@
         .key.active.white { background: #FFD666; }
         .key.active.black { background: #666; }
 
-        /* エラー時の揺れ */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-8px) rotate(-2deg); }
@@ -170,7 +174,8 @@
             border-radius: 25px;
             cursor: pointer;
             box-shadow: 0 5px 0 #E65100;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 10px;
         }
         .back-btn:active { transform: translateY(5px); box-shadow: none; }
     </style>
@@ -179,7 +184,7 @@
     <div id="app">
         <header>
             <div class="meta-info">
-                v1.2.0 | <ruby>更新<rt>こうしん</rt></ruby><ruby>日時<rt>にちじ</rt></ruby>: 2026/06/07
+                v1.3.0 | <ruby>更新<rt>こうしん</rt></ruby><ruby>日時<rt>にちじ</rt></ruby>: 2026/06/07
             </div>
             <div class="status">
                 レベル: <span id="level-display">1</span> | 
@@ -203,8 +208,32 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <script>
-        // 音の準備
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // --- 音声の準備 ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = new AudioContext();
+        let isAudioUnlocked = false;
+
+        // ★スマホ向け音声ロック解除処理（画面のどこかを触った瞬間に発動）★
+        function unlockAudio() {
+            if (!isAudioUnlocked) {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                // 無音を鳴らしてブラウザに「音を出す許可」を覚えさせる
+                const osc = audioCtx.createOscillator();
+                osc.connect(audioCtx.destination);
+                osc.start(0);
+                osc.stop(0.001);
+                isAudioUnlocked = true;
+                
+                // 解除できたらこのイベントは消す
+                document.removeEventListener('touchstart', unlockAudio);
+                document.removeEventListener('mousedown', unlockAudio);
+            }
+        }
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+        document.addEventListener('mousedown', unlockAudio, { once: true });
+
         const noteFreq = {
             'C': 261.6, 'C#': 277.2, 'D': 293.7, 'D#': 311.1, 'E': 329.6, 'F': 349.2,
             'F#': 370.0, 'G': 392.0, 'G#': 415.3, 'A': 440.0, 'A#': 466.2, 'B': 493.9
@@ -219,44 +248,79 @@
             { note: 'A#', name: 'ラ#', type: 'black' }, { note: 'B', name: 'シ', type: 'white' }
         ];
 
-        // 各レベルの問題パターンを複数用意
+        // --- 全10レベルの問題データ ---
         const stageData = [
+            // レベル1〜5: 基本編
             {
                 level: 1, type: 'single',
                 questions: [
-                    { text: `<ruby>二<rt>ふた</rt></ruby>つのお<ruby>山<rt>やま</rt></ruby>の<ruby>左<rt>ひだり</rt></ruby><ruby>下<rt>した</rt></ruby>、「ド」をタッチ！`, target: ['C'] },
+                    { text: `2つ<ruby>並<rt>なら</rt></ruby>んだ<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>の<ruby>左<rt>ひだり</rt></ruby><ruby>下<rt>した</rt></ruby>、「ド」をタッチ！`, target: ['C'] },
                     { text: `すべての<ruby>基本<rt>きほん</rt></ruby>！「ド」の<ruby>音<rt>おと</rt></ruby>はどこかな？`, target: ['C'] }
                 ]
             },
             {
                 level: 2, type: 'single',
                 questions: [
-                    { text: `<ruby>黒<rt>くろ</rt></ruby>いお<ruby>山<rt>やま</rt></ruby>をどれか<ruby>一<rt>ひと</rt></ruby>つタッチしてね！`, target: ['C#', 'D#', 'F#', 'G#', 'A#'] },
-                    { text: `<ruby>二<rt>ふた</rt></ruby>つならんだ<ruby>黒<rt>くろ</rt></ruby>いお<ruby>山<rt>やま</rt></ruby>のどちらかをさわって！`, target: ['C#', 'D#'] }
+                    { text: `どれでもいいよ！<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>を1つタッチしてね！`, target: ['C#', 'D#', 'F#', 'G#', 'A#'] },
+                    { text: `2つ<ruby>並<rt>なら</rt></ruby>んだ<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>のどちらかをさわって！`, target: ['C#', 'D#'] }
                 ]
             },
             {
                 level: 3, type: 'single',
                 questions: [
-                    { text: `<ruby>二<rt>ふた</rt></ruby>つのお<ruby>山<rt>やま</rt></ruby>の<ruby>右<rt>みぎ</rt></ruby><ruby>下<rt>した</rt></ruby>、「ミ」をタッチしてね！`, target: ['E'] },
-                    { text: `「ド」のすぐお<ruby>隣<rt>となり</rt></ruby>、「レ」はどこかな？`, target: ['D'] },
-                    { text: `お<ruby>山<rt>やま</rt></ruby>が<ruby>三<rt>みっ</rt></ruby>つの<ruby>左<rt>ひだり</rt></ruby><ruby>下<rt>した</rt></ruby>、「ファ」をさがせ！`, target: ['F'] }
+                    { text: `2つ<ruby>並<rt>なら</rt></ruby>んだ<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>の<ruby>右<rt>みぎ</rt></ruby><ruby>下<rt>した</rt></ruby>、「ミ」をタッチしてね！`, target: ['E'] },
+                    { text: `「ド」のすぐ<ruby>右<rt>みぎ</rt></ruby>の<ruby>音<rt>おと</rt></ruby>、「レ」はどこかな？`, target: ['D'] }
                 ]
             },
             {
                 level: 4, type: 'sequence',
                 questions: [
-                    { text: `<ruby>階段<rt>かいだん</rt></ruby>だよ！「ド」→「レ」→「ミ」の<ruby>順番<rt>じゅんばん</rt></ruby>にタッチ！`, target: ['C', 'D', 'E'] },
-                    { text: `おりるよ！「ミ」→「レ」→「ド」の<ruby>順番<rt>じゅんばん</rt></ruby>にさわって！`, target: ['E', 'D', 'C'] },
-                    { text: `「ファ」→「ソ」→「ラ」と<ruby>順番<rt>じゅんばん</rt></ruby>にのぼってみよう！`, target: ['F', 'G', 'A'] }
+                    { text: `<ruby>順番<rt>じゅんばん</rt></ruby>にひこう！「ド」→「レ」→「ミ」のじゅんにタッチ！`, target: ['C', 'D', 'E'] },
+                    { text: `おりるよ！「ミ」→「レ」→「ド」のじゅんにさわって！`, target: ['E', 'D', 'C'] }
                 ]
             },
             {
                 level: 5, type: 'single',
                 questions: [
-                    { text: `「ソ」のお<ruby>隣<rt>となり</rt></ruby>さん、「ラ」はどこかな？`, target: ['A'] },
-                    { text: `「ド」からひとつとばし！「ミ」はどこ？`, target: ['E'] },
-                    { text: `一番<ruby>右<rt>みぎ</rt></ruby>のはしっこ、「シ」をならして！`, target: ['B'] }
+                    { text: `3つ<ruby>並<rt>なら</rt></ruby>んだ<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>の<ruby>左<rt>ひだり</rt></ruby><ruby>下<rt>した</rt></ruby>、「ファ」をさがせ！`, target: ['F'] },
+                    { text: `「ド」からひとつとばし！「ミ」はどこ？`, target: ['E'] }
+                ]
+            },
+            // レベル6〜10: 応用編
+            {
+                level: 6, type: 'single',
+                questions: [
+                    { text: `「ファ」のすぐ<ruby>右<rt>みぎ</rt></ruby>の<ruby>音<rt>おと</rt></ruby>、「ソ」はどこかな？`, target: ['G'] },
+                    { text: `一番<ruby>右<rt>みぎ</rt></ruby>のはしっこ、「シ」をならして！`, target: ['B'] },
+                    { text: `「シ」のすぐ<ruby>左<rt>ひだり</rt></ruby>の<ruby>音<rt>おと</rt></ruby>、「ラ」はどこ？`, target: ['A'] }
+                ]
+            },
+            {
+                level: 7, type: 'single',
+                questions: [
+                    { text: `<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>の「ド#」はどこかな？`, target: ['C#'] },
+                    { text: `<ruby>黒<rt>くろ</rt></ruby>い<ruby>鍵盤<rt>けんばん</rt></ruby>の「ファ#」をタッチしてね！`, target: ['F#'] }
+                ]
+            },
+            {
+                level: 8, type: 'sequence',
+                questions: [
+                    { text: `<ruby>長<rt>なが</rt></ruby>い<ruby>階段<rt>かいだん</rt></ruby>！「ド」から「ソ」までじゅんばんに！`, target: ['C', 'D', 'E', 'F', 'G'] },
+                    { text: `「ファ」→「ソ」→「ラ」→「シ」とひいてみよう！`, target: ['F', 'G', 'A', 'B'] }
+                ]
+            },
+            {
+                level: 9, type: 'sequence',
+                questions: [
+                    { text: `<ruby>逆<rt>ぎゃく</rt></ruby>の<ruby>階段<rt>かいだん</rt></ruby>！「ソ」→「ファ」→「ミ」→「レ」→「ド」！`, target: ['G', 'F', 'E', 'D', 'C'] },
+                    { text: `「シ」→「ラ」→「ソ」とおりてみよう！`, target: ['B', 'A', 'G'] }
+                ]
+            },
+            {
+                level: 10, type: 'sequence',
+                questions: [
+                    { text: `カエルのがっしょう！「ド」→「レ」→「ミ」→「ファ」→「ミ」→「レ」→「ド」`, target: ['C', 'D', 'E', 'F', 'E', 'D', 'C'] },
+                    { text: `<ruby>和音<rt>わおん</rt></ruby>の<ruby>順番<rt>じゅんばん</rt></ruby>！「ド」→「ミ」→「ソ」とひいてみて！`, target: ['C', 'E', 'G'] }
                 ]
             }
         ];
@@ -265,8 +329,6 @@
         let combo = 0;
         let currentQuestion = null;
         let currentSequenceIndex = 0;
-        
-        // ★ 連打防止用のロック機能 ★
         let isLocked = false; 
 
         const keyboardDiv = document.getElementById('keyboard');
@@ -276,10 +338,12 @@
         const comboDisplay = document.getElementById('combo-display');
         const pokemonImg = document.getElementById('pokemon-img');
 
-        // 音を鳴らす（スマホ対応強化）
+        // 音を鳴らす
         function playTone(freq, type = 'sine', duration = 0.6) {
-            // スマホはタップ時にResumeしないと音が鳴らない
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            // タップ時にAudioContextが停止していたら再開
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -317,7 +381,6 @@
 
         function loadQuestion() {
             const stage = stageData[currentLevel - 1];
-            // そのレベルの問題パターンからランダムに1つ選ぶ
             const randomIdx = Math.floor(Math.random() * stage.questions.length);
             currentQuestion = stage.questions[randomIdx];
             currentSequenceIndex = 0;
@@ -326,18 +389,18 @@
             levelDisplay.innerText = currentLevel;
             comboDisplay.innerText = combo;
             
-            isLocked = false; // 問題が出たらロック解除
+            isLocked = false;
         }
 
         function handleCorrect() {
-            isLocked = true; // 正解演出中は連打できないようにロック
+            isLocked = true;
             combo++;
             playFanfare();
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             
             setTimeout(() => {
-                // 3連続正解でレベルアップ
-                if (combo % 3 === 0 && currentLevel < 5) {
+                // 3連続正解でレベルアップ（最大レベル10）
+                if (combo % 3 === 0 && currentLevel < 10) {
                     currentLevel++;
                 }
                 fetchPokemon();
@@ -354,7 +417,7 @@
         }
 
         function checkAnswer(note) {
-            if (isLocked) return; // ロック中は何もしない
+            if (isLocked) return;
 
             const stage = stageData[currentLevel - 1];
             
@@ -373,7 +436,7 @@
                         handleCorrect();
                     }
                 } else {
-                    currentSequenceIndex = 0; // まちがえたら最初から
+                    currentSequenceIndex = 0;
                     handleWrong();
                 }
             }
@@ -388,11 +451,8 @@
 
             const triggerEvent = (e) => {
                 e.preventDefault();
-                // iPhone等で音を出すための魔法のおまじない
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                
                 keyDiv.classList.add('active');
-                playTone(noteFreq[k.note]); // 鍵盤の音を鳴らす
+                playTone(noteFreq[k.note]); // タップした鍵盤の音を鳴らす
                 checkAnswer(k.note);
                 setTimeout(() => keyDiv.classList.remove('active'), 200);
             };
@@ -403,7 +463,6 @@
             keyboardDiv.appendChild(keyDiv);
         });
 
-        // 最初のセットアップ
         fetchPokemon();
         loadQuestion();
     </script>
