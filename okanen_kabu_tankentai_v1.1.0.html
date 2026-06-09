@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#FFF8E7">
+<title>おかね探検隊</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --cream:#FFF8E7;--paper:#fff;--navy:#17466E;--blue:#3B82F6;--gold:#FFD54A;
+  --green:#39A96B;--red:#EF5350;--orange:#FF9F43;--purple:#7C5CE5;
+  --gray:#667085;--line:#DCE5EC;--shadow:0 5px 0 rgba(23,70,110,.13)
+}
+html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:var(--cream)}
+body{
+  font-family:"Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic",sans-serif;
+  color:#243443;display:flex;justify-content:center;touch-action:manipulation
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+#app{width:100%;max-width:520px;min-height:100dvh;padding:10px}
+.screen{
+  display:none;flex-direction:column;gap:10px;width:100%;
+  min-height:calc(100dvh - 20px);overflow-x:hidden
+}
+.screen.active{display:flex}
+.topbar{
+  display:grid;grid-template-columns:minmax(62px,76px) minmax(0,1fr) minmax(62px,76px);
+  align-items:center;gap:6px;min-height:46px;width:100%
+}
+.top-title{
+  min-width:0;text-align:center;color:var(--navy);font-size:clamp(16px,5vw,20px);
+  line-height:1.2;font-weight:900;overflow-wrap:anywhere
+}
+.back-btn,.icon-btn,.big-btn,.mini-btn,.choice-btn,.menu-card,.step-btn,.pin-btn,.stock-choice{
+  border:0;font-weight:900
+}
+.back-btn,.icon-btn{
+  min-height:40px;padding:7px 8px;border-radius:18px;color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.15)
+}
+.back-btn{background:#78909C}
+.icon-btn{background:var(--purple)}
+.back-btn:active,.icon-btn:active,.big-btn:active,.menu-card:active,.choice-btn:active,.step-btn:active,.stock-choice:active{
+  transform:translateY(3px);box-shadow:none
+}
+.hero{
+  position:relative;overflow:hidden;min-height:140px;padding:14px 110px 12px 14px;
+  border:3px solid #9BD6F6;border-radius:22px;
+  background:linear-gradient(145deg,#E9F8FF,#FFF8D7);box-shadow:var(--shadow)
+}
+.hero h1{margin:0;color:var(--navy);font-size:clamp(23px,7vw,30px);line-height:1.25}
+.hero p{margin:8px 0 0;color:#4B6274;font-size:13px;line-height:1.65;font-weight:700}
+.pokemon-wrap{
+  position:absolute;right:8px;bottom:4px;width:98px;height:98px;
+  display:flex;align-items:center;justify-content:center
+}
+.pokemon-img{
+  width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 5px 5px rgba(0,0,0,.16));
+  animation:pokemonMove 2.2s ease-in-out infinite
+}
+@keyframes pokemonMove{
+  0%,100%{transform:translateY(0) rotate(-2deg)}
+  45%{transform:translateY(-8px) rotate(2deg)}
+}
+.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;width:100%}
+.menu-card{
+  min-width:0;width:100%;min-height:126px;padding:10px 7px;border:3px solid var(--gold);
+  border-radius:18px;background:#fff;box-shadow:var(--shadow);color:var(--navy);text-align:center;
+  overflow:hidden
+}
+.menu-card .emoji{display:block;font-size:32px;margin-bottom:4px}
+.menu-title{font-size:clamp(14px,4.3vw,17px);line-height:1.35;overflow-wrap:anywhere}
+.menu-desc{margin-top:5px;color:#6B7785;font-size:clamp(9px,2.7vw,11px);line-height:1.45;overflow-wrap:anywhere}
+.panel{
+  width:100%;padding:12px;border:3px solid var(--line);border-radius:18px;
+  background:#fff;box-shadow:0 4px 0 rgba(23,70,110,.08);overflow:hidden
+}
+.panel-title{margin:0 0 8px;color:var(--navy);font-size:17px;font-weight:1000}
+.small-note{color:var(--gray);font-size:11px;line-height:1.55}
+.warning{
+  padding:9px 10px;border:2px solid #F2C94C;border-radius:12px;
+  background:#FFF4D6;color:#6B5300;font-size:10px;line-height:1.55;font-weight:700
+}
+.big-btn{
+  min-height:48px;padding:10px 12px;border-radius:18px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.15)
+}
+.big-btn.green{background:var(--green)} .big-btn.blue{background:var(--blue)}
+.big-btn.orange{background:var(--orange)} .big-btn.purple{background:var(--purple)}
+.big-btn.gray{background:#78909C}.big-btn.red{background:var(--red)}
+.big-btn:disabled{opacity:.45;box-shadow:none;transform:none}
+.button-row{display:flex;gap:8px;width:100%}.button-row>*{flex:1;min-width:0}
+.jars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.jar{
+  min-width:0;min-height:150px;padding:9px 4px;border:3px solid var(--line);
+  border-radius:16px 16px 23px 23px;background:linear-gradient(#fff,#F8FBFD);text-align:center
+}
+.jar.spend{border-color:#FFB4A8}.jar.save{border-color:#91C9FF}.jar.invest{border-color:#98DCB0}
+.jar-icon{font-size:28px}.jar-name{margin-top:2px;color:var(--navy);font-size:13px;font-weight:1000}
+.jar-value{margin:5px 0;font-size:20px;font-weight:1000}
+.stepper{display:flex;justify-content:center;gap:5px}.step-btn{
+  width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;font-size:20px
+}
+.summary-strip{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}
+.pill{
+  padding:6px 10px;border:2px solid var(--gold);border-radius:999px;background:#fff;
+  color:var(--navy);font-size:12px;font-weight:900
+}
+.quiz-question{
+  min-height:84px;display:flex;align-items:center;color:var(--navy);
+  font-size:18px;line-height:1.55;font-weight:1000
+}
+.choice-list{display:grid;gap:8px}.choice-btn{
+  min-height:52px;padding:9px;border:3px solid #9CCBFF;border-radius:15px;
+  background:#fff;color:var(--navy);box-shadow:0 3px 0 rgba(23,70,110,.12)
+}
+.choice-btn.correct{background:#CFF5DA;border-color:var(--green)}
+.choice-btn.wrong{background:#FFD5D3;border-color:var(--red)}
+.feedback{display:none;padding:10px;border-radius:14px;font-size:12px;line-height:1.65;font-weight:700}
+.feedback.good{display:block;background:#E8F9EE;border:2px solid var(--green)}
+.feedback.bad{display:block;background:#FFF0EF;border:2px solid var(--red)}
+.ledger-total{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.total-card{padding:9px 4px;border:2px solid var(--line);border-radius:13px;background:#F8FBFD;text-align:center}
+.total-label{color:var(--gray);font-size:10px;font-weight:900}.total-number{margin-top:3px;color:var(--navy);font-size:16px;font-weight:1000}
+.history-list{display:grid;gap:7px}.history-item{padding:8px;border:2px solid var(--line);border-radius:12px;font-size:11px}
+.history-main{color:var(--navy);font-weight:900}.history-sub{margin-top:3px;color:var(--gray)}
+.form-grid,.settings-list{display:grid;gap:8px}
+label{color:var(--navy);font-size:12px;font-weight:900}
+input,select{width:100%;min-height:43px;padding:8px 10px;border:2px solid var(--line);border-radius:12px;background:#fff}
+.setting{padding:9px;border:2px solid var(--line);border-radius:12px}
+.setting-title{color:var(--navy);font-size:12px;font-weight:1000}
+.setting-desc{margin:4px 0 7px;color:var(--gray);font-size:10px;line-height:1.5}
+.parent-lock{text-align:center;padding:20px 12px}
+.pin-dots{min-height:36px;color:var(--purple);font-size:24px;letter-spacing:8px}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:260px;margin:10px auto 0}
+.pin-btn{min-height:50px;border:2px solid #BCA7FF;border-radius:14px;background:#fff;color:var(--purple);font-size:18px}
+.footer-info{margin-top:auto;padding:10px 0 4px;color:#8A98A5;font-size:10px;line-height:1.5;text-align:center}
+ruby{ruby-align:center}rt{color:#6B7785;font-size:.52em;font-weight:700}
+.hidden{display:none!important}
+.floating-pokemon-wrap{
+  position:fixed;right:max(8px,calc((100vw - 520px)/2 + 8px));bottom:6px;z-index:20;
+  width:62px;height:62px;pointer-events:none;opacity:.92
+}
+.floating-pokemon{width:62px;height:62px}
+
+/* 株ゲーム：1画面完結 */
+.stock-setup-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stock-company-btn{
+  min-width:0;min-height:76px;padding:8px;border:3px solid var(--line);border-radius:15px;
+  background:#fff;color:var(--navy);font-weight:900;text-align:left
+}
+.stock-company-btn.selected{border-color:var(--green);background:#F1FFF6}
+.stock-company-name{font-size:13px}.stock-company-type{margin-top:3px;color:var(--gray);font-size:9px}
+.stock-game-screen{
+  height:calc(100dvh - 20px);min-height:0;overflow:hidden;gap:7px
+}
+.stock-game-screen .topbar{flex:0 0 auto}
+.stock-board{
+  flex:1;min-height:0;display:grid;grid-template-rows:auto auto 1fr auto;gap:7px;
+  padding:9px;border:3px solid #91C9FF;border-radius:18px;background:linear-gradient(#EAF8FF,#fff);
+  overflow:hidden
+}
+.stock-head{text-align:center}.stock-day{color:var(--navy);font-size:18px;font-weight:1000}
+.stock-company-line{margin-top:2px;color:var(--purple);font-size:13px;font-weight:900}
+.stock-event{
+  min-height:0;padding:9px;border:3px solid var(--gold);border-radius:15px;background:#fff;overflow:auto
+}
+.stock-event h2{margin:0;color:var(--navy);font-size:clamp(17px,5vw,21px);line-height:1.35}
+.stock-event p{margin:6px 0 0;font-size:12px;line-height:1.55;font-weight:700}
+.stock-price{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  color:var(--navy);font-size:clamp(20px,7vw,29px);font-weight:1000
+}
+.stock-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.stock-choice{
+  min-width:0;min-height:54px;padding:6px 3px;border-radius:14px;color:#fff;
+  box-shadow:0 4px 0 rgba(0,0,0,.14);font-size:clamp(11px,3vw,14px)
+}
+.stock-choice.up{background:var(--green)}.stock-choice.flat{background:#78909C}.stock-choice.down{background:var(--red)}
+.stock-feedback{
+  min-height:46px;padding:8px;border-radius:12px;background:#F5F7F9;
+  color:var(--navy);font-size:11px;line-height:1.45;font-weight:800
+}
+.stock-bottom{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.info-btn{
+  min-height:38px;border:0;border-radius:12px;background:#EFF3F6;color:var(--navy);font-weight:900
+}
+.modal{
+  position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(0,0,0,.48)
+}
+.modal.show{display:flex}
+.modal-box{
+  width:min(420px,100%);max-height:78dvh;overflow:auto;padding:16px;border-radius:20px;background:#fff;
+  box-shadow:0 10px 35px rgba(0,0,0,.25)
+}
+.modal-title{margin:0 0 8px;color:var(--navy);font-size:18px}.modal-text{font-size:13px;line-height:1.7}
+.modal-close{width:100%;margin-top:12px}
+@media(max-width:360px){
+  #app{padding:7px}.hero{padding-right:95px}.pokemon-wrap{width:86px;height:86px}.pokemon-img{width:82px;height:82px}
+  .menu-card{min-height:116px;padding:8px 5px}.jars{gap:5px}.jar{padding:7px 2px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="screen-home" class="screen active">
+    <div class="hero">
+      <h1 id="home-title"></h1>
+      <p id="home-copy"></p>
+      <div class="pokemon-wrap"><img id="pokemon-home" class="pokemon-img" alt="ポケモン"></div>
+    </div>
+
+    <div class="menu-grid">
+      <button class="menu-card" onclick="openScreen('screen-split')">
+        <span class="emoji">🍭🐷🌱</span>
+        <div class="menu-title" data-ruby="お金を分けよう"></div>
+        <div class="menu-desc" data-ruby="使う・貯める・育てるの違いを学ぼう"></div>
+      </button>
+      <button class="menu-card" onclick="openStockSetup()">
+        <span class="emoji">📈</span>
+        <div class="menu-title" data-ruby="株ゲーム"></div>
+        <div class="menu-desc" data-ruby="一つの会社を選んで値動きを考えよう"></div>
+      </button>
+      <button class="menu-card" onclick="startQuiz()">
+        <span class="emoji">❓</span>
+        <div class="menu-title" data-ruby="お金クイズ"></div>
+        <div class="menu-desc" data-ruby="使う・貯める・育てるを考えよう"></div>
+      </button>
+      <button class="menu-card" onclick="openAllowance()">
+        <span class="emoji">🪙</span>
+        <div class="menu-title" data-ruby="お小遣い帳"></div>
+        <div class="menu-desc" data-ruby="本物のお小遣いを三つの箱で見てみよう"></div>
+      </button>
+    </div>
+
+    <div class="warning" data-ruby="このゲームの株価は架空です。実際の株価や会社の成績とは関係ありません。"></div>
+    <button class="big-btn purple" onclick="openParentGate()" data-ruby="保護者モード"></button>
+    <footer class="footer-info"><div id="version-home"></div><div id="updated-home"></div></footer>
+  </section>
+
+  <section id="screen-split" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()" data-ruby="戻る"></button>
+      <div class="top-title" data-ruby="お金を分けよう"></div>
+      <div></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title" data-ruby="三百コインを三つに分けよう"></h2>
+      <div class="small-note" data-ruby="使うお金、貯めるお金、育てるお金を考えてみよう。百コインずつ動かせるよ。"></div>
+    </div>
+    <div class="jars">
+      <div class="jar spend"><div class="jar-icon">🍭</div><div class="jar-name" data-ruby="使う"></div><div class="jar-value" id="split-spend">100</div><div class="stepper"><button class="step-btn" onclick="changeSplit('spend',-100)">−</button><button class="step-btn" onclick="changeSplit('spend',100)">＋</button></div></div>
+      <div class="jar save"><div class="jar-icon">🐷</div><div class="jar-name" data-ruby="貯める"></div><div class="jar-value" id="split-save">100</div><div class="stepper"><button class="step-btn" onclick="changeSplit('save',-100)">−</button><button class="step-btn" onclick="changeSplit('save',100)">＋</button></div></div>
+      <div class="jar invest"><div class="jar-icon">🌱</div><div class="jar-name" data-ruby="育てる"></div><div class="jar-value" id="split-invest">100</div><div class="stepper"><button class="step-btn" onclick="changeSplit('invest',-100)">−</button><button class="step-btn" onclick="changeSplit('invest',100)">＋</button></div></div>
+    </div>
+    <div class="panel"><div class="panel-title" id="split-left"></div><div class="small-note" id="split-message"></div></div>
+    <button class="big-btn green" onclick="finishSplit()" data-ruby="これで決める"></button>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <section id="screen-stock-setup" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="goBack()" data-ruby="戻る"></button>
+      <div class="top-title" data-ruby="会社を選ぼう"></div>
+      <div></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title" data-ruby="応援する会社を一つ選ぼう"></h2>
+      <div class="small-note" data-ruby="会社を一つ選ぶだけで、すぐに遊べるよ。"></div>
+    </div>
+    <div id="stock-setup-list" class="stock-setup-list"></div>
+    <button class="big-btn green" id="start-stock-btn" onclick="startStockGame()" disabled data-ruby="ゲームを始める"></button>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <section id="screen-stock-game" class="screen stock-game-screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="confirmLeaveGame()" data-ruby="戻る"></button>
+      <div class="top-title" data-ruby="株ゲーム"></div>
+      <div></div>
+    </div>
+    <div class="stock-board">
+      <div class="stock-head">
+        <div class="stock-day" id="stock-day"></div>
+        <div class="stock-company-line" id="stock-company"></div>
+      </div>
+      <div class="stock-price"><span id="stock-before"></span><span>→</span><span id="stock-after">？</span></div>
+      <div class="stock-event">
+        <h2 id="stock-event-title"></h2>
+        <p id="stock-event-text"></p>
+        <div id="stock-feedback" class="stock-feedback" style="margin-top:8px"></div>
+      </div>
+      <div>
+        <div class="stock-choices" id="stock-choices">
+          <button class="stock-choice up" onclick="answerStock('up')" data-ruby="上がる"></button>
+          <button class="stock-choice flat" onclick="answerStock('flat')" data-ruby="変わらない"></button>
+          <button class="stock-choice down" onclick="answerStock('down')" data-ruby="下がる"></button>
+        </div>
+        <div class="stock-bottom" style="margin-top:7px">
+          <button class="info-btn" onclick="openInfo('why')" data-ruby="どうして？"></button>
+          <button class="info-btn" onclick="openInfo('parent')" data-ruby="大人向け"></button>
+        </div>
+        <button class="big-btn orange hidden" id="stock-next" style="width:100%;margin-top:7px" onclick="nextStockRound()" data-ruby="次へ"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="topbar"><button class="back-btn" onclick="goHome()" data-ruby="戻る"></button><div class="top-title" data-ruby="結果"></div><div></div></div>
+    <div class="hero"><h1 id="result-title"></h1><p id="result-copy"></p><div class="pokemon-wrap"><img id="pokemon-result" class="pokemon-img" alt="ポケモン"></div></div>
+    <div class="panel"><h2 class="panel-title" data-ruby="今回の学び"></h2><div id="result-learning" class="small-note"></div></div>
+    <button class="big-btn blue" onclick="openStockSetup()" data-ruby="もう一度遊ぶ"></button>
+    <button class="big-btn gray" onclick="goHome()" data-ruby="ホームへ戻る"></button>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <section id="screen-quiz" class="screen">
+    <div class="topbar"><button class="back-btn" onclick="goBack()" data-ruby="戻る"></button><div class="top-title" data-ruby="お金クイズ"></div><div></div></div>
+    <div class="summary-strip"><div class="pill" id="quiz-number"></div><div class="pill" id="quiz-score"></div></div>
+    <div class="panel"><div class="quiz-question" id="quiz-question"></div><div class="choice-list" id="quiz-choices"></div><div class="feedback" id="quiz-feedback"></div></div>
+    <button class="big-btn blue hidden" id="quiz-next" onclick="nextQuiz()" data-ruby="次の問題"></button>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <section id="screen-allowance" class="screen">
+    <div class="topbar"><button class="back-btn" onclick="goBack()" data-ruby="戻る"></button><div class="top-title" data-ruby="お小遣い帳"></div><div></div></div>
+    <div class="ledger-total">
+      <div class="total-card"><div class="total-label" data-ruby="使った"></div><div class="total-number" id="allow-spend">0</div></div>
+      <div class="total-card"><div class="total-label" data-ruby="貯めた"></div><div class="total-number" id="allow-save">0</div></div>
+      <div class="total-card"><div class="total-label" data-ruby="育てる分"></div><div class="total-number" id="allow-invest">0</div></div>
+    </div>
+    <div class="panel"><h2 class="panel-title" data-ruby="これまでの記録"></h2><div id="allowance-history" class="history-list"></div></div>
+    <div class="warning" data-ruby="金額の追加や削除は保護者モードで行います。実際の株の購入記録は保存しません。"></div>
+    <button class="big-btn purple" onclick="openParentGate()" data-ruby="保護者モードを開く"></button>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <section id="screen-parent-gate" class="screen">
+    <div class="topbar"><button class="back-btn" onclick="goBack()" data-ruby="戻る"></button><div class="top-title" data-ruby="保護者モード"></div><div></div></div>
+    <div class="panel parent-lock"><h2 class="panel-title" id="pin-title"></h2><div class="small-note" id="pin-desc"></div><div class="pin-dots" id="pin-dots"></div><div class="pin-grid" id="pin-grid"></div><div class="feedback" id="pin-feedback"></div></div>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <section id="screen-parent" class="screen">
+    <div class="topbar"><button class="back-btn" onclick="goHome()" data-ruby="戻る"></button><div class="top-title" data-ruby="保護者設定"></div><button class="icon-btn" onclick="lockParent()">🔒</button></div>
+    <div class="panel">
+      <h2 class="panel-title" data-ruby="お小遣いを記録する"></h2>
+      <div class="form-grid">
+        <div><label data-ruby="金額"></label><input id="entry-amount" type="number" min="1" step="10" inputmode="numeric" placeholder="100"></div>
+        <div><label data-ruby="分け方"></label><select id="entry-category"><option value="spend">つかった</option><option value="save">ためた</option><option value="invest">そだてる</option></select></div>
+        <div><label data-ruby="内容"></label><select id="entry-note"><option value="おこづかい">おこづかい</option><option value="おてつだい">おてつだい</option><option value="おかいもの">おかいもの</option><option value="プレゼント">プレゼント</option><option value="そのほか">そのほか</option></select></div>
+        <button class="big-btn green" onclick="addAllowanceEntry()" data-ruby="記録を追加する"></button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title" data-ruby="暗証番号を変える"></h2>
+      <div class="button-row"><input id="new-pin" type="password" maxlength="4" inputmode="numeric" placeholder="4けた"><button class="big-btn purple" onclick="changePin()" data-ruby="変更"></button></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title" data-ruby="データ管理"></h2>
+      <div class="button-row"><button class="big-btn red" onclick="resetGameData()" data-ruby="ゲームを初期化"></button><button class="big-btn red" onclick="resetAllowanceData()" data-ruby="お小遣い帳を初期化"></button></div>
+    </div>
+    <div class="panel"><h2 class="panel-title" data-ruby="保護者向けの注意"></h2><div class="small-note" data-ruby="この教材は、使う・貯める・育てるの違いを体験する学習用ゲームです。実在する会社名を使っていますが、出来事と値動きはすべて架空です。実際の投資判断には使わないでください。"></div></div>
+    <footer class="footer-info version-footer"></footer>
+  </section>
+
+  <div id="floating-pokemon-wrap" class="floating-pokemon-wrap hidden"><img id="pokemon-floating" class="pokemon-img floating-pokemon" alt="ポケモン"></div>
+</div>
+
+<div id="info-modal" class="modal" onclick="closeInfo(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2 class="modal-title" id="modal-title"></h2>
+    <div class="modal-text" id="modal-text"></div>
+    <button class="big-btn blue modal-close" onclick="closeInfo()" data-ruby="閉じる"></button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+const APP_VERSION='Ver. 1.1.0';
+const UPDATED_AT='更新日時：2026年6月10日';
+
+/* 漢字を含む語だけにルビを付けます。ひらがなやカタカナには付けません。 */
+const RUBY_WORDS={
+  'お金':'おかね','探検隊':'たんけんたい','分ける':'わける','使う':'つかう','貯める':'ためる','育てる':'そだてる',
+  '違い':'ちがい','学ぶ':'まなぶ','株':'かぶ','会社':'かいしゃ','応援':'おうえん','値動き':'ねうごき','考える':'かんがえる',
+  'お小遣い帳':'おこづかいちょう','本物':'ほんもの','三つ':'みっつ','箱':'はこ','保護者':'ほごしゃ','戻る':'もどる',
+  '三百':'さんびゃく','百':'ひゃく','全部':'ぜんぶ','決める':'きめる','選ぶ':'えらぶ','一つ':'ひとつ','始める':'はじめる',
+  '上がる':'あがる','下がる':'さがる','変わらない':'かわらない','大人向け':'おとなむけ','説明':'せつめい','次':'つぎ',
+  '結果':'けっか','今回':'こんかい','学び':'まなび','もう一度':'もういちど','遊ぶ':'あそぶ','問題':'もんだい',
+  '記録':'きろく','使った':'つかった','貯めた':'ためた','育てる分':'そだてるぶん','開く':'ひらく','金額':'きんがく',
+  '分け方':'わけかた','内容':'ないよう','追加':'ついか','暗証番号':'あんしょうばんごう','変更':'へんこう',
+  'データ管理':'でーたかんり','初期化':'しょきか','注意':'ちゅうい','実際':'じっさい','株価':'かぶか','架空':'かくう',
+  '成績':'せいせき','関係':'かんけい','投資判断':'とうしはんだん','出来事':'できごと','閉じる':'とじる',
+  '任天堂':'にんてんどう','良品計画':'りょうひんけいかく','トヨタ自動車':'とよたじどうしゃ',
+  '名古屋鉄道':'なごやてつどう','ブラザー工業':'ぶらざーこうぎょう','スギホールディングス':'すぎほーるでぃんぐす',
+  '中部電力':'ちゅうぶでんりょく','豊田通商':'とよたつうしょう','東京エレクトロン':'とうきょうえれくとろん',
+  '発売':'はつばい','遅れた':'おくれた','人気':'にんき','海外':'かいがい','新しい':'あたらしい','お店':'おみせ',
+  '材料':'ざいりょう','値段':'ねだん','部品':'ぶひん','工場':'こうじょう','電車':'でんしゃ','修理':'しゅうり',
+  '必要':'ひつよう','商品':'しょうひん','電気':'でんき','燃料':'ねんりょう','発電設備':'はつでんせつび',
+  '機械':'きかい','注文':'ちゅうもん','世界':'せかい','増えた':'ふえた','減った':'へった','同じ':'おなじ',
+  '正解':'せいかい','来月':'らいげつ','絵本':'えほん','取っておく':'とっておく','必ず':'かならず',
+  '絶対':'ぜったい','二つ':'ふたつ','影響':'えいきょう','小さく':'ちいさく','良い':'よい','最初':'さいしょ',
+  '四桁':'よんけた','入力':'にゅうりょく','保存':'ほぞん','好き':'すき','数字':'すうじ','設定':'せってい'
+};
+const RUBY_KEYS=Object.keys(RUBY_WORDS).sort((a,b)=>b.length-a.length);
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function rubyize(text){
+  let src=String(text??''),out='',i=0;
+  while(i<src.length){
+    let found='';
+    for(const key of RUBY_KEYS){if(src.startsWith(key,i)){found=key;break}}
+    if(found){out+=`<ruby>${escapeHtml(found)}<rt>${escapeHtml(RUBY_WORDS[found])}</rt></ruby>`;i+=found.length}
+    else{out+=escapeHtml(src[i]);i++}
+  }
+  return out;
+}
+function setRuby(id,text){const el=document.getElementById(id);if(el)el.innerHTML=rubyize(text)}
+function applyStaticRuby(){document.querySelectorAll('[data-ruby]').forEach(el=>el.innerHTML=rubyize(el.dataset.ruby))}
+
+const companies=[
+  {id:'nintendo',icon:'🎮',name:'任天堂',type:'ゲーム会社',events:[
+    {title:'新しいゲームが人気になった！',text:'たくさんの人がゲームを買ってくれたよ。',why:'売れる商品が増えると、会社の売上や利益が増えそうだと考える人がいるからだよ。',parent:'人気が出ても、開発費や広告費が大きいと利益が伸びない場合があります。',change:10},
+    {title:'新しいゲームの発売が遅れた',text:'楽しみにしていた人へ届ける日が先になったよ。',why:'商品を売れる日が遅くなると、会社にお金が入る時期も遅くなるかもしれないからだよ。',parent:'発売延期は売上の時期へ影響します。ただし、品質向上への期待から大きく下がらない場合もあります。',change:-10}
+  ]},
+  {id:'muji',icon:'🧺',name:'良品計画',type:'生活用品のお店',events:[
+    {title:'新しいお店ができた！',text:'買い物に来る人が増えるかもしれないね。',why:'お店が増えると、商品を買える場所も増えるからだよ。',parent:'新規出店には家賃、人件費、工事費が必要です。出店だけで株価が上がるとは限りません。',change:10},
+    {title:'材料の値段が高くなった',text:'同じ商品を作るのに、前よりお金がかかったよ。',why:'作るためのお金が増えると、会社に残る利益が少なくなることがあるからだよ。',parent:'値上げできるか、仕入れ方法を変えられるかによって影響は変わります。',change:-10}
+  ]},
+  {id:'toyota',icon:'🚗',name:'トヨタ自動車',type:'自動車・愛知',events:[
+    {title:'新しい車が人気になった！',text:'車を買いたい人が増えたよ。',why:'たくさん売れると、会社の売上や利益が増えるかもしれないからだよ。',parent:'販売台数だけでなく、車種ごとの利益や材料費も業績へ影響します。',change:10},
+    {title:'車を作る部品が足りない',text:'予定どおり車を作れなかったよ。',why:'商品を作れないと、売る数が減るかもしれないからだよ。',parent:'部品不足の影響は、在庫や代わりの仕入れ先によって変わります。',change:-10}
+  ]},
+  {id:'meitetsu',icon:'🚃',name:'名古屋鉄道',type:'鉄道・愛知',events:[
+    {title:'電車に乗る人が増えた！',text:'運賃のお金がたくさん入ったよ。',why:'利用する人が増えると、会社の売上も増えることがあるからだよ。',parent:'利用者が増えても、安全対策や車両整備などの費用が必要です。',change:10},
+    {title:'大きな修理が必要になった',text:'安全に走るため、たくさんのお金を使ったよ。',why:'修理のお金が増えると、会社に残る利益が少なくなることがあるからだよ。',parent:'安全への投資は長く続けるために必要です。短期の費用だけで会社の価値は決まりません。',change:-10}
+  ]},
+  {id:'brother',icon:'🖨️',name:'ブラザー工業',type:'機械・愛知',events:[
+    {title:'新しいプリンターが売れた！',text:'家や会社で使う人が増えたよ。',why:'商品が売れると、会社に入るお金が増えるかもしれないからだよ。',parent:'本体だけでなく、インクや保守サービスの利益も大切です。',change:10},
+    {title:'部品の値段が高くなった',text:'機械を作るためのお金が増えたよ。',why:'同じ値段で売ると、会社に残る利益が少なくなるかもしれないからだよ。',parent:'販売価格や仕入れ先を変えられるかで影響は変わります。',change:-10}
+  ]},
+  {id:'sugi',icon:'💊',name:'スギホールディングス',type:'薬局・愛知',events:[
+    {title:'薬や日用品がよく売れた！',text:'必要な物を買う人が増えたよ。',why:'売上や利益が増えるかもしれないと考える人がいるからだよ。',parent:'商品によって利益率が違うため、売上増加と利益増加は同じではありません。',change:10},
+    {title:'お店を作る費用が増えた',text:'新しいお店の準備に、予定よりお金がかかったよ。',why:'使うお金が増えると、しばらく利益が少なくなることがあるからだよ。',parent:'先に使うお金が、将来の成長につながる場合もあります。',change:-10}
+  ]},
+  {id:'kagome',icon:'🍅',name:'カゴメ',type:'食品・愛知',events:[
+    {title:'トマトジュースが人気になった！',text:'買って飲む人が増えたよ。',why:'商品がたくさん売れると、会社に入るお金が増えるかもしれないからだよ。',parent:'原料価格や広告費、物流費も利益へ影響します。',change:10},
+    {title:'トマトの値段が高くなった',text:'商品を作る材料に、前よりお金がかかったよ。',why:'作るお金が増えると、会社に残る利益が少なくなるかもしれないからだよ。',parent:'値上げや長期契約によって影響を小さくできる場合があります。',change:-10}
+  ]},
+  {id:'chuden',icon:'💡',name:'中部電力',type:'電力・愛知',events:[
+    {title:'電気を使う人が増えた',text:'売る電気の量が増えたよ。',why:'売上が増えることがあるからだよ。',parent:'使用量が増えても、燃料費や料金制度によって利益が増えない場合があります。',change:5},
+    {title:'燃料の値段が高くなった',text:'電気を作るためのお金が増えたよ。',why:'電気を作る費用が増えると、会社に残る利益が少なくなることがあるからだよ。',parent:'燃料費調整制度や発電方法によって影響は変わります。',change:-10}
+  ]},
+  {id:'toyotsu',icon:'🚢',name:'豊田通商',type:'商社・愛知',events:[
+    {title:'海外の仕事が増えた！',text:'世界のいろいろな場所で、品物を届ける仕事が増えたよ。',why:'仕事が増えると、会社の売上や利益が増えるかもしれないからだよ。',parent:'取引量だけでなく、為替や事業投資の結果も利益へ影響します。',change:10},
+    {title:'運ぶための費用が高くなった',text:'船や飛行機で届けるお金が増えたよ。',why:'品物を運ぶお金が増えると、利益が少なくなることがあるからだよ。',parent:'増えた費用を販売価格へ反映できるかで影響は変わります。',change:-10}
+  ]},
+  {id:'tel',icon:'🔬',name:'東京エレクトロン',type:'半導体の機械',events:[
+    {title:'機械の注文が増えた！',text:'小さな部品を作る会社が、新しい機械を欲しがったよ。',why:'注文が増えると、これから売上が増えるかもしれないからだよ。',parent:'注文があっても、納期やキャンセル、利益率の確認が必要です。',change:10},
+    {title:'世界で機械を買う会社が減った',text:'新しい工場を作る人が少なくなったよ。',why:'機械を売る相手が減ると、売上も少なくなるかもしれないからだよ。',parent:'半導体の市場は上がったり下がったりする波が大きい産業です。',change:-10}
+  ]}
+];
+
+const quizData=[
+  {q:'おもちゃを買うために、今日使ったお金はどれ？',opts:['使うお金','貯めるお金','育てるお金'],ans:0,explain:'今すぐ物を買ったり、楽しいことに使ったりするお金だよ。'},
+  {q:'来月ほしい絵本のために、取っておくお金はどれ？',opts:['使うお金','貯めるお金','育てるお金'],ans:1,explain:'あとで使うために残しておくのが、貯めるお金だよ。'},
+  {q:'会社を応援して、増えたり減ったりするお金はどれ？',opts:['使うお金','貯めるお金','育てるお金'],ans:2,explain:'育てるお金は、増えることも減ることもあるよ。'},
+  {q:'株は、いつでも必ず増える？',opts:['必ず増える','増える時も減る時もある','絶対に減らない'],ans:1,explain:'会社や世の中の出来事で、株の値段は上がったり下がったりするよ。'},
+  {q:'新しいお店ができたら、株は必ず上がる？',opts:['必ず上がる','必ず下がる','上がる時も下がる時もある'],ans:2,explain:'お客さんが増える期待もあるけれど、お店を作る費用もかかるよ。'}
+];
+
+let navStack=['screen-home'];
+let splitState={spend:100,save:100,invest:100};
+let selectedCompanyId='';
+let stockGame=null;
+let quizIndex=0,quizScore=0,quizLocked=false,pinInput='';
+const defaultSettings={pin:'2580',pinInitialized:false};
+function loadSettings(){return {...defaultSettings,...JSON.parse(localStorage.getItem('moneyExplorerSettings')||'{}')}}
+let settings=loadSettings();
+
+function showScreen(id,push=true){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(push&&navStack.at(-1)!==id)navStack.push(id);
+  window.scrollTo(0,0);
+  const floatWrap=document.getElementById('floating-pokemon-wrap');
+  const floating=!['screen-home','screen-result','screen-stock-game'].includes(id);
+  floatWrap.classList.toggle('hidden',!floating);
+  if(floating)fetchPokemon('pokemon-floating');
+  if(id==='screen-home')fetchPokemon('pokemon-home');
+  if(id==='screen-result')fetchPokemon('pokemon-result');
+}
+function openScreen(id){showScreen(id)}
+function goBack(){if(navStack.length>1)navStack.pop();showScreen(navStack.at(-1)||'screen-home',false)}
+function goHome(){navStack=['screen-home'];showScreen('screen-home',false);renderAllowance()}
+function addVersionInfo(){
+  document.getElementById('version-home').textContent=APP_VERSION;
+  setRuby('updated-home',UPDATED_AT);
+  document.querySelectorAll('.version-footer').forEach(el=>el.innerHTML=`${APP_VERSION}<br>${rubyize(UPDATED_AT)}`);
+}
+async function fetchPokemon(imgId){
+  const img=document.getElementById(imgId);if(!img)return;
+  try{
+    const id=Math.floor(Math.random()*151)+1;
+    const res=await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);if(!res.ok)throw Error();
+    const d=await res.json();
+    img.src=d.sprites?.versions?.['generation-v']?.['black-white']?.animated?.front_default||d.sprites?.front_default||'';
+  }catch{img.removeAttribute('src');img.alt='ポケモンを読み込めませんでした'}
+}
+function changeSplit(type,amount){
+  if(amount>0){
+    const donors=['spend','save','invest'].filter(t=>t!==type&&splitState[t]>=100);
+    if(!donors.length)return;
+    const donor=donors.sort((a,b)=>splitState[b]-splitState[a])[0];
+    splitState[donor]-=100;splitState[type]+=100;
+  }else{
+    if(splitState[type]<100)return;
+    const receiver=['spend','save','invest'].filter(t=>t!==type).sort((a,b)=>splitState[a]-splitState[b])[0];
+    splitState[type]-=100;splitState[receiver]+=100;
+  }
+  renderSplit();
+}
+function renderSplit(){
+  ['spend','save','invest'].forEach(k=>document.getElementById('split-'+k).textContent=splitState[k]);
+  setRuby('split-left',`全部で${splitState.spend+splitState.save+splitState.invest}コイン`);
+  let msg='三つの使い方を考えられているね。';
+  if(splitState.invest===300)msg='全部を育てるお金にすると、使いたい時のお金がなくなるよ。';
+  if(splitState.spend===300)msg='全部使うと、あとで使うお金や育てるお金が残らないよ。';
+  if(splitState.save===300)msg='全部貯めるのも一つの考え方。使う楽しみや育てる体験も考えてみよう。';
+  setRuby('split-message',msg);
+}
+function finishSplit(){confetti({particleCount:80,spread:60,origin:{y:.65}});localStorage.setItem('lastSplit',JSON.stringify(splitState));goHome()}
+
+function openStockSetup(){
+  selectedCompanyId='';
+  renderStockSetup();
+  showScreen('screen-stock-setup');
+}
+function renderStockSetup(){
+  const list=document.getElementById('stock-setup-list');
+  list.innerHTML=companies.map(c=>`
+    <button class="stock-company-btn ${selectedCompanyId===c.id?'selected':''}" onclick="selectCompany('${c.id}')">
+      <div class="stock-company-name">${c.icon} ${rubyize(c.name)}</div>
+      <div class="stock-company-type">${rubyize(c.type)}</div>
+    </button>`).join('');
+  document.getElementById('start-stock-btn').disabled=!selectedCompanyId;
+}
+function selectCompany(id){selectedCompanyId=id;renderStockSetup()}
+function startStockGame(){
+  if(!selectedCompanyId)return;
+  stockGame={company:companies.find(c=>c.id===selectedCompanyId),round:0,score:0,current:null,answered:false,price:500};
+  showScreen('screen-stock-game');nextStockRound();
+}
+function nextStockRound(){
+  if(stockGame.round>=3){finishStockGame();return}
+  stockGame.round++;stockGame.answered=false;
+  stockGame.current=stockGame.company.events[Math.floor(Math.random()*stockGame.company.events.length)];
+  document.getElementById('stock-day').innerHTML=rubyize(`${stockGame.round}問目 / 3問`);
+  document.getElementById('stock-company').innerHTML=`${stockGame.company.icon} ${rubyize(stockGame.company.name)}`;
+  document.getElementById('stock-before').textContent=`${stockGame.price}コイン`;
+  document.getElementById('stock-after').textContent='？';
+  setRuby('stock-event-title',stockGame.current.title);
+  setRuby('stock-event-text',stockGame.current.text);
+  setRuby('stock-feedback','上がる・変わらない・下がるのどれかを選んでね。');
+  document.querySelectorAll('.stock-choice').forEach(b=>b.disabled=false);
+  document.getElementById('stock-next').classList.add('hidden');
+}
+function answerStock(choice){
+  if(stockGame.answered)return;
+  stockGame.answered=true;
+  const change=stockGame.current.change;
+  const correct=change>0?'up':change<0?'down':'flat';
+  const old=stockGame.price;
+  stockGame.price=Math.max(10,Math.round(old*(1+change/100)));
+  document.getElementById('stock-after').textContent=`${stockGame.price}コイン`;
+  document.querySelectorAll('.stock-choice').forEach(b=>b.disabled=true);
+  if(choice===correct){stockGame.score++;setRuby('stock-feedback','正解！ '+stockGame.current.why);confetti({particleCount:45,spread:50,origin:{y:.72}})}
+  else setRuby('stock-feedback','今回は「'+(correct==='up'?'上がる':correct==='down'?'下がる':'変わらない')+'」だよ。'+stockGame.current.why);
+  const next=document.getElementById('stock-next');
+  next.classList.remove('hidden');
+  next.innerHTML=rubyize(stockGame.round>=3?'結果を見る':'次へ');
+}
+function openInfo(type){
+  if(!stockGame?.current)return;
+  setRuby('modal-title',type==='why'?'どうして？':'大人向けの説明');
+  setRuby('modal-text',type==='why'?stockGame.current.why:stockGame.current.parent);
+  document.getElementById('info-modal').classList.add('show');
+}
+function closeInfo(e){if(e&&e.target!==document.getElementById('info-modal'))return;document.getElementById('info-modal').classList.remove('show')}
+function finishStockGame(){
+  setRuby('result-title',stockGame.score===3?'ぜんぶ正解！':'よく考えたね！');
+  setRuby('result-copy',`3問のうち${stockGame.score}問正解したよ。最後は${stockGame.price}コインになったよ。`);
+  setRuby('result-learning','株価は、会社の出来事だけでなく、みんなの予想や費用などでも動くよ。良いニュースでも、必ず上がるわけではないんだ。');
+  confetti({particleCount:130,spread:85,origin:{y:.58}});
+  showScreen('screen-result');
+}
+function confirmLeaveGame(){if(confirm('株ゲームをやめますか？'))openStockSetup()}
+
+function startQuiz(){quizIndex=0;quizScore=0;showScreen('screen-quiz');renderQuiz()}
+function renderQuiz(){
+  if(quizIndex>=quizData.length){
+    setRuby('quiz-question',`おしまい！ ${quizData.length}問のうち${quizScore}問正解したよ。`);
+    document.getElementById('quiz-choices').innerHTML='';
+    const fb=document.getElementById('quiz-feedback');fb.className='feedback good';fb.innerHTML=rubyize('使う・貯める・育てるの違いを、これからも考えてみよう。');
+    document.getElementById('quiz-next').classList.add('hidden');confetti({particleCount:110,spread:70,origin:{y:.6}});return
+  }
+  quizLocked=false;const q=quizData[quizIndex];
+  setRuby('quiz-number',`${quizIndex+1}問目 / ${quizData.length}問`);setRuby('quiz-score',`${quizScore}問正解`);setRuby('quiz-question',q.q);
+  const choices=document.getElementById('quiz-choices');choices.innerHTML='';
+  q.opts.forEach((opt,i)=>{const b=document.createElement('button');b.className='choice-btn';b.innerHTML=rubyize(opt);b.onclick=()=>answerQuiz(i,b);choices.appendChild(b)});
+  const fb=document.getElementById('quiz-feedback');fb.className='feedback';fb.innerHTML='';document.getElementById('quiz-next').classList.add('hidden')
+}
+function answerQuiz(i,btn){
+  if(quizLocked)return;quizLocked=true;const q=quizData[quizIndex];const buttons=[...document.querySelectorAll('#quiz-choices .choice-btn')];
+  const fb=document.getElementById('quiz-feedback');
+  if(i===q.ans){quizScore++;btn.classList.add('correct');fb.className='feedback good';fb.innerHTML=rubyize('正解！ '+q.explain);confetti({particleCount:45,spread:50,origin:{y:.7}})}
+  else{btn.classList.add('wrong');buttons[q.ans]?.classList.add('correct');fb.className='feedback bad';fb.innerHTML=rubyize('もう一歩！ '+q.explain)}
+  setRuby('quiz-score',`${quizScore}問正解`);document.getElementById('quiz-next').classList.remove('hidden')
+}
+function nextQuiz(){quizIndex++;renderQuiz()}
+
+function loadAllowance(){return JSON.parse(localStorage.getItem('allowanceEntries')||'[]')}
+function saveAllowance(entries){localStorage.setItem('allowanceEntries',JSON.stringify(entries))}
+function openAllowance(){renderAllowance();showScreen('screen-allowance')}
+function renderAllowance(){
+  const entries=loadAllowance(),totals={spend:0,save:0,invest:0};entries.forEach(e=>totals[e.category]=(totals[e.category]||0)+e.amount);
+  setRuby('allow-spend',`${totals.spend}円`);setRuby('allow-save',`${totals.save}円`);setRuby('allow-invest',`${totals.invest}円`);
+  const list=document.getElementById('allowance-history');if(!list)return;
+  if(!entries.length){list.innerHTML=`<div class="small-note">${rubyize('まだ記録はありません。保護者モードから追加できます。')}</div>`;return}
+  const names={spend:'つかった',save:'ためた',invest:'そだてる'};
+  list.innerHTML=entries.slice().reverse().map(e=>`<div class="history-item"><div class="history-main">${rubyize(`${names[e.category]}：${e.amount}円`)}</div><div class="history-sub">${rubyize(`${e.note}・${e.date}`)}</div></div>`).join('')
+}
+function addAllowanceEntry(){
+  const amount=Number(document.getElementById('entry-amount').value),category=document.getElementById('entry-category').value,note=document.getElementById('entry-note').value;
+  if(!Number.isFinite(amount)||amount<=0){alert('金額を入力してください。');return}
+  const entries=loadAllowance();entries.push({id:Date.now(),amount:Math.round(amount),category,note,date:new Date().toLocaleDateString('ja-JP')});saveAllowance(entries);
+  document.getElementById('entry-amount').value='';renderAllowance();alert('記録を追加しました。')
+}
+function openParentGate(){pinInput='';renderPinGate();showScreen('screen-parent-gate')}
+function renderPinGate(){
+  settings=loadSettings();const first=!settings.pinInitialized;
+  setRuby('pin-title',first?'最初の暗証番号を決めよう':'暗証番号を入れてください');
+  setRuby('pin-desc',first?'好きな四桁を入力すると、保護者用の暗証番号として保存します。':'四桁の暗証番号を入力してください。');
+  document.getElementById('pin-dots').textContent='●'.repeat(pinInput.length)+'○'.repeat(4-pinInput.length);
+  const keys=[1,2,3,4,5,6,7,8,9,'消す',0,'決定'];
+  document.getElementById('pin-grid').innerHTML=keys.map(k=>`<button class="pin-btn" onclick="pressPin('${k}')">${rubyize(k)}</button>`).join('');
+  const fb=document.getElementById('pin-feedback');fb.className='feedback';fb.innerHTML=''
+}
+function pressPin(key){if(key==='消す')pinInput=pinInput.slice(0,-1);else if(key==='決定'){submitPin();return}else if(pinInput.length<4)pinInput+=key;renderPinGate()}
+function submitPin(){
+  if(pinInput.length!==4){const fb=document.getElementById('pin-feedback');fb.className='feedback bad';fb.innerHTML=rubyize('四桁を入力してください。');return}
+  settings=loadSettings();
+  if(!settings.pinInitialized){settings.pin=pinInput;settings.pinInitialized=true;localStorage.setItem('moneyExplorerSettings',JSON.stringify(settings));openParentPanel()}
+  else if(pinInput===settings.pin)openParentPanel();
+  else{const fb=document.getElementById('pin-feedback');fb.className='feedback bad';fb.innerHTML=rubyize('暗証番号が違います。');pinInput='';setTimeout(renderPinGate,700)}
+}
+function openParentPanel(){showScreen('screen-parent')}
+function lockParent(){pinInput='';goHome()}
+function changePin(){
+  const v=document.getElementById('new-pin').value.trim();if(!/^\d{4}$/.test(v)){alert('四桁の数字を入力してください。');return}
+  settings=loadSettings();settings.pin=v;settings.pinInitialized=true;localStorage.setItem('moneyExplorerSettings',JSON.stringify(settings));
+  document.getElementById('new-pin').value='';alert('暗証番号を変更しました。')
+}
+function resetGameData(){if(!confirm('ゲームの記録を初期化しますか？'))return;localStorage.removeItem('lastSplit');splitState={spend:100,save:100,invest:100};renderSplit();alert('ゲームを初期化しました。')}
+function resetAllowanceData(){if(!confirm('お小遣い帳の記録をすべて削除しますか？'))return;localStorage.removeItem('allowanceEntries');renderAllowance();alert('お小遣い帳を初期化しました。')}
+
+function init(){
+  applyStaticRuby();
+  setRuby('home-title','🪙 お金探検隊');
+  setRuby('home-copy','使う、貯める、育てる。三つのお金を、ゲームで楽しく学ぼう！');
+  addVersionInfo();renderSplit();renderAllowance();fetchPokemon('pokemon-home');
+}
+init();
+</script>
+</body>
+</html>
